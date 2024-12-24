@@ -24,11 +24,23 @@ services:
     ports:
       - 8080:8080
 
-  # Uncomment to use redis
-  # redis:
-  #   image: redis:7-alpine
-  #   ports:
-  #     - 6379:6379
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+    ports:
+      - "9000:9000"  # MinIO web interface
+      - "9001:9001"  # MinIO console (optional)
+    volumes:
+      - minio_data:/data
+    command: server /data
 
   api:
     build:
@@ -39,3 +51,4 @@ services:
 
 volumes:
   boilerplate-db:
+  minio_data:
