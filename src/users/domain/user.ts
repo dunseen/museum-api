@@ -1,5 +1,4 @@
 import { Exclude, Expose } from 'class-transformer';
-import { FileType } from '../../files/domain/file';
 import { Role } from '../../roles/domain/role';
 import { Status } from '../../statuses/domain/status';
 import { ApiProperty } from '@nestjs/swagger';
@@ -27,20 +26,6 @@ export class User {
 
   @ApiProperty({
     type: String,
-    example: 'email',
-  })
-  @Expose({ groups: ['me', 'admin'] })
-  provider: string;
-
-  @ApiProperty({
-    type: String,
-    example: '1234567890',
-  })
-  @Expose({ groups: ['me', 'admin'] })
-  socialId?: string | null;
-
-  @ApiProperty({
-    type: String,
     example: 'John',
   })
   firstName: string | null;
@@ -52,9 +37,10 @@ export class User {
   lastName: string | null;
 
   @ApiProperty({
-    type: () => FileType,
+    type: String,
+    example: '+1234567890',
   })
-  photo?: FileType | null;
+  phone: string | null;
 
   @ApiProperty({
     type: () => Role,

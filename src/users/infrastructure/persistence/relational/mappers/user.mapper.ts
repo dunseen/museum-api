@@ -1,5 +1,3 @@
-import { FileEntity } from '../../../../../files/infrastructure/persistence/relational/entities/file.entity';
-import { FileMapper } from '../../../../../files/infrastructure/persistence/relational/mappers/file.mapper';
 import { RoleEntity } from '../../../../../roles/infrastructure/persistence/relational/entities/role.entity';
 import { StatusEntity } from '../../../../../statuses/infrastructure/persistence/relational/entities/status.entity';
 import { User } from '../../../../domain/user';
@@ -12,13 +10,9 @@ export class UserMapper {
     domainEntity.email = raw.email;
     domainEntity.password = raw.password;
     domainEntity.previousPassword = raw.previousPassword;
-    domainEntity.provider = raw.provider;
-    domainEntity.socialId = raw.socialId;
     domainEntity.firstName = raw.firstName;
     domainEntity.lastName = raw.lastName;
-    if (raw.photo) {
-      domainEntity.photo = FileMapper.toDomain(raw.photo);
-    }
+    domainEntity.phone = raw.phone;
     domainEntity.role = raw.role;
     domainEntity.status = raw.status;
     domainEntity.createdAt = raw.createdAt;
@@ -35,16 +29,6 @@ export class UserMapper {
       role.id = Number(domainEntity.role.id);
     }
 
-    let photo: FileEntity | undefined | null = undefined;
-
-    if (domainEntity.photo) {
-      photo = new FileEntity();
-      photo.id = domainEntity.photo.id;
-      photo.path = domainEntity.photo.path;
-    } else if (domainEntity.photo === null) {
-      photo = null;
-    }
-
     let status: StatusEntity | undefined = undefined;
 
     if (domainEntity.status) {
@@ -59,11 +43,9 @@ export class UserMapper {
     persistenceEntity.email = domainEntity.email;
     persistenceEntity.password = domainEntity.password;
     persistenceEntity.previousPassword = domainEntity.previousPassword;
-    persistenceEntity.provider = domainEntity.provider;
-    persistenceEntity.socialId = domainEntity.socialId;
     persistenceEntity.firstName = domainEntity.firstName;
     persistenceEntity.lastName = domainEntity.lastName;
-    persistenceEntity.photo = photo;
+    persistenceEntity.phone = domainEntity.phone;
     persistenceEntity.role = role;
     persistenceEntity.status = status;
     persistenceEntity.createdAt = domainEntity.createdAt;

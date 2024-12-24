@@ -12,8 +12,6 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
-import { AuthProvidersEnum } from './auth-providers.enum';
-import { SocialInterface } from '../social/interfaces/social.interface';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { LoginResponseDto } from './dto/login-response.dto';
@@ -47,15 +45,6 @@ export class AuthService {
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         errors: {
           email: 'notFound',
-        },
-      });
-    }
-
-    if (user.provider !== AuthProvidersEnum.email) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errors: {
-          email: `needLoginViaProvider:${user.provider}`,
         },
       });
     }
@@ -103,91 +92,6 @@ export class AuthService {
     return {
       refreshToken,
       token,
-      tokenExpires,
-      user,
-    };
-  }
-
-  async validateSocialLogin(
-    authProvider: string,
-    socialData: SocialInterface,
-  ): Promise<LoginResponseDto> {
-    let user: NullableType<User> = null;
-    const socialEmail = socialData.email?.toLowerCase();
-    let userByEmail: NullableType<User> = null;
-
-    if (socialEmail) {
-      userByEmail = await this.usersService.findByEmail(socialEmail);
-    }
-
-    if (socialData.id) {
-      user = await this.usersService.findBySocialIdAndProvider({
-        socialId: socialData.id,
-        provider: authProvider,
-      });
-    }
-
-    if (user) {
-      if (socialEmail && !userByEmail) {
-        user.email = socialEmail;
-      }
-      await this.usersService.update(user.id, user);
-    } else if (userByEmail) {
-      user = userByEmail;
-    } else if (socialData.id) {
-      const role = {
-        id: RoleEnum.user,
-      };
-      const status = {
-        id: StatusEnum.active,
-      };
-
-      user = await this.usersService.create({
-        email: socialEmail ?? null,
-        firstName: socialData.firstName ?? null,
-        lastName: socialData.lastName ?? null,
-        socialId: socialData.id,
-        provider: authProvider,
-        role,
-        status,
-      });
-
-      user = await this.usersService.findById(user.id);
-    }
-
-    if (!user) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errors: {
-          user: 'userNotFound',
-        },
-      });
-    }
-
-    const hash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex');
-
-    const session = await this.sessionService.create({
-      user,
-      hash,
-    });
-
-    const {
-      token: jwtToken,
-      refreshToken,
-      tokenExpires,
-    } = await this.getTokensData({
-      id: user.id,
-      role: user.role,
-      sessionId: session.id,
-      hash,
-    });
-
-    return {
-      refreshToken,
-      token: jwtToken,
       tokenExpires,
       user,
     };

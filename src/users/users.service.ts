@@ -10,7 +10,6 @@ import { UserRepository } from './infrastructure/persistence/user.repository';
 import { User } from './domain/user';
 import bcrypt from 'bcryptjs';
 import { AuthProvidersEnum } from '../auth/auth-providers.enum';
-import { FilesService } from '../files/files.service';
 import { RoleEnum } from '../roles/roles.enum';
 import { StatusEnum } from '../statuses/statuses.enum';
 import { IPaginationOptions } from '../utils/types/pagination-options';
@@ -18,10 +17,7 @@ import { DeepPartial } from '../utils/types/deep-partial.type';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly usersRepository: UserRepository,
-    private readonly filesService: FilesService,
-  ) {}
+  constructor(private readonly usersRepository: UserRepository) {}
 
   async create(createProfileDto: CreateUserDto): Promise<User> {
     const clonedPayload = {
@@ -46,21 +42,6 @@ export class UsersService {
           },
         });
       }
-    }
-
-    if (clonedPayload.photo?.id) {
-      const fileObject = await this.filesService.findById(
-        clonedPayload.photo.id,
-      );
-      if (!fileObject) {
-        throw new UnprocessableEntityException({
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            photo: 'imageNotExists',
-          },
-        });
-      }
-      clonedPayload.photo = fileObject;
     }
 
     if (clonedPayload.role?.id) {
@@ -118,19 +99,6 @@ export class UsersService {
     return this.usersRepository.findByEmail(email);
   }
 
-  findBySocialIdAndProvider({
-    socialId,
-    provider,
-  }: {
-    socialId: User['socialId'];
-    provider: User['provider'];
-  }): Promise<NullableType<User>> {
-    return this.usersRepository.findBySocialIdAndProvider({
-      socialId,
-      provider,
-    });
-  }
-
   async update(
     id: User['id'],
     payload: DeepPartial<User>,
@@ -158,21 +126,6 @@ export class UsersService {
           },
         });
       }
-    }
-
-    if (clonedPayload.photo?.id) {
-      const fileObject = await this.filesService.findById(
-        clonedPayload.photo.id,
-      );
-      if (!fileObject) {
-        throw new UnprocessableEntityException({
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            photo: 'imageNotExists',
-          },
-        });
-      }
-      clonedPayload.photo = fileObject;
     }
 
     if (clonedPayload.role?.id) {

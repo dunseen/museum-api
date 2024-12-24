@@ -4,12 +4,11 @@ import { UsersController } from './users.controller';
 
 import { UsersService } from './users.service';
 import { RelationalUserPersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
-import { FilesModule } from '../files/files.module';
 
 const infrastructurePersistenceModule = RelationalUserPersistenceModule;
 
 @Module({
-  imports: [infrastructurePersistenceModule, FilesModule],
+  imports: [infrastructurePersistenceModule],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService, infrastructurePersistenceModule],

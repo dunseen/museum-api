@@ -22,7 +22,7 @@ export class RoleSeedService {
       await this.repository.save(
         this.repository.create({
           id: RoleEnum.user,
-          name: 'User',
+          name: 'USER',
         }),
       );
     }
@@ -37,7 +37,37 @@ export class RoleSeedService {
       await this.repository.save(
         this.repository.create({
           id: RoleEnum.admin,
-          name: 'Admin',
+          name: 'ADMIN',
+        }),
+      );
+    }
+
+    const countEditor = await this.repository.count({
+      where: {
+        id: RoleEnum.editor,
+      },
+    });
+
+    if (!countEditor) {
+      await this.repository.save(
+        this.repository.create({
+          id: RoleEnum.editor,
+          name: 'EDITOR',
+        }),
+      );
+    }
+
+    const countOperator = await this.repository.count({
+      where: {
+        id: RoleEnum.operator,
+      },
+    });
+
+    if (!countOperator) {
+      await this.repository.save(
+        this.repository.create({
+          id: RoleEnum.operator,
+          name: 'OPERATOR',
         }),
       );
     }
