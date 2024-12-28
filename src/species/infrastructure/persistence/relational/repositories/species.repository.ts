@@ -6,7 +6,10 @@ import { NullableType } from '../../../../../utils/types/nullable.type';
 import { Species } from '../../../../domain/species';
 import { SpeciesRepository } from '../../species.repository';
 import { SpeciesMapper } from '../mappers/species.mapper';
-import { IPaginationOptions } from '../../../../../utils/types/pagination-options';
+import {
+  IPaginationOptions,
+  WithCountList,
+} from '../../../../../utils/types/pagination-options';
 
 @Injectable()
 export class SpeciesRelationalRepository implements SpeciesRepository {
@@ -27,13 +30,13 @@ export class SpeciesRelationalRepository implements SpeciesRepository {
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }): Promise<Species[]> {
-    const entities = await this.speciesRepository.find({
+  }): Promise<WithCountList<Species>> {
+    const [entities, totalCount] = await this.speciesRepository.findAndCount({
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
       take: paginationOptions.limit,
     });
 
-    return entities.map((user) => SpeciesMapper.toDomain(user));
+    return [entities.map((user) => SpeciesMapper.toDomain(user)), totalCount];
   }
 
   async findById(id: Species['id']): Promise<NullableType<Species>> {

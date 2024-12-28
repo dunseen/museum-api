@@ -1,6 +1,9 @@
 import { DeepPartial } from '../../../utils/types/deep-partial.type';
 import { NullableType } from '../../../utils/types/nullable.type';
-import { IPaginationOptions } from '../../../utils/types/pagination-options';
+import {
+  IPaginationOptions,
+  WithCountList,
+} from '../../../utils/types/pagination-options';
 import { Species } from '../../domain/species';
 
 export abstract class SpeciesRepository {
@@ -12,7 +15,7 @@ export abstract class SpeciesRepository {
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }): Promise<Species[]>;
+  }): Promise<WithCountList<Species>>;
 
   abstract findById(id: Species['id']): Promise<NullableType<Species>>;
 

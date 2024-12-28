@@ -10,11 +10,11 @@ export class FindAll<%= h.inflection.transform(name, ['pluralize']) %>Dto {
   @Transform(({ value }) => (value ? Number(value) : 1))
   @IsNumber()
   @IsOptional()
-  page?: number;
+  page = 1;
 
   @ApiPropertyOptional()
   @Transform(({ value }) => (value ? Number(value) : 10))
   @IsNumber()
   @IsOptional()
-  limit?: number;
+  limit =  10;
 }

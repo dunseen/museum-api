@@ -1,9 +1,10 @@
 import { Type } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
+import { Pagination } from '../types/pagination-options';
 
 export class InfinityPaginationResponseDto<T> {
   data: T[];
-  hasNextPage: boolean;
+  pagination: Pagination;
 }
 
 export function InfinityPaginationResponse<T>(classReference: Type<T>) {

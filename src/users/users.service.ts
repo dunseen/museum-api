@@ -12,7 +12,10 @@ import bcrypt from 'bcryptjs';
 import { AuthProvidersEnum } from '../auth/auth-providers.enum';
 import { RoleEnum } from '../roles/roles.enum';
 import { StatusEnum } from '../statuses/statuses.enum';
-import { IPaginationOptions } from '../utils/types/pagination-options';
+import {
+  IPaginationOptions,
+  WithCountList,
+} from '../utils/types/pagination-options';
 import { DeepPartial } from '../utils/types/deep-partial.type';
 
 @Injectable()
@@ -83,7 +86,7 @@ export class UsersService {
     filterOptions?: FilterUserDto | null;
     sortOptions?: SortUserDto[] | null;
     paginationOptions: IPaginationOptions;
-  }): Promise<User[]> {
+  }): Promise<WithCountList<User>> {
     return this.usersRepository.findManyWithPagination({
       filterOptions,
       sortOptions,

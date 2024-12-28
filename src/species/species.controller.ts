@@ -53,17 +53,15 @@ export class SpeciesController {
   async findAll(
     @Query() query: FindAllSpeciesDto,
   ): Promise<InfinityPaginationResponseDto<Species>> {
-    const page = query?.page ?? 1;
-    let limit = query?.limit ?? 10;
-    if (limit > 50) {
-      limit = 50;
-    }
+    const page = query?.page;
+
+    const limit = query?.limit;
 
     return infinityPagination(
       await this.speciesService.findAllWithPagination({
         paginationOptions: {
-          page,
-          limit,
+          page: query?.page,
+          limit: query?.limit,
         },
       }),
       { page, limit },
