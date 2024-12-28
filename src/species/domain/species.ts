@@ -6,6 +6,16 @@ export class Species {
   })
   id: string;
 
+  @ApiProperty({
+    type: String,
+  })
+  scientificName: string;
+
+  @ApiProperty({
+    type: String,
+  })
+  commonName: string;
+
   @ApiProperty()
   createdAt: Date;
 

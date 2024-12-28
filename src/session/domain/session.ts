@@ -1,7 +1,7 @@
 import { User } from '../../users/domain/user';
 
 export class Session {
-  id: number | string;
+  id: string;
   user: User;
   hash: string;
   createdAt: Date;
