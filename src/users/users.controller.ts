@@ -73,8 +73,6 @@ export class UsersController {
     const page = query?.page;
     const limit = query?.limit;
 
-    console.log('query', query);
-
     return infinityPagination(
       await this.usersService.findManyWithPagination({
         filterOptions: query?.filters,

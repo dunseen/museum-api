@@ -27,10 +27,11 @@ import {
 } from '../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllSpeciesDto } from './dto/find-all-species.dto';
+import { RolesGuard } from '../roles/roles.guard';
+import { Roles } from '../roles/roles.decorator';
+import { RoleEnum } from '../roles/roles.enum';
 
 @ApiTags('Species')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'species',
   version: '1',
@@ -38,6 +39,9 @@ import { FindAllSpeciesDto } from './dto/find-all-species.dto';
 export class SpeciesController {
   constructor(private readonly speciesService: SpeciesService) {}
 
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @ApiCreatedResponse({
     type: Specie,
@@ -80,6 +84,9 @@ export class SpeciesController {
     return this.speciesService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch(':id')
   @ApiParam({
     name: 'id',
@@ -93,6 +100,9 @@ export class SpeciesController {
     return this.speciesService.update(id, updateSpecieDto);
   }
 
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')
   @ApiParam({
     name: 'id',
