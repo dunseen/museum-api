@@ -1,25 +1,25 @@
 import { DeepPartial } from '../../../utils/types/deep-partial.type';
 import { NullableType } from '../../../utils/types/nullable.type';
 import { IPaginationOptions } from '../../../utils/types/pagination-options';
-import { species } from '../../domain/species';
+import { Species } from '../../domain/species';
 
 export abstract class speciesRepository {
   abstract create(
-    data: Omit<species, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<species>;
+    data: Omit<Species, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<Species>;
 
   abstract findAllWithPagination({
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }): Promise<species[]>;
+  }): Promise<Species[]>;
 
-  abstract findById(id: species['id']): Promise<NullableType<species>>;
+  abstract findById(id: Species['id']): Promise<NullableType<Species>>;
 
   abstract update(
-    id: species['id'],
-    payload: DeepPartial<species>,
-  ): Promise<species | null>;
+    id: Species['id'],
+    payload: DeepPartial<Species>,
+  ): Promise<Species | null>;
 
-  abstract remove(id: species['id']): Promise<void>;
+  abstract remove(id: Species['id']): Promise<void>;
 }

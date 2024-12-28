@@ -1,9 +1,9 @@
-import { species } from '../../../../domain/species';
+import { Species } from '../../../../domain/species';
 import { speciesEntity } from '../entities/species.entity';
 
 export class speciesMapper {
-  static toDomain(raw: speciesEntity): species {
-    const domainEntity = new species();
+  static toDomain(raw: speciesEntity): Species {
+    const domainEntity = new Species();
     domainEntity.id = raw.id;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
@@ -11,7 +11,7 @@ export class speciesMapper {
     return domainEntity;
   }
 
-  static toPersistence(domainEntity: species): speciesEntity {
+  static toPersistence(domainEntity: Species): speciesEntity {
     const persistenceEntity = new speciesEntity();
     if (domainEntity.id) {
       persistenceEntity.id = domainEntity.id;

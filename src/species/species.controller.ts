@@ -19,7 +19,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { species } from './domain/species';
+import { Species } from './domain/species';
 import { AuthGuard } from '@nestjs/passport';
 import {
   InfinityPaginationResponse,
@@ -40,7 +40,7 @@ export class speciesController {
 
   @Post()
   @ApiCreatedResponse({
-    type: species,
+    type: Species,
   })
   create(@Body() createspeciesDto: CreatespeciesDto) {
     return this.speciesService.create(createspeciesDto);
@@ -48,11 +48,11 @@ export class speciesController {
 
   @Get()
   @ApiOkResponse({
-    type: InfinityPaginationResponse(species),
+    type: InfinityPaginationResponse(Species),
   })
   async findAll(
     @Query() query: FindAllspeciesDto,
-  ): Promise<InfinityPaginationResponseDto<species>> {
+  ): Promise<InfinityPaginationResponseDto<Species>> {
     const page = query?.page ?? 1;
     let limit = query?.limit ?? 10;
     if (limit > 50) {
@@ -77,7 +77,7 @@ export class speciesController {
     required: true,
   })
   @ApiOkResponse({
-    type: species,
+    type: Species,
   })
   findOne(@Param('id') id: string) {
     return this.speciesService.findOne(id);
@@ -90,7 +90,7 @@ export class speciesController {
     required: true,
   })
   @ApiOkResponse({
-    type: species,
+    type: Species,
   })
   update(@Param('id') id: string, @Body() updatespeciesDto: UpdatespeciesDto) {
     return this.speciesService.update(id, updatespeciesDto);

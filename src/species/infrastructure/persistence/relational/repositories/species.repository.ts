@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { speciesEntity } from '../entities/species.entity';
 import { NullableType } from '../../../../../utils/types/nullable.type';
-import { species } from '../../../../domain/species';
+import { Species } from '../../../../domain/species';
 import { speciesRepository } from '../../species.repository';
 import { speciesMapper } from '../mappers/species.mapper';
 import { IPaginationOptions } from '../../../../../utils/types/pagination-options';
@@ -15,7 +15,7 @@ export class speciesRelationalRepository implements speciesRepository {
     private readonly speciesRepository: Repository<speciesEntity>,
   ) {}
 
-  async create(data: species): Promise<species> {
+  async create(data: Species): Promise<Species> {
     const persistenceModel = speciesMapper.toPersistence(data);
     const newEntity = await this.speciesRepository.save(
       this.speciesRepository.create(persistenceModel),
@@ -27,7 +27,7 @@ export class speciesRelationalRepository implements speciesRepository {
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }): Promise<species[]> {
+  }): Promise<Species[]> {
     const entities = await this.speciesRepository.find({
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
       take: paginationOptions.limit,
@@ -36,7 +36,7 @@ export class speciesRelationalRepository implements speciesRepository {
     return entities.map((user) => speciesMapper.toDomain(user));
   }
 
-  async findById(id: species['id']): Promise<NullableType<species>> {
+  async findById(id: Species['id']): Promise<NullableType<Species>> {
     const entity = await this.speciesRepository.findOne({
       where: { id },
     });
@@ -44,7 +44,7 @@ export class speciesRelationalRepository implements speciesRepository {
     return entity ? speciesMapper.toDomain(entity) : null;
   }
 
-  async update(id: species['id'], payload: Partial<species>): Promise<species> {
+  async update(id: Species['id'], payload: Partial<Species>): Promise<Species> {
     const entity = await this.speciesRepository.findOne({
       where: { id },
     });
@@ -65,7 +65,7 @@ export class speciesRelationalRepository implements speciesRepository {
     return speciesMapper.toDomain(updatedEntity);
   }
 
-  async remove(id: species['id']): Promise<void> {
+  async remove(id: Species['id']): Promise<void> {
     await this.speciesRepository.delete(id);
   }
 }
