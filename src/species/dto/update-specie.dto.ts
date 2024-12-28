@@ -2,6 +2,6 @@
 // import { Allow } from 'class-validator';
 
 import { PartialType } from '@nestjs/swagger';
-import { CreateSpeciesDto } from './create-species.dto';
+import { CreateSpecieDto } from './create-specie.dto';
 
-export class UpdateSpeciesDto extends PartialType(CreateSpeciesDto) {}
+export class UpdateSpecieDto extends PartialType(CreateSpecieDto) {}

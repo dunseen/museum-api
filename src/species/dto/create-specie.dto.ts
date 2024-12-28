@@ -1,4 +1,4 @@
-export class CreateSpeciesDto {
+export class CreateSpecieDto {
   scientificName: string;
   commonName: string;
 }

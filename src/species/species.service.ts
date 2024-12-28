@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSpeciesDto } from './dto/create-species.dto';
-import { UpdateSpeciesDto } from './dto/update-species.dto';
-import { SpeciesRepository } from './infrastructure/persistence/species.repository';
+import { CreateSpecieDto } from './dto/create-specie.dto';
+import { UpdateSpecieDto } from './dto/update-specie.dto';
+import { SpecieRepository } from './infrastructure/persistence/specie.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
-import { Species } from './domain/species';
+import { Specie } from './domain/specie';
 
 @Injectable()
 export class SpeciesService {
-  constructor(private readonly speciesRepository: SpeciesRepository) {}
+  constructor(private readonly specieRepository: SpecieRepository) {}
 
-  create(createspeciesDto: CreateSpeciesDto) {
-    return this.speciesRepository.create(createspeciesDto);
+  create(createSpecieDto: CreateSpecieDto) {
+    return this.specieRepository.create(createSpecieDto);
   }
 
   findAllWithPagination({
@@ -18,7 +18,7 @@ export class SpeciesService {
   }: {
     paginationOptions: IPaginationOptions;
   }) {
-    return this.speciesRepository.findAllWithPagination({
+    return this.specieRepository.findAllWithPagination({
       paginationOptions: {
         page: paginationOptions.page,
         limit: paginationOptions.limit,
@@ -26,15 +26,15 @@ export class SpeciesService {
     });
   }
 
-  findOne(id: Species['id']) {
-    return this.speciesRepository.findById(id);
+  findOne(id: Specie['id']) {
+    return this.specieRepository.findById(id);
   }
 
-  update(id: Species['id'], updatespeciesDto: UpdateSpeciesDto) {
-    return this.speciesRepository.update(id, updatespeciesDto);
+  update(id: Specie['id'], updateSpecieDto: UpdateSpecieDto) {
+    return this.specieRepository.update(id, updateSpecieDto);
   }
 
-  remove(id: Species['id']) {
-    return this.speciesRepository.remove(id);
+  remove(id: Specie['id']) {
+    return this.specieRepository.remove(id);
   }
 }

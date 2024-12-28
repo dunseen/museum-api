@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SpeciesService } from './species.service';
 import { SpeciesController } from './species.controller';
-import { RelationalSpeciesPersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalSpeciePersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
 
 @Module({
-  imports: [RelationalSpeciesPersistenceModule],
+  imports: [RelationalSpeciePersistenceModule],
   controllers: [SpeciesController],
   providers: [SpeciesService],
-  exports: [SpeciesService, RelationalSpeciesPersistenceModule],
+  exports: [SpeciesService, RelationalSpeciePersistenceModule],
 })
 export class SpeciesModule {}

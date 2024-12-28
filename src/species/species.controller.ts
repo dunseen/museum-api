@@ -10,8 +10,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { SpeciesService } from './species.service';
-import { CreateSpeciesDto } from './dto/create-species.dto';
-import { UpdateSpeciesDto } from './dto/update-species.dto';
+import { CreateSpecieDto } from './dto/create-specie.dto';
+import { UpdateSpecieDto } from './dto/update-specie.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -19,7 +19,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Species } from './domain/species';
+import { Specie } from './domain/specie';
 import { AuthGuard } from '@nestjs/passport';
 import {
   InfinityPaginationResponse,
@@ -40,28 +40,27 @@ export class SpeciesController {
 
   @Post()
   @ApiCreatedResponse({
-    type: Species,
+    type: Specie,
   })
-  create(@Body() createspeciesDto: CreateSpeciesDto) {
-    return this.speciesService.create(createspeciesDto);
+  create(@Body() createSpecieDto: CreateSpecieDto) {
+    return this.speciesService.create(createSpecieDto);
   }
 
   @Get()
   @ApiOkResponse({
-    type: InfinityPaginationResponse(Species),
+    type: InfinityPaginationResponse(Specie),
   })
   async findAll(
     @Query() query: FindAllSpeciesDto,
-  ): Promise<InfinityPaginationResponseDto<Species>> {
+  ): Promise<InfinityPaginationResponseDto<Specie>> {
     const page = query?.page;
-
     const limit = query?.limit;
 
     return infinityPagination(
       await this.speciesService.findAllWithPagination({
         paginationOptions: {
-          page: query?.page,
-          limit: query?.limit,
+          page,
+          limit,
         },
       }),
       { page, limit },
@@ -75,7 +74,7 @@ export class SpeciesController {
     required: true,
   })
   @ApiOkResponse({
-    type: Species,
+    type: Specie,
   })
   findOne(@Param('id') id: string) {
     return this.speciesService.findOne(id);
@@ -88,10 +87,10 @@ export class SpeciesController {
     required: true,
   })
   @ApiOkResponse({
-    type: Species,
+    type: Specie,
   })
-  update(@Param('id') id: string, @Body() updatespeciesDto: UpdateSpeciesDto) {
-    return this.speciesService.update(id, updatespeciesDto);
+  update(@Param('id') id: string, @Body() updateSpecieDto: UpdateSpecieDto) {
+    return this.speciesService.update(id, updateSpecieDto);
   }
 
   @Delete(':id')

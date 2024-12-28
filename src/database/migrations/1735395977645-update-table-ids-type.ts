@@ -5,9 +5,6 @@ export class UpdateTableIdsType1735395977645 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "species" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_ae6a87f2423ba6c25dc43c32770" PRIMARY KEY ("id"))`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "session" DROP CONSTRAINT "FK_3d2f174ef04fb312fdebd0ddc53"`,
     );
     await queryRunner.query(
@@ -74,6 +71,5 @@ export class UpdateTableIdsType1735395977645 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "session" ADD CONSTRAINT "FK_3d2f174ef04fb312fdebd0ddc53" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
-    await queryRunner.query(`DROP TABLE "species"`);
   }
 }

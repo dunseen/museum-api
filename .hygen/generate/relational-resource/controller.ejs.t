@@ -56,11 +56,8 @@ export class <%= h.inflection.transform(name, ['pluralize']) %>Controller {
   async findAll(
     @Query() query: FindAll<%= h.inflection.transform(name, ['pluralize']) %>Dto,
   ): Promise<InfinityPaginationResponseDto<<%= name %>>> {
-    const page = query?.page ?? 1;
-    let limit = query?.limit ?? 10;
-    if (limit > 50) {
-      limit = 50;
-    }
+    const page = query?.page;
+    const limit = query?.limit;
 
     return infinityPagination(
       await this.<%= h.inflection.camelize(h.inflection.pluralize(name), true) %>Service.findAllWithPagination({
