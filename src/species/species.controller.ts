@@ -9,9 +9,9 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { speciesService } from './species.service';
-import { CreatespeciesDto } from './dto/create-species.dto';
-import { UpdatespeciesDto } from './dto/update-species.dto';
+import { SpeciesService } from './species.service';
+import { CreateSpeciesDto } from './dto/create-species.dto';
+import { UpdateSpeciesDto } from './dto/update-species.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -26,7 +26,7 @@ import {
   InfinityPaginationResponseDto,
 } from '../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../utils/infinity-pagination';
-import { FindAllspeciesDto } from './dto/find-all-species.dto';
+import { FindAllSpeciesDto } from './dto/find-all-species.dto';
 
 @ApiTags('Species')
 @ApiBearerAuth()
@@ -35,14 +35,14 @@ import { FindAllspeciesDto } from './dto/find-all-species.dto';
   path: 'species',
   version: '1',
 })
-export class speciesController {
-  constructor(private readonly speciesService: speciesService) {}
+export class SpeciesController {
+  constructor(private readonly speciesService: SpeciesService) {}
 
   @Post()
   @ApiCreatedResponse({
     type: Species,
   })
-  create(@Body() createspeciesDto: CreatespeciesDto) {
+  create(@Body() createspeciesDto: CreateSpeciesDto) {
     return this.speciesService.create(createspeciesDto);
   }
 
@@ -51,7 +51,7 @@ export class speciesController {
     type: InfinityPaginationResponse(Species),
   })
   async findAll(
-    @Query() query: FindAllspeciesDto,
+    @Query() query: FindAllSpeciesDto,
   ): Promise<InfinityPaginationResponseDto<Species>> {
     const page = query?.page ?? 1;
     let limit = query?.limit ?? 10;
@@ -92,7 +92,7 @@ export class speciesController {
   @ApiOkResponse({
     type: Species,
   })
-  update(@Param('id') id: string, @Body() updatespeciesDto: UpdatespeciesDto) {
+  update(@Param('id') id: string, @Body() updatespeciesDto: UpdateSpeciesDto) {
     return this.speciesService.update(id, updatespeciesDto);
   }
 

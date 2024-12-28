@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { CreatespeciesDto } from './dto/create-species.dto';
-import { UpdatespeciesDto } from './dto/update-species.dto';
-import { speciesRepository } from './infrastructure/persistence/species.repository';
+import { CreateSpeciesDto } from './dto/create-species.dto';
+import { UpdateSpeciesDto } from './dto/update-species.dto';
+import { SpeciesRepository } from './infrastructure/persistence/species.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { Species } from './domain/species';
 
 @Injectable()
-export class speciesService {
-  constructor(private readonly speciesRepository: speciesRepository) {}
+export class SpeciesService {
+  constructor(private readonly speciesRepository: SpeciesRepository) {}
 
-  create(createspeciesDto: CreatespeciesDto) {
+  create(createspeciesDto: CreateSpeciesDto) {
     return this.speciesRepository.create(createspeciesDto);
   }
 
@@ -30,7 +30,7 @@ export class speciesService {
     return this.speciesRepository.findById(id);
   }
 
-  update(id: Species['id'], updatespeciesDto: UpdatespeciesDto) {
+  update(id: Species['id'], updatespeciesDto: UpdateSpeciesDto) {
     return this.speciesRepository.update(id, updatespeciesDto);
   }
 

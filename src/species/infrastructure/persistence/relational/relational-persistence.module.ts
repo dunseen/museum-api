@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
-import { speciesRepository } from '../species.repository';
-import { speciesRelationalRepository } from './repositories/species.repository';
+import { SpeciesRepository } from '../species.repository';
+import { SpeciesRelationalRepository } from './repositories/species.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { speciesEntity } from './entities/species.entity';
+import { SpeciesEntity } from './entities/species.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([speciesEntity])],
+  imports: [TypeOrmModule.forFeature([SpeciesEntity])],
   providers: [
     {
-      provide: speciesRepository,
-      useClass: speciesRelationalRepository,
+      provide: SpeciesRepository,
+      useClass: SpeciesRelationalRepository,
     },
   ],
-  exports: [speciesRepository],
+  exports: [SpeciesRepository],
 })
-export class RelationalspeciesPersistenceModule {}
+export class RelationalSpeciesPersistenceModule {}

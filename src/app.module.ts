@@ -27,11 +27,11 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
   },
 });
 
-import { speciesModule } from './species/species.module';
+import { SpeciesModule } from './species/species.module';
 
 @Module({
   imports: [
-    speciesModule,
+    SpeciesModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, authConfig, appConfig, mailConfig, fileConfig],

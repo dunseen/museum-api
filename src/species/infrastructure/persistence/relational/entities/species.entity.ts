@@ -10,7 +10,7 @@ import { ApiProperty } from '@nestjs/swagger';
 @Entity({
   name: 'species',
 })
-export class speciesEntity extends EntityRelationalHelper {
+export class SpeciesEntity extends EntityRelationalHelper {
   @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
