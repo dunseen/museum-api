@@ -70,6 +70,14 @@ class EnvironmentVariablesValidator {
   @IsString()
   @IsOptional()
   DATABASE_CERT: string;
+
+  @IsString()
+  @IsOptional()
+  REDIS_HOST: string;
+
+  @IsString()
+  @IsOptional()
+  REDIS_PORT: string;
 }
 
 export default registerAs<DatabaseConfig>('database', () => {
@@ -95,5 +103,7 @@ export default registerAs<DatabaseConfig>('database', () => {
     ca: process.env.DATABASE_CA,
     key: process.env.DATABASE_KEY,
     cert: process.env.DATABASE_CERT,
+    redisHost: process.env.REDIS_HOST,
+    redisPort: Number(process.env.REDIS_PORT),
   };
 });

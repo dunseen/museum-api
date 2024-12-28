@@ -52,6 +52,14 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
             }
           : undefined,
       },
+      cache: {
+        type: 'ioredis',
+        duration: 60 * 1000,
+        options: {
+          host: this.configService.get('database.redisHost', { infer: true }),
+          port: this.configService.get('database.redisPort', { infer: true }),
+        },
+      },
     } as TypeOrmModuleOptions;
   }
 }
