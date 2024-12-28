@@ -1,5 +1,6 @@
 services:
   postgres:
+    container_name: museum-db
     image: postgres:16.3-alpine
     ports:
       - ${DATABASE_PORT}:5432
@@ -11,6 +12,7 @@ services:
       POSTGRES_DB: ${DATABASE_NAME}
 
   maildev:
+    container_name: maildev
     build:
       context: .
       dockerfile: maildev.Dockerfile
@@ -18,34 +20,33 @@ services:
       - ${MAIL_CLIENT_PORT}:1080
       - ${MAIL_PORT}:1025
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-
   redis:
+    container_name: museum-cache
     image: redis:7-alpine
     ports:
       - 6379:6379
 
   minio:
     image: minio/minio:latest
-    container_name: minio
+    container_name: museum-storage
     environment:
       - MINIO_ROOT_USER=minio
       - MINIO_ROOT_PASSWORD=minio123
     ports:
-      - "9000:9000"  # MinIO web interface
-      - "9001:9001"  # MinIO console (optional)
+      - '9000:9000' # MinIO web interface
+      - '9001:9001' # MinIO console (optional)
     volumes:
       - minio_data:/data
     command: server /data
 
   api:
+    container_name: museum-api
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: Dockerfile
+
     ports:
       - ${APP_PORT}:${APP_PORT}
 
