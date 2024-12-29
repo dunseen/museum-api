@@ -29,8 +29,14 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
 
 import { SpeciesModule } from './species/species.module';
 
+import { TaxonsModule } from './taxons/taxons.module';
+
+import { HierarchiesModule } from './hierarchies/hierarchies.module';
+
 @Module({
   imports: [
+    HierarchiesModule,
+    TaxonsModule,
     SpeciesModule,
     ConfigModule.forRoot({
       isGlobal: true,

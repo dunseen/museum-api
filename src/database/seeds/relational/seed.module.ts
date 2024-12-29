@@ -10,8 +10,14 @@ import { UserSeedModule } from './user/user-seed.module';
 import databaseConfig from '../../config/database.config';
 import appConfig from '../../../config/app.config';
 
+import { TaxonSeedModule } from './taxon/taxon-seed.module';
+
+import { HierarchySeedModule } from './hierarchy/hierarchy-seed.module';
+
 @Module({
   imports: [
+    HierarchySeedModule,
+    TaxonSeedModule,
     RoleSeedModule,
     StatusSeedModule,
     UserSeedModule,
