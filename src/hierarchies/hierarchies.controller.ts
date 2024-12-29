@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { HierarchiesService } from './hierarchies.service';
 import { CreateHierarchyDto } from './dto/create-hierarchy.dto';
@@ -21,16 +20,11 @@ import {
 } from '@nestjs/swagger';
 import { Hierarchy } from './domain/hierarchy';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  InfinityPaginationResponse,
-  InfinityPaginationResponseDto,
-} from '../utils/dto/infinity-pagination-response.dto';
-import { infinityPagination } from '../utils/infinity-pagination';
-import { FindAllHierarchiesDto } from './dto/find-all-hierarchies.dto';
+import { RolesGuard } from '../roles/roles.guard';
+import { Roles } from '../roles/roles.decorator';
+import { RoleEnum } from '../roles/roles.enum';
 
 @ApiTags('Hierarchies')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'hierarchies',
   version: '1',
@@ -38,7 +32,10 @@ import { FindAllHierarchiesDto } from './dto/find-all-hierarchies.dto';
 export class HierarchiesController {
   constructor(private readonly hierarchiesService: HierarchiesService) {}
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
+  @ApiBearerAuth()
   @ApiCreatedResponse({
     type: Hierarchy,
   })
@@ -48,23 +45,11 @@ export class HierarchiesController {
 
   @Get()
   @ApiOkResponse({
-    type: InfinityPaginationResponse(Hierarchy),
+    type: Hierarchy,
+    isArray: true,
   })
-  async findAll(
-    @Query() query: FindAllHierarchiesDto,
-  ): Promise<InfinityPaginationResponseDto<Hierarchy>> {
-    const page = query?.page;
-    const limit = query?.limit;
-
-    return infinityPagination(
-      await this.hierarchiesService.findAllWithPagination({
-        paginationOptions: {
-          page,
-          limit,
-        },
-      }),
-      { page, limit },
-    );
+  findAll(): Promise<Hierarchy[]> {
+    return this.hierarchiesService.findAll();
   }
 
   @Get(':id')
@@ -80,7 +65,10 @@ export class HierarchiesController {
     return this.hierarchiesService.findOne(id);
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -96,7 +84,10 @@ export class HierarchiesController {
     return this.hierarchiesService.update(id, updateHierarchyDto);
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,

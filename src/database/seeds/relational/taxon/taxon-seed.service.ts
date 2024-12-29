@@ -18,27 +18,21 @@ export class TaxonSeedService {
       const taxons = [
         {
           name: 'plantae',
-          hierarchy: 1,
         },
         {
           name: 'magnoliophyta',
-          hierarchy: 2,
         },
         {
           name: 'magnoliopsida',
-          hierarchy: 3,
         },
         {
           name: 'caryophyllales',
-          hierarchy: 4,
         },
         {
           name: 'amaranthaceae',
-          hierarchy: 5,
         },
         {
           name: 'gomphrena',
-          hierarchy: 6,
         },
       ];
 
@@ -54,7 +48,7 @@ export class TaxonSeedService {
           parent = new TaxonEntity();
           parent.id = index;
         }
-
+        tax.id = index + 1;
         tax.name = taxon.name;
         tax.hierarchy = hierarchy;
         tax.parent = parent;

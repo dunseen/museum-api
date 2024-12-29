@@ -1,3 +1,20 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
+
 export class CreateTaxonDto {
-  // Don't forget to use the class-validator decorators in the DTO properties.
+  @ApiProperty({
+    type: String,
+  })
+  name: string;
+
+  @ApiProperty({
+    type: Number,
+  })
+  hierarchyId: number;
+
+  @ApiProperty({
+    type: Number,
+  })
+  @IsOptional()
+  parentId: number | null;
 }

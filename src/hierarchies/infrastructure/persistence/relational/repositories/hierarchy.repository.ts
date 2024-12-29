@@ -6,10 +6,6 @@ import { NullableType } from '../../../../../utils/types/nullable.type';
 import { Hierarchy } from '../../../../domain/hierarchy';
 import { HierarchyRepository } from '../../hierarchy.repository';
 import { HierarchyMapper } from '../mappers/hierarchy.mapper';
-import {
-  IPaginationOptions,
-  WithCountList,
-} from '../../../../../utils/types/pagination-options';
 
 @Injectable()
 export class HierarchyRelationalRepository implements HierarchyRepository {
@@ -17,6 +13,9 @@ export class HierarchyRelationalRepository implements HierarchyRepository {
     @InjectRepository(HierarchyEntity)
     private readonly hierarchyRepository: Repository<HierarchyEntity>,
   ) {}
+  findAll(): Promise<Hierarchy[]> {
+    return this.hierarchyRepository.find();
+  }
 
   async create(data: Hierarchy): Promise<Hierarchy> {
     const persistenceModel = HierarchyMapper.toPersistence(data);
@@ -24,19 +23,6 @@ export class HierarchyRelationalRepository implements HierarchyRepository {
       this.hierarchyRepository.create(persistenceModel),
     );
     return HierarchyMapper.toDomain(newEntity);
-  }
-
-  async findAllWithPagination({
-    paginationOptions,
-  }: {
-    paginationOptions: IPaginationOptions;
-  }): Promise<WithCountList<Hierarchy>> {
-    const [entities, totalCount] = await this.hierarchyRepository.findAndCount({
-      skip: (paginationOptions.page - 1) * paginationOptions.limit,
-      take: paginationOptions.limit,
-    });
-
-    return [entities.map((user) => HierarchyMapper.toDomain(user)), totalCount];
   }
 
   async findById(id: Hierarchy['id']): Promise<NullableType<Hierarchy>> {

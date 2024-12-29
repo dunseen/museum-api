@@ -27,10 +27,11 @@ import {
 } from '../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllTaxonsDto } from './dto/find-all-taxons.dto';
+import { Roles } from '../roles/roles.decorator';
+import { RoleEnum } from '../roles/roles.enum';
+import { RolesGuard } from '../roles/roles.guard';
 
 @ApiTags('Taxons')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'taxons',
   version: '1',
@@ -38,6 +39,9 @@ import { FindAllTaxonsDto } from './dto/find-all-taxons.dto';
 export class TaxonsController {
   constructor(private readonly taxonsService: TaxonsService) {}
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth()
   @Post()
   @ApiCreatedResponse({
     type: Taxon,
@@ -80,6 +84,9 @@ export class TaxonsController {
     return this.taxonsService.findOne(id);
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth()
   @Patch(':id')
   @ApiParam({
     name: 'id',
@@ -93,6 +100,9 @@ export class TaxonsController {
     return this.taxonsService.update(id, updateTaxonDto);
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth()
   @Delete(':id')
   @ApiParam({
     name: 'id',
