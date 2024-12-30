@@ -33,8 +33,14 @@ import { TaxonsModule } from './taxons/taxons.module';
 
 import { HierarchiesModule } from './hierarchies/hierarchies.module';
 
+import { CharacteristicsModule } from './characteristics/characteristics.module';
+
+import { CharacteristicTypesModule } from './characteristic-types/characteristic-types.module';
+
 @Module({
   imports: [
+    CharacteristicTypesModule,
+    CharacteristicsModule,
     HierarchiesModule,
     TaxonsModule,
     SpeciesModule,
