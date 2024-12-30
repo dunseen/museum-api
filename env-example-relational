@@ -22,6 +22,10 @@ DATABASE_KEY=
 DATABASE_CERT=
 DATABASE_URL=
 
+# Cache
+REDIS_HOST=redis
+REDIS_PORT=6379
+
 # Support "local", "s3", "s3-presigned"
 FILE_DRIVER=local
 ACCESS_KEY_ID=

@@ -13,8 +13,8 @@ import { EntityRelationalHelper } from '../../../../../utils/relational-entity-h
   name: 'specie',
 })
 export class SpecieEntity extends EntityRelationalHelper {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Index()
   @Column({

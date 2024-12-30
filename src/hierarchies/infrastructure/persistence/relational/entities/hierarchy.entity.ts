@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
@@ -12,7 +12,7 @@ import { EntityRelationalHelper } from '../../../../../utils/relational-entity-h
   name: 'hierarchy',
 })
 export class HierarchyEntity extends EntityRelationalHelper {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Index()

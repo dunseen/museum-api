@@ -4,7 +4,7 @@ import {
   Entity,
   Index,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
@@ -14,7 +14,7 @@ import { HierarchyEntity } from '../../../../../hierarchies/infrastructure/persi
   name: 'taxon',
 })
 export class TaxonEntity extends EntityRelationalHelper {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Index()

@@ -16,7 +16,7 @@ export class SpecieMapper {
   static toPersistence(domainEntity: Specie): SpecieEntity {
     const persistenceEntity = new SpecieEntity();
     if (domainEntity.id) {
-      persistenceEntity.id = domainEntity.id;
+      persistenceEntity.id = Number(domainEntity.id);
     }
     persistenceEntity.scientificName = domainEntity.scientificName;
     persistenceEntity.commonName = domainEntity.commonName;
