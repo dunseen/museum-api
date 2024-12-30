@@ -4,7 +4,7 @@ export class Specie {
   @ApiProperty({
     type: String,
   })
-  id: string;
+  id: string | number;
 
   @ApiProperty({
     type: String,

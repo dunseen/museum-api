@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 import { ApiProperty } from '@nestjs/swagger';
@@ -10,7 +10,7 @@ export class StatusEntity extends EntityRelationalHelper {
   @ApiProperty({
     type: Number,
   })
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @ApiProperty({
