@@ -36,19 +36,22 @@ export class SpecieEntity extends EntityRelationalHelper {
   })
   commonName: string;
 
-  @ManyToMany(() => TaxonEntity)
+  @ManyToMany(() => TaxonEntity, { eager: true })
   @JoinTable({
     name: 'specie_taxon',
   })
   taxons: TaxonEntity[];
 
-  @ManyToMany(() => CharacteristicEntity)
+  @ManyToMany(() => CharacteristicEntity, { eager: true })
   @JoinTable({
     name: 'specie_characteristic',
   })
   characteristics: CharacteristicEntity[];
 
-  @OneToMany(() => FileEntity, (file) => file.specie, { cascade: true })
+  @OneToMany(() => FileEntity, (file) => file.specie, {
+    cascade: true,
+    eager: true,
+  })
   files: FileEntity[];
 
   @CreateDateColumn()
