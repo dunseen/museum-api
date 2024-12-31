@@ -74,13 +74,13 @@ export class SpeciesController {
   @Get(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
   @ApiOkResponse({
     type: Specie,
   })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.speciesService.findOne(id);
   }
 
@@ -90,13 +90,13 @@ export class SpeciesController {
   @Patch(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
   @ApiOkResponse({
     type: Specie,
   })
-  update(@Param('id') id: string, @Body() updateSpecieDto: UpdateSpecieDto) {
+  update(@Param('id') id: number, @Body() updateSpecieDto: UpdateSpecieDto) {
     return this.speciesService.update(id, updateSpecieDto);
   }
 
@@ -106,10 +106,10 @@ export class SpeciesController {
   @Delete(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.speciesService.remove(id);
   }
 }
