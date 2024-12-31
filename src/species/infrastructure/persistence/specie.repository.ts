@@ -18,6 +18,9 @@ export abstract class SpecieRepository {
   }): Promise<WithCountList<Specie>>;
 
   abstract findById(id: Specie['id']): Promise<NullableType<Specie>>;
+  abstract findByScientificName(
+    id: Specie['scientificName'],
+  ): Promise<NullableType<Specie>>;
 
   abstract update(
     id: Specie['id'],
