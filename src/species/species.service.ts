@@ -13,6 +13,8 @@ import { CharacteristicRepository } from '../characteristics/infrastructure/pers
 import { TaxonRepository } from '../taxons/infrastructure/persistence/taxon.repository';
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { SpecieBuilder } from './domain/specie-builder';
+import { SpecieFactory } from './domain/specie.factory';
+import { GetAllSpecieDto } from './dto/get-all-species.dto';
 
 @Injectable()
 export class SpeciesService {
@@ -110,17 +112,19 @@ export class SpeciesService {
     return this.specieRepository.create(specie);
   }
 
-  findAllWithPagination({
+  async findAllWithPagination({
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }) {
-    return this.specieRepository.findAllWithPagination({
+  }): Promise<[GetAllSpecieDto[], number]> {
+    const [species, count] = await this.specieRepository.findAllWithPagination({
       paginationOptions: {
         page: paginationOptions.page,
         limit: paginationOptions.limit,
       },
     });
+
+    return [SpecieFactory.createSpecieListDto(species), count];
   }
 
   findOne(id: Specie['id']) {
