@@ -30,6 +30,7 @@ import { FindAllSpeciesDto } from './dto/find-all-species.dto';
 import { RolesGuard } from '../roles/roles.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RoleEnum } from '../roles/roles.enum';
+import { GetAllSpecieDto } from './dto/get-all-species.dto';
 
 @ApiTags('Species')
 @Controller({
@@ -56,19 +57,18 @@ export class SpeciesController {
   })
   async findAll(
     @Query() query: FindAllSpeciesDto,
-  ): Promise<InfinityPaginationResponseDto<Specie>> {
+  ): Promise<InfinityPaginationResponseDto<GetAllSpecieDto>> {
     const page = query?.page;
     const limit = query?.limit;
 
-    return infinityPagination(
-      await this.speciesService.findAllWithPagination({
-        paginationOptions: {
-          page,
-          limit,
-        },
-      }),
-      { page, limit },
-    );
+    const response = await this.speciesService.findAllWithPagination({
+      paginationOptions: {
+        page,
+        limit,
+      },
+    });
+
+    return infinityPagination(response, { page, limit });
   }
 
   @Get(':id')
