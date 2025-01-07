@@ -17,6 +17,15 @@ export class SpecieRelationalRepository implements SpecieRepository {
     @InjectRepository(SpecieEntity)
     private readonly specieRepository: Repository<SpecieEntity>,
   ) {}
+  async findByScientificName(
+    scientificName: Specie['scientificName'],
+  ): Promise<NullableType<Specie>> {
+    const entity = await this.specieRepository.findOne({
+      where: { scientificName },
+    });
+
+    return entity ? SpecieMapper.toDomain(entity) : null;
+  }
 
   async create(data: Specie): Promise<Specie> {
     const persistenceModel = SpecieMapper.toPersistence(data);

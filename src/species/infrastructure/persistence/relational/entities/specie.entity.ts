@@ -4,10 +4,16 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
+import { CharacteristicEntity } from '../../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
+import { TaxonEntity } from '../../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
+import { FileEntity } from '../../../../../files/infrastructure/persistence/relational/entities/file.entity';
 
 @Entity({
   name: 'specie',
@@ -29,6 +35,24 @@ export class SpecieEntity extends EntityRelationalHelper {
     length: 100,
   })
   commonName: string;
+
+  @ManyToMany(() => TaxonEntity, { eager: true })
+  @JoinTable({
+    name: 'specie_taxon',
+  })
+  taxons: TaxonEntity[];
+
+  @ManyToMany(() => CharacteristicEntity, { eager: true })
+  @JoinTable({
+    name: 'specie_characteristic',
+  })
+  characteristics: CharacteristicEntity[];
+
+  @OneToMany(() => FileEntity, (file) => file.specie, {
+    cascade: true,
+    eager: true,
+  })
+  files: FileEntity[];
 
   @CreateDateColumn()
   createdAt: Date;
