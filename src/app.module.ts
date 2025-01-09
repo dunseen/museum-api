@@ -37,8 +37,11 @@ import { CharacteristicsModule } from './characteristics/characteristics.module'
 
 import { CharacteristicTypesModule } from './characteristic-types/characteristic-types.module';
 
+import { PostsModule } from './posts/posts.module';
+
 @Module({
   imports: [
+    PostsModule,
     CharacteristicTypesModule,
     CharacteristicsModule,
     HierarchiesModule,

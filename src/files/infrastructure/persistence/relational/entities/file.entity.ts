@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { Transform } from 'class-transformer';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
@@ -51,11 +57,19 @@ export class FileEntity extends EntityRelationalHelper {
   path: string;
 
   @ManyToOne(() => SpecieEntity, (specie) => specie.files)
+  @JoinColumn({
+    name: 'specieId',
+    referencedColumnName: 'id',
+  })
   specie: SpecieEntity;
 
   @ManyToOne(
     () => CharacteristicEntity,
     (characteristic) => characteristic.files,
   )
+  @JoinColumn({
+    name: 'characteristicId',
+    referencedColumnName: 'id',
+  })
   characteristic: CharacteristicEntity;
 }
