@@ -89,6 +89,7 @@ export class PostsService {
       post.status = PostStatusEnum.rejected;
     } else {
       post.status = PostStatusEnum.published;
+      post.reject_reason = null;
     }
 
     post.validator = validator;
