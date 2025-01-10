@@ -10,6 +10,7 @@ export class PostMapper {
     domainEntity.id = raw.id;
     domainEntity.status = PostStatusEnum[raw.status];
     domainEntity.reject_reason = raw.reject_reason;
+
     domainEntity.specie = SpecieMapper.toDomain(raw.specie);
     domainEntity.author = UserMapper.toDomain(raw.author);
 
@@ -23,13 +24,21 @@ export class PostMapper {
     return domainEntity;
   }
 
-  static toPersistence(domainEntity: Post): PostEntity {
+  static toPersistence(domainEntity: Partial<Post>): PostEntity {
     const persistenceEntity = new PostEntity();
     if (domainEntity.id) {
       persistenceEntity.id = domainEntity.id;
     }
-    persistenceEntity.specie = SpecieMapper.toPersistence(domainEntity.specie);
-    persistenceEntity.author = UserMapper.toPersistence(domainEntity.author);
+
+    if (domainEntity?.specie) {
+      persistenceEntity.specie = SpecieMapper.toPersistence(
+        domainEntity.specie,
+      );
+    }
+
+    if (domainEntity?.author) {
+      persistenceEntity.author = UserMapper.toPersistence(domainEntity.author);
+    }
 
     if (domainEntity.validator) {
       persistenceEntity.validator = UserMapper.toPersistence(
@@ -37,10 +46,11 @@ export class PostMapper {
       );
     }
 
-    persistenceEntity.reject_reason = domainEntity.reject_reason;
-    persistenceEntity.status = domainEntity.status;
-    persistenceEntity.createdAt = domainEntity.createdAt;
-    persistenceEntity.updatedAt = domainEntity.updatedAt;
+    if (domainEntity.status) {
+      persistenceEntity.status = domainEntity.status;
+    }
+
+    persistenceEntity.reject_reason = domainEntity.reject_reason ?? null;
 
     return persistenceEntity;
   }
