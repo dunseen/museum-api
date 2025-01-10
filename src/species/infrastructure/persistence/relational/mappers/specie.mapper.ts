@@ -15,11 +15,21 @@ export class SpecieMapper {
       .setCreatedAt(raw.createdAt)
       .build();
 
-    raw.taxons.forEach((tx) => domainEntity.addTaxon(TaxonMapper.toDomain(tx)));
-    raw.characteristics.forEach((ch) =>
-      domainEntity.addCharacteristic(CharacteristicMapper.toDomain(ch)),
-    );
-    raw.files.forEach((f) => domainEntity.addFile(FileMapper.toDomain(f)));
+    if (raw?.taxons?.length) {
+      raw.taxons.forEach((tx) =>
+        domainEntity.addTaxon(TaxonMapper.toDomain(tx)),
+      );
+    }
+
+    if (raw?.characteristics) {
+      raw.characteristics.forEach((ch) =>
+        domainEntity.addCharacteristic(CharacteristicMapper.toDomain(ch)),
+      );
+    }
+
+    if (raw?.files) {
+      raw.files.forEach((f) => domainEntity.addFile(FileMapper.toDomain(f)));
+    }
 
     return domainEntity;
   }

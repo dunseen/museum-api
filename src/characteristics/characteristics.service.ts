@@ -10,6 +10,8 @@ import { CharacteristicRepository } from './infrastructure/persistence/character
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { Characteristic } from './domain/characteristic';
 import { CharacteristicTypeRepository } from '../characteristic-types/infrastructure/persistence/characteristic-type.repository';
+import { CharacteristicFactory } from './domain/characteristic.factory';
+import { GetCharacteristicDto } from './dto/get-characteristic.dto';
 
 @Injectable()
 export class CharacteristicsService {
@@ -19,8 +21,6 @@ export class CharacteristicsService {
   ) {}
 
   async create(createCharacteristicDto: CreateCharacteristicDto) {
-    const characteristic = new Characteristic();
-
     const type = await this.characteristicTypeRepository.findById(
       createCharacteristicDto.typeId,
     );
@@ -47,24 +47,29 @@ export class CharacteristicsService {
       });
     }
 
-    characteristic.name = createCharacteristicDto.name;
-    characteristic.description = createCharacteristicDto.description;
-    characteristic.type = type;
+    const characteristic = Characteristic.create(
+      createCharacteristicDto.name,
+      createCharacteristicDto.description,
+      type,
+    );
 
     return this.characteristicRepository.create(characteristic);
   }
 
-  findAllWithPagination({
+  async findAllWithPagination({
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }) {
-    return this.characteristicRepository.findAllWithPagination({
-      paginationOptions: {
-        page: paginationOptions.page,
-        limit: paginationOptions.limit,
-      },
-    });
+  }): Promise<[GetCharacteristicDto[], number]> {
+    const [characteristics, count] =
+      await this.characteristicRepository.findAllWithPagination({
+        paginationOptions: {
+          page: paginationOptions.page,
+          limit: paginationOptions.limit,
+        },
+      });
+
+    return [characteristics.map(CharacteristicFactory.toDto), count];
   }
 
   findOne(id: Characteristic['id']) {

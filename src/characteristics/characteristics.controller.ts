@@ -19,7 +19,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Characteristic } from './domain/characteristic';
 import { AuthGuard } from '@nestjs/passport';
 import {
   InfinityPaginationResponse,
@@ -30,6 +29,7 @@ import { FindAllCharacteristicsDto } from './dto/find-all-characteristics.dto';
 import { Roles } from '../roles/roles.decorator';
 import { RoleEnum } from '../roles/roles.enum';
 import { RolesGuard } from '../roles/roles.guard';
+import { GetCharacteristicDto } from './dto/get-characteristic.dto';
 
 @ApiTags('Characteristics')
 @ApiBearerAuth()
@@ -46,7 +46,7 @@ export class CharacteristicsController {
 
   @Post()
   @ApiCreatedResponse({
-    type: Characteristic,
+    type: GetCharacteristicDto,
   })
   create(@Body() createCharacteristicDto: CreateCharacteristicDto) {
     return this.characteristicsService.create(createCharacteristicDto);
@@ -54,49 +54,48 @@ export class CharacteristicsController {
 
   @Get()
   @ApiOkResponse({
-    type: InfinityPaginationResponse(Characteristic),
+    type: InfinityPaginationResponse(GetCharacteristicDto),
   })
   async findAll(
     @Query() query: FindAllCharacteristicsDto,
-  ): Promise<InfinityPaginationResponseDto<Characteristic>> {
+  ): Promise<InfinityPaginationResponseDto<GetCharacteristicDto>> {
     const page = query?.page;
     const limit = query?.limit;
 
-    return infinityPagination(
-      await this.characteristicsService.findAllWithPagination({
-        paginationOptions: {
-          page,
-          limit,
-        },
-      }),
-      { page, limit },
-    );
+    const response = await this.characteristicsService.findAllWithPagination({
+      paginationOptions: {
+        page,
+        limit,
+      },
+    });
+
+    return infinityPagination(response, { page, limit });
   }
 
   @Get(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
   @ApiOkResponse({
-    type: Characteristic,
+    type: GetCharacteristicDto,
   })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.characteristicsService.findOne(id);
   }
 
   @Patch(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
   @ApiOkResponse({
-    type: Characteristic,
+    type: GetCharacteristicDto,
   })
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateCharacteristicDto: UpdateCharacteristicDto,
   ) {
     return this.characteristicsService.update(id, updateCharacteristicDto);
@@ -105,10 +104,10 @@ export class CharacteristicsController {
   @Delete(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.characteristicsService.remove(id);
   }
 }

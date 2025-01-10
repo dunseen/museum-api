@@ -46,7 +46,7 @@ class CharacteristicDto {
   description: string;
 }
 
-export class GetAllSpecieDto {
+export class GetSpecieDto {
   @ApiProperty({
     type: Number,
   })
