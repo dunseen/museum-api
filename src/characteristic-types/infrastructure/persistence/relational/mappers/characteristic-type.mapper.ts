@@ -3,24 +3,30 @@ import { CharacteristicTypeEntity } from '../entities/characteristic-type.entity
 
 export class CharacteristicTypeMapper {
   static toDomain(raw: CharacteristicTypeEntity): CharacteristicType {
-    const domainEntity = new CharacteristicType();
-    domainEntity.id = raw.id;
-    domainEntity.name = raw.name;
-    domainEntity.createdAt = raw.createdAt;
-    domainEntity.updatedAt = raw.updatedAt;
+    const domainEntity = CharacteristicType.create(
+      raw.name,
+      raw.id,
+      raw.createdAt,
+      raw.updatedAt,
+    );
+
     return domainEntity;
   }
 
   static toPersistence(
-    domainEntity: CharacteristicType,
+    domainEntity: Partial<CharacteristicType>,
   ): CharacteristicTypeEntity {
     const persistenceEntity = new CharacteristicTypeEntity();
     if (domainEntity.id) {
       persistenceEntity.id = Number(domainEntity.id);
     }
-    persistenceEntity.name = domainEntity.name;
-    persistenceEntity.createdAt = domainEntity.createdAt;
-    persistenceEntity.updatedAt = domainEntity.updatedAt;
+
+    if (domainEntity.name) {
+      persistenceEntity.name = domainEntity.name;
+    }
+
+    persistenceEntity.createdAt = domainEntity.createdAt ?? new Date();
+    persistenceEntity.updatedAt = domainEntity.updatedAt ?? new Date();
 
     return persistenceEntity;
   }

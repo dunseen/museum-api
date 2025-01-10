@@ -89,6 +89,6 @@ export class CharacteristicTypeRelationalRepository
   }
 
   async remove(id: CharacteristicType['id']): Promise<void> {
-    await this.characteristicTypeRepository.delete(id);
+    await this.characteristicTypeRepository.delete(Number(id));
   }
 }

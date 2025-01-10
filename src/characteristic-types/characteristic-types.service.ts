@@ -4,6 +4,8 @@ import { UpdateCharacteristicTypeDto } from './dto/update-characteristic-type.dt
 import { CharacteristicTypeRepository } from './infrastructure/persistence/characteristic-type.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { CharacteristicType } from './domain/characteristic-type';
+import { GetCharacteristicTypeDto } from './dto/get-characteristic-type.dto';
+import { CharacteristicTypeFactory } from './domain/characteristic-type.factory';
 
 @Injectable()
 export class CharacteristicTypesService {
@@ -12,8 +14,7 @@ export class CharacteristicTypesService {
   ) {}
 
   async create(createCharacteristicTypeDto: CreateCharacteristicTypeDto) {
-    const type = new CharacteristicType();
-    type.name = createCharacteristicTypeDto.name;
+    const type = CharacteristicType.create(createCharacteristicTypeDto.name);
 
     const bookedType = await this.characteristicTypeRepository.findByName(
       createCharacteristicTypeDto.name,
@@ -28,20 +29,25 @@ export class CharacteristicTypesService {
       });
     }
 
-    return this.characteristicTypeRepository.create(type);
+    const newType = await this.characteristicTypeRepository.create(type);
+
+    return CharacteristicTypeFactory.toDto(newType);
   }
 
-  findAllWithPagination({
+  async findAllWithPagination({
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }) {
-    return this.characteristicTypeRepository.findAllWithPagination({
-      paginationOptions: {
-        page: paginationOptions.page,
-        limit: paginationOptions.limit,
-      },
-    });
+  }): Promise<[GetCharacteristicTypeDto[], number]> {
+    const [types, count] =
+      await this.characteristicTypeRepository.findAllWithPagination({
+        paginationOptions: {
+          page: paginationOptions.page,
+          limit: paginationOptions.limit,
+        },
+      });
+
+    return [types.map(CharacteristicTypeFactory.toDto), count];
   }
 
   findOne(id: CharacteristicType['id']) {
