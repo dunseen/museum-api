@@ -1,8 +1,8 @@
-import { GetAllSpecieDto } from '../dto/get-all-species.dto';
+import { GetSpecieDto } from '../dto/get-all-species.dto';
 import { Specie } from './specie';
 
 export class SpecieFactory {
-  static createSpecieListDto(data: Specie[]): GetAllSpecieDto[] {
+  static createSpecieListDto(data: Specie[]): GetSpecieDto[] {
     return data.map((d) => {
       const hierarchyMap = Object.fromEntries(
         d.taxons.map((taxon) => [taxon.hierarchy.name, taxon.name]),

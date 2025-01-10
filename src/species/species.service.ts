@@ -15,7 +15,7 @@ import { TaxonRepository } from '../taxons/infrastructure/persistence/taxon.repo
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { SpecieBuilder } from './domain/specie-builder';
 import { SpecieFactory } from './domain/specie.factory';
-import { GetAllSpecieDto } from './dto/get-all-species.dto';
+import { GetSpecieDto } from './dto/get-all-species.dto';
 
 @Injectable()
 export class SpeciesService {
@@ -117,7 +117,7 @@ export class SpeciesService {
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }): Promise<[GetAllSpecieDto[], number]> {
+  }): Promise<[GetSpecieDto[], number]> {
     const [species, count] = await this.specieRepository.findAllWithPagination({
       paginationOptions: {
         page: paginationOptions.page,
