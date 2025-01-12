@@ -1,7 +1,7 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
-import { GetSpecieDto } from '../../species/dto/get-all-species.dto';
-import { User } from '../../users/domain/user';
-import { NullableType } from '../../utils/types/nullable.type';
+import { User } from '../../../users/domain/user';
+import { NullableType } from '../../../utils/types/nullable.type';
+import { GetSpecieDto } from '../../../species/dto/get-all-species.dto';
 
 class SimpleUser extends PickType(User, [
   'id',

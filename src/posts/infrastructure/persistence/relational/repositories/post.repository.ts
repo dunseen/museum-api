@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { PostEntity } from '../entities/post.entity';
 import { NullableType } from '../../../../../utils/types/nullable.type';
 import { Post } from '../../../../domain/post';
-import { PostRepository } from '../../post.repository';
+import { PostRepository } from '../../../../domain/post.repository';
 import { PostMapper } from '../mappers/post.mapper';
 import {
   IPaginationOptions,

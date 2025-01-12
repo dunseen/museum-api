@@ -17,6 +17,7 @@ import {
   WithCountList,
 } from '../utils/types/pagination-options';
 import { DeepPartial } from '../utils/types/deep-partial.type';
+import { UserNotFoundException } from './domain/exceptions/user-not-found.error';
 
 @Injectable()
 export class UsersService {
@@ -96,6 +97,16 @@ export class UsersService {
 
   findById(id: User['id']): Promise<NullableType<User>> {
     return this.usersRepository.findById(id);
+  }
+
+  async ensureUserExists(id: User['id']) {
+    const user = await this.findById(id);
+
+    if (!user) {
+      throw new UserNotFoundException(id);
+    }
+
+    return user;
   }
 
   findByEmail(email: User['email']): Promise<NullableType<User>> {

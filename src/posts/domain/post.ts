@@ -1,5 +1,5 @@
 import { NullableType } from '../../utils/types/nullable.type';
-import { PostStatusEnum } from '../post-status.enum';
+import { PostStatusEnum } from './post-status.enum';
 import { User } from '../../users/domain/user';
 import { Specie } from '../../species/domain/specie';
 import { PostBuilder } from './post.builder';

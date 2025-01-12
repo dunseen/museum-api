@@ -9,9 +9,6 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -26,13 +23,22 @@ import {
   InfinityPaginationResponseDto,
 } from '../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../utils/infinity-pagination';
-import { FindAllPostsDto } from './dto/find-all-posts.dto';
 import { RolesGuard } from '../roles/roles.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RoleEnum } from '../roles/roles.enum';
 import { JwtPayload } from '../auth/strategies/jwt.decorator';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
-import { GetPostDto } from './dto/get-post.dto';
+import { CreatePostUseCase } from './application/use-cases/create-post.use-case';
+import { ValidatePostUseCase } from './application/use-cases/validate-post.use-case';
+import { ListPaginatedPostUseCase } from './application/use-cases/list-paginated-post.use-case';
+import { FindPostByIdUseCase } from './application/use-cases/find-post-by-id.use-case';
+import { DeletePostUseCase } from './application/use-cases/delete-post.use-case';
+import {
+  CreatePostDto,
+  FindAllPostsDto,
+  GetPostDto,
+  UpdatePostDto,
+} from './application/dtos';
 
 @ApiTags('Posts')
 @Controller({
@@ -40,7 +46,14 @@ import { GetPostDto } from './dto/get-post.dto';
   version: '1',
 })
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly createPostUseCase: CreatePostUseCase,
+    private readonly validatePostUseCase: ValidatePostUseCase,
+    private readonly listPaginatedPostUseCase: ListPaginatedPostUseCase,
+    private readonly findPostByIdUseCase: FindPostByIdUseCase,
+
+    private readonly deletePostUseCase: DeletePostUseCase,
+  ) {}
 
   @Roles(RoleEnum.admin, RoleEnum.editor)
   @ApiBearerAuth()
@@ -53,7 +66,7 @@ export class PostsController {
     @Body() createPostDto: CreatePostDto,
     @JwtPayload() payload: JwtPayloadType,
   ) {
-    return this.postsService.create(createPostDto, payload);
+    return this.createPostUseCase.execute(createPostDto, payload);
   }
 
   @Get()
@@ -66,15 +79,14 @@ export class PostsController {
     const page = query?.page;
     const limit = query?.limit;
 
-    return infinityPagination(
-      await this.postsService.findAllWithPagination({
-        paginationOptions: {
-          page,
-          limit,
-        },
-      }),
-      { page, limit },
-    );
+    const result = await this.listPaginatedPostUseCase.execute({
+      paginationOptions: {
+        page,
+        limit,
+      },
+    });
+
+    return infinityPagination(result, { page, limit });
   }
 
   @Get(':id')
@@ -87,7 +99,7 @@ export class PostsController {
     type: GetPostDto,
   })
   findOne(@Param('id') id: string) {
-    return this.postsService.findOne(id);
+    return this.findPostByIdUseCase.execute(id);
   }
 
   @Roles(RoleEnum.admin, RoleEnum.editor)
@@ -100,12 +112,12 @@ export class PostsController {
     required: true,
   })
   @ApiNoContentResponse()
-  update(
+  validate(
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
     @JwtPayload() payload: JwtPayloadType,
   ) {
-    return this.postsService.update(id, updatePostDto, payload);
+    return this.validatePostUseCase.execute(id, updatePostDto, payload);
   }
 
   @Roles(RoleEnum.admin, RoleEnum.editor)
@@ -118,6 +130,6 @@ export class PostsController {
     required: true,
   })
   remove(@Param('id') id: string) {
-    return this.postsService.remove(id);
+    return this.deletePostUseCase.execute(id);
   }
 }

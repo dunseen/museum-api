@@ -1,6 +1,6 @@
 import { SpecieFactory } from '../../species/domain/specie.factory';
 import { UserFactory } from '../../users/domain/user.factory';
-import { GetPostDto } from '../dto/get-post.dto';
+import { GetPostDto } from '../application/dtos/get-post.dto';
 import { Post } from './post';
 
 export class PostFactory {
