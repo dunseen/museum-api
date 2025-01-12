@@ -1,10 +1,10 @@
-import { DeepPartial } from '../../../utils/types/deep-partial.type';
-import { NullableType } from '../../../utils/types/nullable.type';
+import { DeepPartial } from '../../utils/types/deep-partial.type';
+import { NullableType } from '../../utils/types/nullable.type';
 import {
   IPaginationOptions,
   WithCountList,
-} from '../../../utils/types/pagination-options';
-import { Post } from '../../domain/post';
+} from '../../utils/types/pagination-options';
+import { Post } from './post';
 
 export abstract class PostRepository {
   abstract create(

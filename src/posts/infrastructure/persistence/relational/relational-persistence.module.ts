@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PostRepository } from '../post.repository';
+import { PostRepository } from '../../../domain/post.repository';
 import { PostRelationalRepository } from './repositories/post.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostEntity } from './entities/post.entity';

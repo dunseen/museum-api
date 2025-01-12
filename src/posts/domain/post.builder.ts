@@ -1,7 +1,7 @@
 import { Specie } from '../../species/domain/specie';
 import { User } from '../../users/domain/user';
 import { NullableType } from '../../utils/types/nullable.type';
-import { PostStatusEnum } from '../post-status.enum';
+import { PostStatusEnum } from './post-status.enum';
 import { Post } from './post';
 
 export class PostBuilder {

@@ -3,7 +3,6 @@ import {
   ConflictException,
   HttpStatus,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { CreateSpecieDto } from './dto/create-specie.dto';
 import { UpdateSpecieDto } from './dto/update-specie.dto';
@@ -131,17 +130,8 @@ export class SpeciesService {
     return [species.map(SpecieFactory.toDto), count];
   }
 
-  async findOne(id: Specie['id']) {
-    const specie = await this.specieRepository.findById(id);
-
-    if (!specie) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `Specie with id ${id} not found`,
-      });
-    }
-
-    return specie;
+  findOne(id: Specie['id']) {
+    return this.specieRepository.findById(id);
   }
 
   update(id: Specie['id'], updateSpecieDto: UpdateSpecieDto) {
