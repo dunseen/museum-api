@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class FindAllCharacteristicsDto {
@@ -14,4 +14,14 @@ export class FindAllCharacteristicsDto {
   @IsNumber()
   @IsOptional()
   limit = 10;
+
+  @ApiPropertyOptional({ description: 'Filter by characteristic name' })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by characteristic description' })
+  @IsNumber()
+  @IsOptional()
+  description?: string;
 }

@@ -66,6 +66,10 @@ export class CharacteristicsService {
         paginationOptions: {
           page: paginationOptions.page,
           limit: paginationOptions.limit,
+          filters: {
+            name: paginationOptions.filters?.name,
+            description: paginationOptions.filters?.description,
+          },
         },
       });
 

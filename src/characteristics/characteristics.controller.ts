@@ -66,6 +66,10 @@ export class CharacteristicsController {
       paginationOptions: {
         page,
         limit,
+        filters: {
+          name: query?.name,
+          description: query?.description,
+        },
       },
     });
 
