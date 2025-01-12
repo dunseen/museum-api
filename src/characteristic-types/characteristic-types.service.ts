@@ -44,6 +44,9 @@ export class CharacteristicTypesService {
         paginationOptions: {
           page: paginationOptions.page,
           limit: paginationOptions.limit,
+          filters: {
+            name: paginationOptions.filters?.name,
+          },
         },
       });
 

@@ -42,11 +42,24 @@ export class CharacteristicRelationalRepository
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<Characteristic>> {
-    const [entities, totalCount] =
-      await this.characteristicRepository.findAndCount({
-        skip: (paginationOptions.page - 1) * paginationOptions.limit,
-        take: paginationOptions.limit,
+    const query = this.characteristicRepository.createQueryBuilder('c');
+
+    if (paginationOptions.filters?.name) {
+      query.where('c.name LIKE :name', {
+        name: `%${paginationOptions.filters.name}%`,
       });
+    }
+
+    if (paginationOptions.filters?.description) {
+      query.andWhere('c.description LIKE :description', {
+        description: `%${paginationOptions.filters.description}%`,
+      });
+    }
+
+    const [entities, totalCount] = await query
+      .skip((paginationOptions.page - 1) * paginationOptions.limit)
+      .take(paginationOptions.limit)
+      .getManyAndCount();
 
     return [
       entities.map((user) => CharacteristicMapper.toDomain(user)),

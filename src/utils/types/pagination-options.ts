@@ -1,6 +1,10 @@
 export interface IPaginationOptions {
   page: number;
   limit: number;
+  filters?: {
+    name?: string;
+    description?: string;
+  };
 }
 
 export type Pagination = {

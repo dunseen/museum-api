@@ -64,6 +64,9 @@ export class SpeciesController {
       paginationOptions: {
         page,
         limit,
+        filters: {
+          name: query?.name,
+        },
       },
     });
 

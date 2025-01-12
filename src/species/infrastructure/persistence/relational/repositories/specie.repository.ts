@@ -40,10 +40,24 @@ export class SpecieRelationalRepository implements SpecieRepository {
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<Specie>> {
-    const [entities, totalCount] = await this.specieRepository.findAndCount({
-      skip: (paginationOptions.page - 1) * paginationOptions.limit,
-      take: paginationOptions.limit,
-    });
+    const query = this.specieRepository
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.characteristics', 'characteristics')
+      .leftJoinAndSelect('s.taxons', 'taxons')
+      .leftJoinAndSelect('s.files', 'files')
+      .leftJoinAndSelect('taxons.hierarchy', 'hierarchy')
+      .leftJoinAndSelect('characteristics.type', 'type');
+
+    if (paginationOptions.filters?.name) {
+      query.where('s.scientificName LIKE :name OR s.commonName LIKE :name', {
+        name: `%${paginationOptions.filters.name}%`,
+      });
+    }
+
+    const [entities, totalCount] = await query
+      .skip((paginationOptions.page - 1) * paginationOptions.limit)
+      .take(paginationOptions.limit)
+      .getManyAndCount();
 
     return [entities.map((user) => SpecieMapper.toDomain(user)), totalCount];
   }
