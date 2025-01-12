@@ -68,6 +68,9 @@ export class CharacteristicTypesController {
         paginationOptions: {
           page,
           limit,
+          filters: {
+            name: query?.name,
+          },
         },
       }),
       { page, limit },

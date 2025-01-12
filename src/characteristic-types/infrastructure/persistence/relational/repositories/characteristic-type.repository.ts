@@ -42,11 +42,17 @@ export class CharacteristicTypeRelationalRepository
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<CharacteristicType>> {
-    const [entities, totalCount] =
-      await this.characteristicTypeRepository.findAndCount({
-        skip: (paginationOptions.page - 1) * paginationOptions.limit,
-        take: paginationOptions.limit,
+    const query = this.characteristicTypeRepository.createQueryBuilder('c');
+
+    if (paginationOptions.filters?.name) {
+      query.where('c.name LIKE :name', {
+        name: `%${paginationOptions.filters.name}%`,
       });
+    }
+    const [entities, totalCount] = await query
+      .skip((paginationOptions.page - 1) * paginationOptions.limit)
+      .take(paginationOptions.limit)
+      .getManyAndCount();
 
     return [
       entities.map((user) => CharacteristicTypeMapper.toDomain(user)),
