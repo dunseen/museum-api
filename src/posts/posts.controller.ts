@@ -20,7 +20,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Post as PostDomain } from './domain/post';
 import { AuthGuard } from '@nestjs/passport';
 import {
   InfinityPaginationResponse,
@@ -33,6 +32,7 @@ import { Roles } from '../roles/roles.decorator';
 import { RoleEnum } from '../roles/roles.enum';
 import { JwtPayload } from '../auth/strategies/jwt.decorator';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
+import { GetPostDto } from './dto/get-post.dto';
 
 @ApiTags('Posts')
 @Controller({
@@ -47,7 +47,7 @@ export class PostsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @ApiCreatedResponse({
-    type: PostDomain,
+    type: GetPostDto,
   })
   create(
     @Body() createPostDto: CreatePostDto,
@@ -58,11 +58,11 @@ export class PostsController {
 
   @Get()
   @ApiOkResponse({
-    type: InfinityPaginationResponse(PostDomain),
+    type: InfinityPaginationResponse(GetPostDto),
   })
   async findAll(
     @Query() query: FindAllPostsDto,
-  ): Promise<InfinityPaginationResponseDto<PostDomain>> {
+  ): Promise<InfinityPaginationResponseDto<GetPostDto>> {
     const page = query?.page;
     const limit = query?.limit;
 
@@ -84,7 +84,7 @@ export class PostsController {
     required: true,
   })
   @ApiOkResponse({
-    type: PostDomain,
+    type: GetPostDto,
   })
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
@@ -108,6 +108,9 @@ export class PostsController {
     return this.postsService.update(id, updatePostDto, payload);
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')
   @ApiParam({
     name: 'id',

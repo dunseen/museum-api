@@ -13,6 +13,8 @@ import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { UserRepository } from '../users/infrastructure/persistence/user.repository';
 import { PostStatusEnum } from './post-status.enum';
 import { SpeciesService } from '../species/species.service';
+import { GetPostDto } from './dto/get-post.dto';
+import { PostFactory } from './domain/post.factory';
 
 @Injectable()
 export class PostsService {
@@ -23,7 +25,6 @@ export class PostsService {
   ) {}
 
   async create(createPostDto: CreatePostDto, payload: JwtPayloadType) {
-    const post = new Post();
     const specie = await this.specieService.findOne(createPostDto.specieId);
 
     const author = await this.userRepository.findById(payload.id);
@@ -35,24 +36,30 @@ export class PostsService {
       });
     }
 
-    post.specie = specie;
-    post.author = author;
-    post.status = PostStatusEnum.pending;
+    const post = Post.builder()
+      .setSpecie(specie)
+      .setAuthor(author)
+      .setStatus(PostStatusEnum.pending)
+      .build();
 
-    return this.postRepository.create(post);
+    const newPost = await this.postRepository.create(post);
+
+    return PostFactory.toDto(newPost);
   }
 
-  findAllWithPagination({
+  async findAllWithPagination({
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }) {
-    return this.postRepository.findAllWithPagination({
+  }): Promise<[GetPostDto[], number]> {
+    const [posts, count] = await this.postRepository.findAllWithPagination({
       paginationOptions: {
         page: paginationOptions.page,
         limit: paginationOptions.limit,
       },
     });
+
+    return [posts.map(PostFactory.toDto), count];
   }
 
   async findOne(id: Post['id']) {
@@ -65,7 +72,7 @@ export class PostsService {
       });
     }
 
-    return post;
+    return PostFactory.toDto(post);
   }
 
   async update(
@@ -73,7 +80,14 @@ export class PostsService {
     updatePostDto: UpdatePostDto,
     payload: JwtPayloadType,
   ) {
-    const post = await this.findOne(id);
+    const post = await this.postRepository.findById(id);
+
+    if (!post) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: 'Post not found',
+      });
+    }
 
     const validator = await this.userRepository.findById(payload.id);
 
@@ -85,14 +99,14 @@ export class PostsService {
     }
 
     if (updatePostDto?.rejectReason) {
-      post.reject_reason = updatePostDto.rejectReason;
-      post.status = PostStatusEnum.rejected;
+      post.updateStatus(
+        PostStatusEnum.rejected,
+        validator,
+        updatePostDto.rejectReason,
+      );
     } else {
-      post.status = PostStatusEnum.published;
-      post.reject_reason = null;
+      post.updateStatus(PostStatusEnum.pending, validator, null);
     }
-
-    post.validator = validator;
 
     await this.postRepository.update(id, post);
   }

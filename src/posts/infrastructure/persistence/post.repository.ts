@@ -19,10 +19,7 @@ export abstract class PostRepository {
 
   abstract findById(id: Post['id']): Promise<NullableType<Post>>;
 
-  abstract update(
-    id: Post['id'],
-    payload: DeepPartial<Post>,
-  ): Promise<Post | null>;
+  abstract update(id: Post['id'], payload: DeepPartial<Post>): Promise<void>;
 
   abstract remove(id: Post['id']): Promise<void>;
 }
