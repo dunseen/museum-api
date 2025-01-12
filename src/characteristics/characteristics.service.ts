@@ -72,15 +72,17 @@ export class CharacteristicsService {
     return [characteristics.map(CharacteristicFactory.toDto), count];
   }
 
-  findOne(id: Characteristic['id']) {
-    return this.characteristicRepository.findById(id);
+  async findOne(id: Characteristic['id']) {
+    const characteristic = await this.characteristicRepository.findById(id);
+
+    return characteristic ? CharacteristicFactory.toDto(characteristic) : null;
   }
 
-  update(
+  async update(
     id: Characteristic['id'],
     updateCharacteristicDto: UpdateCharacteristicDto,
   ) {
-    return this.characteristicRepository.update(id, updateCharacteristicDto);
+    await this.characteristicRepository.update(id, updateCharacteristicDto);
   }
 
   remove(id: Characteristic['id']) {

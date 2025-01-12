@@ -15,6 +15,7 @@ import { UpdateCharacteristicTypeDto } from './dto/update-characteristic-type.dt
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiParam,
   ApiTags,
@@ -92,9 +93,7 @@ export class CharacteristicTypesController {
     type: Number,
     required: true,
   })
-  @ApiOkResponse({
-    type: GetCharacteristicTypeDto,
-  })
+  @ApiNoContentResponse({})
   update(
     @Param('id') id: number,
     @Body() updateCharacteristicTypeDto: UpdateCharacteristicTypeDto,

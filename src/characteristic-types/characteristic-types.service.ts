@@ -50,15 +50,17 @@ export class CharacteristicTypesService {
     return [types.map(CharacteristicTypeFactory.toDto), count];
   }
 
-  findOne(id: CharacteristicType['id']) {
-    return this.characteristicTypeRepository.findById(id);
+  async findOne(id: CharacteristicType['id']) {
+    const type = await this.characteristicTypeRepository.findById(id);
+
+    return type ? CharacteristicTypeFactory.toDto(type) : null;
   }
 
-  update(
+  async update(
     id: CharacteristicType['id'],
     updateCharacteristicTypeDto: UpdateCharacteristicTypeDto,
   ) {
-    return this.characteristicTypeRepository.update(
+    await this.characteristicTypeRepository.update(
       id,
       updateCharacteristicTypeDto,
     );

@@ -46,6 +46,10 @@ export class CharacteristicMapper {
       persistenceEntity.description = domainEntity.description;
     }
 
+    if (domainEntity?.name) {
+      persistenceEntity.name = domainEntity.name;
+    }
+
     persistenceEntity.type = type;
     persistenceEntity.createdAt = domainEntity.createdAt ?? new Date();
     persistenceEntity.updatedAt = domainEntity.updatedAt ?? new Date();
