@@ -1,32 +1,27 @@
+import { CharacteristicFactory } from '../../characteristics/domain/characteristic.factory';
 import { GetSpecieDto } from '../dto/get-all-species.dto';
 import { Specie } from './specie';
 
 export class SpecieFactory {
-  static createSpecieListDto(data: Specie[]): GetSpecieDto[] {
-    return data.map((d) => {
-      const hierarchyMap = Object.fromEntries(
-        d.taxons.map((taxon) => [taxon.hierarchy.name, taxon.name]),
-      );
+  static toDto(data: Specie): GetSpecieDto {
+    const hierarchyMap = Object.fromEntries(
+      data.taxons.map((taxon) => [taxon.hierarchy.name, taxon.name]),
+    );
 
-      return {
-        id: d.id,
-        scientificName: d.scientificName,
-        commonName: d.commonName,
-        characteristics: d.characteristics.map((c) => ({
-          id: Number(c.id),
-          name: c.name,
-          description: c.description,
-          type: c.type.name,
-        })),
-        taxonomy: {
-          kingdom: hierarchyMap['reino'],
-          division: hierarchyMap['divisão'],
-          class: hierarchyMap['classe'],
-          order: hierarchyMap['ordem'],
-          family: hierarchyMap['família'],
-          genus: hierarchyMap['gênero'],
-        },
-      };
-    });
+    return {
+      id: data.id,
+      scientificName: data.scientificName,
+      commonName: data.commonName,
+      characteristics: data.characteristics.map(CharacteristicFactory.toDto),
+      taxonomy: {
+        kingdom: hierarchyMap['reino'],
+        division: hierarchyMap['divisão'],
+        class: hierarchyMap['classe'],
+        order: hierarchyMap['ordem'],
+        family: hierarchyMap['família'],
+        genus: hierarchyMap['gênero'],
+      },
+      files: data.files.map((f) => f),
+    };
   }
 }

@@ -125,7 +125,7 @@ export class SpeciesService {
       },
     });
 
-    return [SpecieFactory.createSpecieListDto(species), count];
+    return [species.map(SpecieFactory.toDto), count];
   }
 
   async findOne(id: Specie['id']) {

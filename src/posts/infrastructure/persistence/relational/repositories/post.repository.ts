@@ -47,25 +47,15 @@ export class PostRelationalRepository implements PostRepository {
     return entity ? PostMapper.toDomain(entity) : null;
   }
 
-  async update(id: Post['id'], payload: Partial<Post>): Promise<Post> {
-    const entity = await this.postRepository.findOne({
-      where: { id },
-    });
-
-    if (!entity) {
-      throw new Error('Record not found');
-    }
-
-    const updatedEntity = await this.postRepository.save(
+  async update(id: Post['id'], payload: Partial<Post>): Promise<void> {
+    await this.postRepository.save(
       this.postRepository.create(
         PostMapper.toPersistence({
-          ...PostMapper.toDomain(entity),
+          id,
           ...payload,
         }),
       ),
     );
-
-    return PostMapper.toDomain(updatedEntity);
   }
 
   async remove(id: Post['id']): Promise<void> {
