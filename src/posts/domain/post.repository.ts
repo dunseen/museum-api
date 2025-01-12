@@ -4,6 +4,7 @@ import {
   IPaginationOptions,
   WithCountList,
 } from '../../utils/types/pagination-options';
+import { ListHomePagePostsDto } from '../application/dtos';
 import { Post } from './post';
 
 export abstract class PostRepository {
@@ -16,6 +17,11 @@ export abstract class PostRepository {
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<Post>>;
+  abstract findAllHomePageWithPagination({
+    paginationOptions,
+  }: {
+    paginationOptions: IPaginationOptions;
+  }): Promise<WithCountList<ListHomePagePostsDto>>;
 
   abstract findById(id: Post['id']): Promise<NullableType<Post>>;
 

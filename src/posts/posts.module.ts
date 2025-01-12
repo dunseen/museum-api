@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { PostService } from './domain/post.service';
-import { PostsController } from './posts.controller';
 import { RelationalPostPersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalUserPersistenceModule } from '../users/infrastructure/persistence/relational/relational-persistence.module';
 import { SpeciesModule } from '../species/species.module';
@@ -10,7 +9,18 @@ import { ListPaginatedPostUseCase } from './application/use-cases/list-paginated
 import { DeletePostUseCase } from './application/use-cases/delete-post.use-case';
 import { UsersModule } from '../users/users.module';
 import { ValidatePostUseCase } from './application/use-cases/validate-post.use-case';
+import { PostsController } from './posts.controller';
+import { ListHomePagePostsUseCase } from './application/use-cases/list-home-page-posts.use-case';
 
+const providers = [
+  CreatePostUseCase,
+  FindPostByIdUseCase,
+  ListPaginatedPostUseCase,
+  DeletePostUseCase,
+  ValidatePostUseCase,
+  ListHomePagePostsUseCase,
+  PostService,
+];
 @Module({
   imports: [
     RelationalPostPersistenceModule,
@@ -19,14 +29,7 @@ import { ValidatePostUseCase } from './application/use-cases/validate-post.use-c
     UsersModule,
   ],
   controllers: [PostsController],
-  providers: [
-    CreatePostUseCase,
-    FindPostByIdUseCase,
-    ListPaginatedPostUseCase,
-    DeletePostUseCase,
-    ValidatePostUseCase,
-    PostService,
-  ],
-  exports: [PostService, RelationalPostPersistenceModule],
+  providers,
+  exports: [...providers, RelationalPostPersistenceModule],
 })
 export class PostsModule {}

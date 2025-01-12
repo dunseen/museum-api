@@ -10,6 +10,8 @@ import {
   IPaginationOptions,
   WithCountList,
 } from '../../../../../utils/types/pagination-options';
+import { ListHomePagePostsDto } from '../../../../application/dtos';
+import { PostSimplifiedMapper } from '../mappers/post-simplified.mapper';
 
 @Injectable()
 export class PostRelationalRepository implements PostRepository {
@@ -17,6 +19,26 @@ export class PostRelationalRepository implements PostRepository {
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
   ) {}
+
+  async findAllHomePageWithPagination({
+    paginationOptions,
+  }: {
+    paginationOptions: IPaginationOptions;
+  }): Promise<WithCountList<ListHomePagePostsDto>> {
+    const query = this.postRepository
+      .createQueryBuilder('p')
+      .select('p.id')
+      .innerJoinAndSelect('p.specie', 's')
+      .innerJoinAndSelect('s.files', 'f')
+      .innerJoinAndSelect('s.taxons', 't')
+      .innerJoinAndSelect('t.hierarchy', 'h')
+      .skip((paginationOptions.page - 1) * paginationOptions.limit)
+      .take(paginationOptions.limit);
+
+    const [entities, totalCount] = await query.getManyAndCount();
+
+    return [entities.map(PostSimplifiedMapper.toDomain), totalCount];
+  }
 
   async create(data: Post): Promise<Post> {
     const persistenceModel = PostMapper.toPersistence(data);
