@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { FileType } from '../../files/domain/file';
 
 class TaxonomyDto {
   @ApiProperty({
@@ -70,4 +71,10 @@ export class GetSpecieDto {
     isArray: true,
   })
   characteristics: CharacteristicDto[];
+
+  @ApiProperty({
+    type: FileType,
+    isArray: true,
+  })
+  files: FileType[];
 }
