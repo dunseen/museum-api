@@ -4,14 +4,14 @@ import {
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { CreateCharacteristicDto } from './dto/create-characteristic.dto';
-import { UpdateCharacteristicDto } from './dto/update-characteristic.dto';
-import { CharacteristicRepository } from './infrastructure/persistence/characteristic.repository';
+import { CreateCharacteristicDto } from './application/dto/create-characteristic.dto';
+import { UpdateCharacteristicDto } from './application/dto/update-characteristic.dto';
+import { CharacteristicRepository } from './domain/characteristic.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { Characteristic } from './domain/characteristic';
 import { CharacteristicTypeRepository } from '../characteristic-types/infrastructure/persistence/characteristic-type.repository';
 import { CharacteristicFactory } from './domain/characteristic.factory';
-import { GetCharacteristicDto } from './dto/get-characteristic.dto';
+import { GetCharacteristicDto } from './application/dto/get-characteristic.dto';
 
 @Injectable()
 export class CharacteristicsService {

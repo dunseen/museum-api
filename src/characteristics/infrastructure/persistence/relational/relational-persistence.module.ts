@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CharacteristicRepository } from '../characteristic.repository';
+import { CharacteristicRepository } from '../../../domain/characteristic.repository';
 import { CharacteristicRelationalRepository } from './repositories/characteristic.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CharacteristicEntity } from './entities/characteristic.entity';
