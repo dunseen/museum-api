@@ -1,51 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { FileType } from '../../files/domain/file';
-
-class TaxonomyDto {
-  @ApiProperty({
-    type: String,
-  })
-  kingdom: string;
-  @ApiProperty({
-    type: String,
-  })
-  division: string;
-  @ApiProperty({
-    type: String,
-  })
-  class: string;
-  @ApiProperty({
-    type: String,
-  })
-  order: string;
-  @ApiProperty({
-    type: String,
-  })
-  family: string;
-  @ApiProperty({
-    type: String,
-  })
-  genus: string;
-}
-
-class CharacteristicDto {
-  @ApiProperty({
-    type: Number,
-  })
-  id: number;
-  @ApiProperty({
-    type: String,
-  })
-  name: string;
-  @ApiProperty({
-    type: String,
-  })
-  type: string;
-  @ApiProperty({
-    type: String,
-  })
-  description: string;
-}
+import { ListTaxonDto } from '../../taxons/dto/list-taxonomy.dto';
+import { GetSimpleCharacteristicDto } from '../../characteristics/dto/get-simple-characteristic.dto';
 
 export class GetSpecieDto {
   @ApiProperty({
@@ -63,14 +19,14 @@ export class GetSpecieDto {
   })
   commonName: string;
 
-  @ApiProperty({ type: TaxonomyDto })
-  taxonomy: TaxonomyDto;
+  @ApiProperty({ type: ListTaxonDto })
+  taxonomy: ListTaxonDto;
 
   @ApiProperty({
-    type: CharacteristicDto,
+    type: GetSimpleCharacteristicDto,
     isArray: true,
   })
-  characteristics: CharacteristicDto[];
+  characteristics: GetSimpleCharacteristicDto[];
 
   @ApiProperty({
     type: FileType,

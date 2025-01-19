@@ -1,5 +1,6 @@
 import { SpecieFactory } from '../../species/domain/specie.factory';
 import { UserFactory } from '../../users/domain/user.factory';
+import { ListHomePagePostsDto } from '../application/dtos';
 import { GetPostDto } from '../application/dtos/get-post.dto';
 import { Post } from './post';
 
@@ -16,6 +17,13 @@ export class PostFactory {
       specie: SpecieFactory.toDto(post.specie),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
+    };
+  }
+
+  static toListHomePageDto(post: Post): ListHomePagePostsDto {
+    return {
+      id: post.id,
+      specie: SpecieFactory.toListHomePageDto(post.specie),
     };
   }
 }
