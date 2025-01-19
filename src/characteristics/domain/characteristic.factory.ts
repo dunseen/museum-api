@@ -1,4 +1,4 @@
-import { GetCharacteristicDto } from '../dto/get-characteristic.dto';
+import { GetCharacteristicDto } from '../application/dto/get-characteristic.dto';
 import { Characteristic } from './characteristic';
 
 export class CharacteristicFactory {
