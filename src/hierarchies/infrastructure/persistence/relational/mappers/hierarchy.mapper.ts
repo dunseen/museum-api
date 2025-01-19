@@ -6,8 +6,6 @@ export class HierarchyMapper {
     const domainEntity = new Hierarchy();
     domainEntity.id = raw.id;
     domainEntity.name = raw.name;
-    domainEntity.createdAt = raw.createdAt;
-    domainEntity.updatedAt = raw.updatedAt;
 
     return domainEntity;
   }
@@ -18,8 +16,6 @@ export class HierarchyMapper {
       persistenceEntity.id = Number(domainEntity.id);
     }
     persistenceEntity.name = domainEntity.name;
-    persistenceEntity.createdAt = domainEntity.createdAt;
-    persistenceEntity.updatedAt = domainEntity.updatedAt;
 
     return persistenceEntity;
   }

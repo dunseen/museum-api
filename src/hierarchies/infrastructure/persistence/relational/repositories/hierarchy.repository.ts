@@ -13,8 +13,10 @@ export class HierarchyRelationalRepository implements HierarchyRepository {
     @InjectRepository(HierarchyEntity)
     private readonly hierarchyRepository: Repository<HierarchyEntity>,
   ) {}
-  findAll(): Promise<Hierarchy[]> {
-    return this.hierarchyRepository.find();
+  async findAll(): Promise<Hierarchy[]> {
+    const results = await this.hierarchyRepository.find();
+
+    return results.map(HierarchyMapper.toDomain);
   }
 
   async create(data: Hierarchy): Promise<Hierarchy> {
