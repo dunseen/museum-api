@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { HierarchiesService } from './hierarchies.service';
-import { CreateHierarchyDto } from './dto/create-hierarchy.dto';
-import { UpdateHierarchyDto } from './dto/update-hierarchy.dto';
+import { CreateHierarchyDto } from './application/dto/create-hierarchy.dto';
+import { UpdateHierarchyDto } from './application/dto/update-hierarchy.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -18,11 +18,12 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Hierarchy } from './domain/hierarchy';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../roles/roles.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RoleEnum } from '../roles/roles.enum';
+import { ListHierarchyUseCase } from './application/use-cases/list-hierarchy.use-case';
+import { ListHierarchyDto } from './application/dto/list-hiearchy.dto';
 
 @ApiTags('Hierarchies')
 @Controller({
@@ -30,14 +31,17 @@ import { RoleEnum } from '../roles/roles.enum';
   version: '1',
 })
 export class HierarchiesController {
-  constructor(private readonly hierarchiesService: HierarchiesService) {}
+  constructor(
+    private readonly hierarchiesService: HierarchiesService,
+    private readonly listHierarchyUseCase: ListHierarchyUseCase,
+  ) {}
 
   @Roles(RoleEnum.admin, RoleEnum.editor)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @ApiBearerAuth()
   @ApiCreatedResponse({
-    type: Hierarchy,
+    type: ListHierarchyDto,
   })
   create(@Body() createHierarchyDto: CreateHierarchyDto) {
     return this.hierarchiesService.create(createHierarchyDto);
@@ -45,23 +49,23 @@ export class HierarchiesController {
 
   @Get()
   @ApiOkResponse({
-    type: Hierarchy,
+    type: ListHierarchyDto,
     isArray: true,
   })
-  findAll(): Promise<Hierarchy[]> {
-    return this.hierarchiesService.findAll();
+  findAll(): Promise<ListHierarchyDto[]> {
+    return this.listHierarchyUseCase.execute();
   }
 
   @Get(':id')
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
   @ApiOkResponse({
-    type: Hierarchy,
+    type: ListHierarchyDto,
   })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.hierarchiesService.findOne(id);
   }
 
@@ -71,14 +75,14 @@ export class HierarchiesController {
   @ApiBearerAuth()
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
   @ApiOkResponse({
-    type: Hierarchy,
+    type: ListHierarchyDto,
   })
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateHierarchyDto: UpdateHierarchyDto,
   ) {
     return this.hierarchiesService.update(id, updateHierarchyDto);
@@ -90,10 +94,10 @@ export class HierarchiesController {
   @ApiBearerAuth()
   @ApiParam({
     name: 'id',
-    type: String,
+    type: Number,
     required: true,
   })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.hierarchiesService.remove(id);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateHierarchyDto } from './dto/create-hierarchy.dto';
-import { UpdateHierarchyDto } from './dto/update-hierarchy.dto';
+import { CreateHierarchyDto } from './application/dto/create-hierarchy.dto';
+import { UpdateHierarchyDto } from './application/dto/update-hierarchy.dto';
 import { HierarchyRepository } from './infrastructure/persistence/hierarchy.repository';
 import { Hierarchy } from './domain/hierarchy';
 
