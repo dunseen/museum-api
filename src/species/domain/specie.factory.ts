@@ -13,6 +13,7 @@ export class SpecieFactory {
       id: data.id,
       scientificName: data.scientificName,
       commonName: data.commonName,
+      description: data.description,
       characteristics: data.characteristics.map(CharacteristicFactory.toDto),
       taxonomy: {
         kingdom: hierarchyMap['reino'],
@@ -35,6 +36,7 @@ export class SpecieFactory {
       id: data.id,
       scientificName: data.scientificName,
       commonName: data.commonName,
+      description: data.description,
       files: data.files.map((f) => f),
       taxonomy: {
         kingdom: hierarchyMap['reino'],

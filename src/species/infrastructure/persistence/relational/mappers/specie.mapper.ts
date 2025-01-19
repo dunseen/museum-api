@@ -11,6 +11,7 @@ export class SpecieMapper {
       .setId(raw.id)
       .setScientificName(raw.scientificName)
       .setCommonName(raw.commonName)
+      .setDescription(raw.description)
       .setUpdatedAt(raw.updatedAt)
       .setCreatedAt(raw.createdAt)
       .build();
@@ -64,6 +65,10 @@ export class SpecieMapper {
 
     if (domainEntity?.commonName) {
       persistenceEntity.commonName = domainEntity.commonName;
+    }
+
+    if (domainEntity?.description) {
+      persistenceEntity.description = domainEntity.description;
     }
 
     if (domainEntity?.createdAt) {

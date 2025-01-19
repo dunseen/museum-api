@@ -19,6 +19,26 @@ export class PostRelationalRepository implements PostRepository {
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
   ) {}
+  async findBySpecieName(name: string): Promise<NullableType<Post>> {
+    const query = this.postRepository
+      .createQueryBuilder('p')
+      .innerJoinAndSelect('p.author', 'author')
+      .innerJoin('p.validator', 'validator')
+      .innerJoinAndSelect('p.specie', 's')
+      .innerJoinAndSelect('s.files', 'f')
+      .innerJoinAndSelect('s.taxons', 't')
+      .innerJoinAndSelect('t.hierarchy', 'h')
+      .where(
+        'LOWER(s.scientificName) = LOWER(:name) OR LOWER(s.commonName) = LOWER(:name)',
+        {
+          name,
+        },
+      );
+
+    const post = await query.getOne();
+
+    return post ? PostMapper.toDomain(post) : null;
+  }
 
   async findAllHomePageWithPagination({
     paginationOptions,

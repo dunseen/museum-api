@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Taxon } from '../../taxons/domain/taxon';
 import { Characteristic } from '../../characteristics/domain/characteristic';
 import { FileType } from '../../files/domain/file';
+import { NullableType } from '../../utils/types/nullable.type';
 
 export class Specie {
   @ApiProperty({ type: Number })
@@ -12,6 +13,9 @@ export class Specie {
 
   @ApiProperty({ type: String })
   readonly commonName: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  readonly description: NullableType<string>;
 
   @ApiProperty({ type: Taxon, isArray: true })
   private readonly _taxons: Taxon[] = [];
@@ -32,12 +36,14 @@ export class Specie {
     id: number,
     scientificName: string,
     commonName: string,
+    description: NullableType<string>,
     createdAt?: Date,
     updatedAt?: Date,
   ) {
     this.id = id;
     this.scientificName = scientificName;
     this.commonName = commonName;
+    this.description = description;
     this.createdAt = createdAt ?? new Date();
     this.updatedAt = updatedAt ?? new Date();
   }

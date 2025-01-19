@@ -11,6 +11,7 @@ import { UsersModule } from '../users/users.module';
 import { ValidatePostUseCase } from './application/use-cases/validate-post.use-case';
 import { PostsController } from './posts.controller';
 import { ListHomePagePostsUseCase } from './application/use-cases/list-home-page-posts.use-case';
+import { FindHomePostDetailsByNameUseCase } from './application/use-cases/find-home-post-details-by-name.use-case';
 
 const providers = [
   CreatePostUseCase,
@@ -19,6 +20,7 @@ const providers = [
   DeletePostUseCase,
   ValidatePostUseCase,
   ListHomePagePostsUseCase,
+  FindHomePostDetailsByNameUseCase,
   PostService,
 ];
 @Module({

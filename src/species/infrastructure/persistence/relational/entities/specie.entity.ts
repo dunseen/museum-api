@@ -14,6 +14,7 @@ import { EntityRelationalHelper } from '../../../../../utils/relational-entity-h
 import { CharacteristicEntity } from '../../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
 import { TaxonEntity } from '../../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { FileEntity } from '../../../../../files/infrastructure/persistence/relational/entities/file.entity';
+import { NullableType } from '../../../../../utils/types/nullable.type';
 
 @Entity({
   name: 'specie',
@@ -35,6 +36,14 @@ export class SpecieEntity extends EntityRelationalHelper {
     length: 100,
   })
   commonName: string;
+
+  @Index()
+  @Column({
+    nullable: true,
+    type: 'varchar',
+    length: 255,
+  })
+  description: NullableType<string>;
 
   @ManyToMany(() => TaxonEntity, { eager: true })
   @JoinTable({

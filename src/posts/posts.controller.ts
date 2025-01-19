@@ -1,11 +1,16 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   InfinityPaginationResponse,
   InfinityPaginationResponseDto,
 } from '../utils/dto/infinity-pagination-response.dto';
-import { FindAllPostsDto, ListHomePagePostsDto } from './application/dtos';
+import {
+  FindAllPostsDto,
+  GetPostDto,
+  ListHomePagePostsDto,
+} from './application/dtos';
 import { ListHomePagePostsUseCase } from './application/use-cases/list-home-page-posts.use-case';
+import { FindHomePostDetailsByNameUseCase } from './application/use-cases/find-home-post-details-by-name.use-case';
 
 @ApiTags('Posts')
 @Controller({
@@ -15,6 +20,7 @@ import { ListHomePagePostsUseCase } from './application/use-cases/list-home-page
 export class PostsController {
   constructor(
     private readonly listHomePagePostsUseCase: ListHomePagePostsUseCase,
+    private readonly findHomePostDetailsByNameUseCase: FindHomePostDetailsByNameUseCase,
   ) {}
 
   @Get()
@@ -34,16 +40,17 @@ export class PostsController {
       },
     });
   }
-  // @Get(':id')
-  // @ApiParam({
-  //   name: 'id',
-  //   type: String,
-  //   required: true,
-  // })
-  // @ApiOkResponse({
-  //   type: GetPostDto,
-  // })
-  // findOne(@Param('id') id: string) {
-  //   return this.findPostByIdUseCase.execute(id);
-  // }
+  @Get('specie/:name')
+  @ApiParam({
+    name: 'name',
+    type: String,
+    required: true,
+    description: 'The common name or scientific name of a specie',
+  })
+  @ApiOkResponse({
+    type: GetPostDto,
+  })
+  findOne(@Param('name') name: string) {
+    return this.findHomePostDetailsByNameUseCase.execute(name);
+  }
 }
