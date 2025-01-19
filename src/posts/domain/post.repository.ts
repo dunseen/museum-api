@@ -24,6 +24,7 @@ export abstract class PostRepository {
   }): Promise<WithCountList<ListHomePagePostsDto>>;
 
   abstract findById(id: Post['id']): Promise<NullableType<Post>>;
+  abstract findBySpecieName(name: string): Promise<NullableType<Post>>;
 
   abstract update(id: Post['id'], payload: DeepPartial<Post>): Promise<void>;
 
