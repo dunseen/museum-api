@@ -19,6 +19,13 @@ export class CharacteristicTypeRelationalRepository
     @InjectRepository(CharacteristicTypeEntity)
     private readonly characteristicTypeRepository: Repository<CharacteristicTypeEntity>,
   ) {}
+  async findAll(limit = 10): Promise<CharacteristicType[]> {
+    const types = await this.characteristicTypeRepository.find({
+      take: limit,
+    });
+
+    return types.map(CharacteristicTypeMapper.toDomain);
+  }
   async findByName(
     name: CharacteristicType['name'],
   ): Promise<NullableType<CharacteristicType>> {
