@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { FileType } from '../../files/domain/file';
 import { ListTaxonDto } from '../../taxons/dto/list-taxonomy.dto';
 import { GetSimpleCharacteristicDto } from '../../characteristics/dto/get-simple-characteristic.dto';
+import { NullableType } from '../../utils/types/nullable.type';
 
 export class GetSpecieDto {
   @ApiProperty({
@@ -18,6 +19,12 @@ export class GetSpecieDto {
     type: String,
   })
   commonName: string;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+  })
+  description: NullableType<string>;
 
   @ApiProperty({ type: ListTaxonDto })
   taxonomy: ListTaxonDto;

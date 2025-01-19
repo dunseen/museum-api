@@ -2,11 +2,13 @@ import { Specie } from './specie';
 import { Taxon } from '../../taxons/domain/taxon';
 import { Characteristic } from '../../characteristics/domain/characteristic';
 import { FileType } from '../../files/domain/file';
+import { NullableType } from '../../utils/types/nullable.type';
 
 export class SpecieBuilder {
   private id: number;
   private scientificName: string;
   private commonName: string;
+  private description: NullableType<string>;
   private createdAt: Date;
   private updatedAt: Date;
   private taxons: Taxon[] = [];
@@ -25,6 +27,10 @@ export class SpecieBuilder {
 
   setCommonName(commonName: string): SpecieBuilder {
     this.commonName = commonName;
+    return this;
+  }
+  setDescription(description: NullableType<string>): SpecieBuilder {
+    this.description = description;
     return this;
   }
 
@@ -64,6 +70,7 @@ export class SpecieBuilder {
       this.id,
       this.scientificName,
       this.commonName,
+      this.description,
       this.createdAt,
       this.updatedAt,
     );
