@@ -9,7 +9,7 @@ import { UpdateSpecieDto } from './dto/update-specie.dto';
 import { SpecieRepository } from './infrastructure/persistence/specie.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { Specie } from './domain/specie';
-import { CharacteristicRepository } from '../characteristics/infrastructure/persistence/characteristic.repository';
+import { CharacteristicRepository } from '../characteristics/domain/characteristic.repository';
 import { TaxonRepository } from '../taxons/infrastructure/persistence/taxon.repository';
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { SpecieBuilder } from './domain/specie-builder';

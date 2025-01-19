@@ -17,6 +17,8 @@ export abstract class CharacteristicTypeRepository {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<CharacteristicType>>;
 
+  abstract findAll(limit?: number): Promise<CharacteristicType[]>;
+
   abstract findById(
     id: CharacteristicType['id'],
   ): Promise<NullableType<CharacteristicType>>;

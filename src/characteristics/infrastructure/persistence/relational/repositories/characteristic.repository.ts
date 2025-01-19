@@ -4,12 +4,13 @@ import { Repository } from 'typeorm';
 import { CharacteristicEntity } from '../entities/characteristic.entity';
 import { NullableType } from '../../../../../utils/types/nullable.type';
 import { Characteristic } from '../../../../domain/characteristic';
-import { CharacteristicRepository } from '../../characteristic.repository';
+import { CharacteristicRepository } from '../../../../domain/characteristic.repository';
 import { CharacteristicMapper } from '../mappers/characteristic.mapper';
 import {
   IPaginationOptions,
   WithCountList,
 } from '../../../../../utils/types/pagination-options';
+import { CharacteristicType } from '../../../../../characteristic-types/domain/characteristic-type';
 
 @Injectable()
 export class CharacteristicRelationalRepository
@@ -19,6 +20,26 @@ export class CharacteristicRelationalRepository
     @InjectRepository(CharacteristicEntity)
     private readonly characteristicRepository: Repository<CharacteristicEntity>,
   ) {}
+
+  async findAllByTypeId(typeId: CharacteristicType['id'], limit = 10) {
+    const query = this.characteristicRepository
+      .createQueryBuilder('c')
+      .innerJoinAndSelect('c.type', 't')
+      .select('t.name as type')
+      .where('c.typeId = :typeId', { typeId })
+      .limit(limit)
+      .addSelect('c.id as id')
+      .addSelect('c.name as name');
+
+    const results = await query.getRawMany();
+
+    return results.map((r) => ({
+      id: r.id,
+      name: r.name,
+      type: r.type,
+    }));
+  }
+
   async findByName(
     name: Characteristic['name'],
   ): Promise<NullableType<Characteristic>> {

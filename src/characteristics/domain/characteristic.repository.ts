@@ -1,10 +1,12 @@
-import { DeepPartial } from '../../../utils/types/deep-partial.type';
-import { NullableType } from '../../../utils/types/nullable.type';
+import { CharacteristicType } from '../../characteristic-types/domain/characteristic-type';
+import { DeepPartial } from '../../utils/types/deep-partial.type';
+import { NullableType } from '../../utils/types/nullable.type';
 import {
   IPaginationOptions,
   WithCountList,
-} from '../../../utils/types/pagination-options';
-import { Characteristic } from '../../domain/characteristic';
+} from '../../utils/types/pagination-options';
+import { GetCharacteristicDto } from '../application/dto/get-characteristic.dto';
+import { Characteristic } from './characteristic';
 
 export abstract class CharacteristicRepository {
   abstract create(
@@ -20,6 +22,11 @@ export abstract class CharacteristicRepository {
   abstract findById(
     id: Characteristic['id'],
   ): Promise<NullableType<Characteristic>>;
+
+  abstract findAllByTypeId(
+    typeId: CharacteristicType['id'],
+    limit?: number,
+  ): Promise<Pick<GetCharacteristicDto, 'id' | 'name' | 'type'>[]>;
 
   abstract findByName(
     id: Characteristic['name'],

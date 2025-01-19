@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
-import { lowerCaseTransformer } from '../../utils/transformers/lower-case.transformer';
+import { lowerCaseTransformer } from '../../../utils/transformers/lower-case.transformer';
 
 export class CreateCharacteristicDto {
   @ApiProperty({
