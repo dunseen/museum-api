@@ -3,6 +3,7 @@ import { CharacteristicsService } from './characteristics.service';
 import { CharacteristicsController } from './characteristics.controller';
 import { RelationalCharacteristicPersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalCharacteristicTypePersistenceModule } from '../characteristic-types/infrastructure/persistence/relational/relational-persistence.module';
+import { ListHomeCharacteristicFiltersUseCase } from './application/use-cases/list-home-characteristic-filters.use-case';
 
 @Module({
   imports: [
@@ -10,7 +11,7 @@ import { RelationalCharacteristicTypePersistenceModule } from '../characteristic
     RelationalCharacteristicTypePersistenceModule,
   ],
   controllers: [CharacteristicsController],
-  providers: [CharacteristicsService],
+  providers: [CharacteristicsService, ListHomeCharacteristicFiltersUseCase],
   exports: [CharacteristicsService, RelationalCharacteristicPersistenceModule],
 })
 export class CharacteristicsModule {}
