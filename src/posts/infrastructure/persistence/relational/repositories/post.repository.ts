@@ -55,6 +55,15 @@ export class PostRelationalRepository implements PostRepository {
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit);
 
+    if (paginationOptions.filters?.name) {
+      query.where(
+        'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
+        {
+          name: `%${paginationOptions.filters.name}%`,
+        },
+      );
+    }
+
     const [entities, totalCount] = await query.getManyAndCount();
 
     return [entities.map(PostSimplifiedMapper.toDomain), totalCount];
