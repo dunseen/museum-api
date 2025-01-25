@@ -12,6 +12,7 @@ import {
 } from '../../../../../utils/types/pagination-options';
 import { ListHomePagePostsDto } from '../../../../application/dtos';
 import { PostSimplifiedMapper } from '../mappers/post-simplified.mapper';
+import { PostStatusEnum } from '../../../../domain/post-status.enum';
 
 @Injectable()
 export class PostRelationalRepository implements PostRepository {
@@ -23,9 +24,9 @@ export class PostRelationalRepository implements PostRepository {
     const query = this.postRepository
       .createQueryBuilder('p')
       .innerJoinAndSelect('p.author', 'author')
-      .innerJoin('p.validator', 'validator')
+      .leftJoin('p.validator', 'validator')
       .innerJoinAndSelect('p.specie', 's')
-      .innerJoinAndSelect('s.files', 'f')
+      .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('t.hierarchy', 'h')
       .where(
@@ -49,9 +50,12 @@ export class PostRelationalRepository implements PostRepository {
       .createQueryBuilder('p')
       .select('p.id')
       .innerJoinAndSelect('p.specie', 's')
-      .innerJoinAndSelect('s.files', 'f')
+      .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('t.hierarchy', 'h')
+      .where('p.status = :status', {
+        status: PostStatusEnum.published,
+      })
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit);
 
@@ -91,12 +95,16 @@ export class PostRelationalRepository implements PostRepository {
 
   async update(id: Post['id'], payload: Partial<Post>): Promise<void> {
     await this.postRepository.save(
-      this.postRepository.create(
-        PostMapper.toPersistence({
-          id,
-          ...payload,
-        }),
-      ),
+      PostMapper.toPersistence({
+        id,
+        author: payload.author,
+        validator: payload.validator,
+        specie: payload.specie,
+        status: payload.status,
+        rejectReason: payload.rejectReason,
+        updatedAt: payload.updatedAt,
+        createdAt: payload.createdAt,
+      }),
     );
   }
 
