@@ -31,17 +31,23 @@ export class ValidatePostUseCase {
 
       const validator = await this.userService.ensureUserExists(payload.id);
 
+      let updatedPost: Post;
+
       if (updatePostDto?.rejectReason) {
-        post.updateStatus(
+        updatedPost = post.withUpdateStatus(
           PostStatusEnum.rejected,
           validator,
           updatePostDto.rejectReason,
         );
       } else {
-        post.updateStatus(PostStatusEnum.pending, validator, null);
+        updatedPost = post.withUpdateStatus(
+          PostStatusEnum.published,
+          validator,
+          null,
+        );
       }
 
-      await this.postRepository.update(id, post);
+      await this.postRepository.update(id, updatedPost);
     } catch (error) {
       if (error instanceof UserNotFoundException) {
         throw new ForbiddenException(error.message);
