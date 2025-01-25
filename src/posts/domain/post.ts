@@ -66,11 +66,11 @@ export class Post {
     return this._updatedAt;
   }
 
-  updateStatus(
+  withUpdateStatus(
     newStatus: PostStatusEnum,
     validator: User,
     rejectReason?: NullableType<string>,
-  ): void {
+  ) {
     if (newStatus === PostStatusEnum.rejected && !rejectReason) {
       throw new Error('Reject reason must be provided for rejected posts');
     }
@@ -79,6 +79,17 @@ export class Post {
     this._validator = validator;
     this._rejectReason = rejectReason ?? this._rejectReason;
     this._updatedAt = new Date();
+
+    const builder = new PostBuilder()
+      .setId(this._id)
+      .setAuthor(this._author)
+      .setSpecie(this._specie)
+      .setStatus(newStatus)
+      .setValidator(validator)
+      .setRejectReason(rejectReason ?? this._rejectReason)
+      .setUpdatedAt(new Date());
+
+    return Post.createFromBuilder(builder);
   }
 
   private validateState() {

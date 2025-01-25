@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { HierarchySeedService } from './hierarchy/hierarchy-seed.service';
-import { TaxonSeedService } from './taxon/taxon-seed.service';
+import { SpecieSeedService } from './specie/specie-seed.service';
+
 import { RoleSeedService } from './role/role-seed.service';
 import { SeedModule } from './seed.module';
 import { StatusSeedService } from './status/status-seed.service';
@@ -13,8 +13,7 @@ const runSeed = async () => {
   await app.get(RoleSeedService).run();
   await app.get(StatusSeedService).run();
   await app.get(UserSeedService).run();
-  await app.get(HierarchySeedService).run();
-  await app.get(TaxonSeedService).run();
+  await app.get(SpecieSeedService).run();
 
   await app.close();
 };

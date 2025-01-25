@@ -31,6 +31,17 @@ export class CreatePostUseCase {
       });
     }
 
+    const postExists = await this.postRepository.findBySpecieName(
+      specie.scientificName,
+    );
+
+    if (postExists) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        error: 'Post already exists for this specie',
+      });
+    }
+
     const author = await this.userService.findById(payload.id);
 
     if (!author) {
