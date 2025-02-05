@@ -23,7 +23,7 @@ export class PostsController {
     private readonly findHomePostDetailsByNameUseCase: FindHomePostDetailsByNameUseCase,
   ) {}
 
-  @Get()
+  @Get('species')
   @ApiOkResponse({
     type: InfinityPaginationResponse(ListHomePagePostsDto),
   })
@@ -43,7 +43,7 @@ export class PostsController {
       },
     });
   }
-  @Get('specie/:name')
+  @Get('species/:name')
   @ApiParam({
     name: 'name',
     type: String,

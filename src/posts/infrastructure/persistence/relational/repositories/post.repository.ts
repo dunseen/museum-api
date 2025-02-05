@@ -61,8 +61,8 @@ export class PostRelationalRepository implements PostRepository {
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit);
 
-    if (paginationOptions?.filters?.name) {
-      query.andWhere(
+    if (paginationOptions.filters?.name) {
+      query.where(
         'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
         {
           name: `%${paginationOptions.filters.name}%`,

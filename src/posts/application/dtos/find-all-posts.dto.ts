@@ -15,8 +15,10 @@ export class FindAllPostsDto {
   @IsOptional()
   limit = 10;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Filter by specie name',
+  })
   @IsString()
   @IsOptional()
-  name?: string;
+  name: string;
 }
