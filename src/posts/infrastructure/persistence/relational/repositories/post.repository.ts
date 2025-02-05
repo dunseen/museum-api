@@ -28,6 +28,8 @@ export class PostRelationalRepository implements PostRepository {
       .innerJoinAndSelect('p.specie', 's')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
+      .innerJoinAndSelect('s.characteristics', 'c')
+      .innerJoinAndSelect('c.type', 'type')
       .innerJoinAndSelect('t.hierarchy', 'h')
       .where(
         'LOWER(s.scientificName) = LOWER(:name) OR LOWER(s.commonName) = LOWER(:name)',
@@ -58,6 +60,15 @@ export class PostRelationalRepository implements PostRepository {
       })
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit);
+
+    if (paginationOptions?.filters?.name) {
+      query.andWhere(
+        'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
+        {
+          name: `%${paginationOptions.filters.name}%`,
+        },
+      );
+    }
 
     const [entities, totalCount] = await query.getManyAndCount();
 

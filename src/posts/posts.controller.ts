@@ -37,6 +37,9 @@ export class PostsController {
       paginationOptions: {
         page,
         limit,
+        filters: {
+          name: query?.name,
+        },
       },
     });
   }
@@ -51,6 +54,8 @@ export class PostsController {
     type: GetPostDto,
   })
   findOne(@Param('name') name: string) {
-    return this.findHomePostDetailsByNameUseCase.execute(name);
+    return this.findHomePostDetailsByNameUseCase.execute(
+      decodeURIComponent(name),
+    );
   }
 }
