@@ -28,6 +28,8 @@ export class PostRelationalRepository implements PostRepository {
       .innerJoinAndSelect('p.specie', 's')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
+      .innerJoinAndSelect('s.characteristics', 'c')
+      .innerJoinAndSelect('c.type', 'type')
       .innerJoinAndSelect('t.hierarchy', 'h')
       .where(
         'LOWER(s.scientificName) = LOWER(:name) OR LOWER(s.commonName) = LOWER(:name)',
