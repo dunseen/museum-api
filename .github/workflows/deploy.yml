@@ -27,6 +27,7 @@ jobs:
       - name: Inject Secrets into .env on VPS
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
+
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" > /home/ubuntu/app/.env
           echo "APP_PORT=${{ secrets.APP_PORT }}" > /home/ubuntu/app/.env
           echo "APP_NAME=${{ secrets.APP_NAME }}" > /home/ubuntu/app/.env
@@ -35,18 +36,22 @@ jobs:
           echo "APP_HEADER_LANGUAGE=${{ secrets.APP_HEADER_LANGUAGE }}" > /home/ubuntu/app/.env
           echo "FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}" > /home/ubuntu/app/.env
           echo "BACKEND_DOMAIN=${{ secrets.BACKEND_DOMAIN }}" > /home/ubuntu/app/.env
+
           echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" > /home/ubuntu/app/.env
           echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> /home/ubuntu/app/.env
           echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> /home/ubuntu/app/.env
           echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> /home/ubuntu/app/.env
           echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> /home/ubuntu/app/.env
+
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> /home/ubuntu/app/.env
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> /home/ubuntu/app/.env
+
           echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> /home/ubuntu/app/.env
           echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "FILE_DRIVER"${{ secrets.FILE_DRIVER }}" >> /home/ubuntu/app/.env
+          echo "FILE_DRIVER"=${{ secrets.FILE_DRIVER }}" >> /home/ubuntu/app/.env
           echo "ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }}" >> /home/ubuntu/app/.env
           echo "SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}" >> /home/ubuntu/app/.env
+
           echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> /home/ubuntu/app/.env
           echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> /home/ubuntu/app/.env
           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> /home/ubuntu/app/.env
@@ -57,6 +62,7 @@ jobs:
           echo "MAIL_DEFAULT_EMAIL=${{ secrets.MAIL_DEFAULT_EMAIL }}" >> /home/ubuntu/app/.env
           echo "MAIL_DEFAULT_NAME=${{ secrets.MAIL_DEFAULT_NAME }}" >> /home/ubuntu/app/.env
           echo "MAIL_CLIENT_PORT=${{ secrets.MAIL_CLIENT_PORT }}" >> /home/ubuntu/app/.env
+
           echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> /home/ubuntu/app/.env
           echo "AUTH_JWT_TOKEN_EXPIRES_IN=${{ secrets.AUTH_JWT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
           echo "AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}" >> /home/ubuntu/app/.env
@@ -65,6 +71,7 @@ jobs:
           echo "AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ secrets.AUTH_FORGOT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
           echo "AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}" >> /home/ubuntu/app/.env
           echo "AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ secrets.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
+
           EOF
 
       - name: Deploy with Docker
