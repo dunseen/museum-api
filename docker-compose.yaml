@@ -2,10 +2,10 @@ services:
   postgres:
     container_name: museum-db
     image: postgres:16.3-alpine
-    ports:
-      - ${DATABASE_PORT}:5432
+    networks:
+      - internal
     volumes:
-      - boilerplate-db:/var/lib/postgresql/data
+      - museum-db:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
@@ -16,22 +16,24 @@ services:
     build:
       context: .
       dockerfile: maildev.Dockerfile
-    ports:
-      - ${MAIL_CLIENT_PORT}:1080
-      - ${MAIL_PORT}:1025
+    networks:
+      - internal
 
   redis:
     container_name: museum-cache
     image: redis:7-alpine
-    ports:
-      - 6379:6379
+    networks:
+      - internal
 
   minio:
     image: minio/minio:latest
     container_name: museum-storage
+    networks:
+      - internal
+      - public
     environment:
-      - MINIO_ROOT_USER=minio
-      - MINIO_ROOT_PASSWORD=minio123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - '9000:9000' # MinIO web interface
       - '9001:9001' # MinIO console (optional)
@@ -46,10 +48,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    networks:
+      - internal
+      - public
 
     ports:
       - ${APP_PORT}:${APP_PORT}
 
 volumes:
-  boilerplate-db:
+  museum-db:
   minio_data:
+
+networks:
+  public:
+    driver: bridge
+  internal:
+    driver: bridge
