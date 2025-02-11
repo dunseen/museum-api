@@ -41,9 +41,9 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 146.235.33.144 >> ~/.ssh/known_hosts
 
-      - name: Copy `docker-compose.yml` to VPS
+      - name: Copy `docker-compose.yaml` to VPS
         run: |
-          scp -i ~/.ssh/id_rsa docker-compose.yml ubuntu@146.235.33.144:/home/ubuntu/app/docker-compose.yml
+          scp -i ~/.ssh/id_rsa docker-compose.yaml ubuntu@146.235.33.144:/home/ubuntu/app/docker-compose.yaml
 
       - name: Inject `.env` File on VPS
         run: |
