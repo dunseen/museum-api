@@ -34,15 +34,14 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    ports:
-      - '9000:9000' # MinIO web interface
-      - '9001:9001' # MinIO console (optional)
     volumes:
       - minio_data:/data
     command: server /data
 
   api:
     container_name: museum-api
+    image: ghcr.io/dunseen/museum-api:latest
+    restart: always
     env_file:
       - .env
     build:

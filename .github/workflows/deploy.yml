@@ -6,13 +6,65 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image to GHCR
+        run: |
+          IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
+                       --build-arg NODE_ENV=${{ secrets.NODE_ENV }} \
+                       --build-arg APP_PORT=${{ secrets.APP_PORT }} \
+                       --build-arg APP_NAME=${{ secrets.APP_NAME }} \
+                       --build-arg API_PREFIX=${{ secrets.API_PREFIX }} \
+                       --build-arg APP_FALLBACK_LANGUAGE=${{ secrets.APP_FALLBACK_LANGUAGE }} \
+                       --build-arg APP_HEADER_LANGUAGE=${{ secrets.APP_HEADER_LANGUAGE }} \
+                       --build-arg FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }} \
+                       --build-arg BACKEND_DOMAIN=${{ secrets.BACKEND_DOMAIN }} \
+                       --build-arg DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
+                       --build-arg DATABASE_PORT=${{ secrets.DATABASE_PORT }} \
+                       --build-arg DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} \
+                       --build-arg DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+                       --build-arg DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
+                       --build-arg REDIS_HOST=${{ secrets.REDIS_HOST }} \
+                       --build-arg REDIS_PORT=${{ secrets.REDIS_PORT }} \
+                       --build-arg MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }} \
+                       --build-arg MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }} \
+                       --build-arg FILE_DRIVER=${{ secrets.FILE_DRIVER }} \
+                       --build-arg ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }} \
+                       --build-arg SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }} \
+                       --build-arg MAIL_HOST=${{ secrets.MAIL_HOST }} \
+                       --build-arg MAIL_PORT=${{ secrets.MAIL_PORT }} \
+                       --build-arg MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
+                       --build-arg MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
+                       --build-arg MAIL_IGNORE_TLS=${{ secrets.MAIL_IGNORE_TLS }} \
+                       --build-arg MAIL_SECURE=${{ secrets.MAIL_SECURE }} \
+                       --build-arg MAIL_REQUIRE_TLS=${{ secrets.MAIL_REQUIRE_TLS }} \
+                       --build-arg MAIL_DEFAULT_EMAIL=${{ secrets.MAIL_DEFAULT_EMAIL }} \
+                       --build-arg MAIL_DEFAULT_NAME=${{ secrets.MAIL_DEFAULT_NAME }} \
+                       --build-arg MAIL_CLIENT_PORT=${{ secrets.MAIL_CLIENT_PORT }} \
+                       --build-arg AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }} \
+                       --build-arg AUTH_JWT_TOKEN_EXPIRES_IN=${{ secrets.AUTH_JWT_TOKEN_EXPIRES_IN }} \
+                       --build-arg AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }} \
+                       --build-arg AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ secrets.AUTH_REFRESH_TOKEN_EXPIRES_IN }} \
+                       --build-arg AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }} \
+                       --build-arg AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ secrets.AUTH_FORGOT_TOKEN_EXPIRES_IN }} \
+                       --build-arg AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }} \
+                       --build-arg AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ secrets.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }} \
+                       -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Set up SSH Connection
         run: |
           mkdir -p ~/.ssh
@@ -20,65 +72,12 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 146.235.33.144 >> ~/.ssh/known_hosts
 
-      - name: Copy Repository Files to VPS
-        run: |
-          rsync -avz --exclude '.git' -e "ssh -i ~/.ssh/id_rsa" . ubuntu@146.235.33.144:/home/ubuntu/app
-
-      - name: Inject Secrets into .env on VPS
+      - name: Deploy to VPS
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
-
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" > /home/ubuntu/app/.env
-          echo "APP_PORT=${{ secrets.APP_PORT }}" > /home/ubuntu/app/.env
-          echo "APP_NAME=${{ secrets.APP_NAME }}" > /home/ubuntu/app/.env
-          echo "API_PREFIX=${{ secrets.API_PREFIX }}" > /home/ubuntu/app/.env
-          echo "APP_FALLBACK_LANGUAGE=${{ secrets.APP_FALLBACK_LANGUAGE }}" > /home/ubuntu/app/.env
-          echo "APP_HEADER_LANGUAGE=${{ secrets.APP_HEADER_LANGUAGE }}" > /home/ubuntu/app/.env
-          echo "FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}" > /home/ubuntu/app/.env
-          echo "BACKEND_DOMAIN=${{ secrets.BACKEND_DOMAIN }}" > /home/ubuntu/app/.env
-
-          echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" > /home/ubuntu/app/.env
-          echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> /home/ubuntu/app/.env
-
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> /home/ubuntu/app/.env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> /home/ubuntu/app/.env
-
-          echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> /home/ubuntu/app/.env
-          echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "FILE_DRIVER"=${{ secrets.FILE_DRIVER }}" >> /home/ubuntu/app/.env
-          echo "ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }}" >> /home/ubuntu/app/.env
-          echo "SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}" >> /home/ubuntu/app/.env
-
-          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> /home/ubuntu/app/.env
-          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> /home/ubuntu/app/.env
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> /home/ubuntu/app/.env
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "MAIL_IGNORE_TLS=${{ secrets.MAIL_IGNORE_TLS }}" >> /home/ubuntu/app/.env
-          echo "MAIL_SECURE=${{ secrets.MAIL_SECURE }}" >> /home/ubuntu/app/.env
-          echo "MAIL_REQUIRE_TLS=${{ secrets.MAIL_REQUIRE_TLS }}" >> /home/ubuntu/app/.env
-          echo "MAIL_DEFAULT_EMAIL=${{ secrets.MAIL_DEFAULT_EMAIL }}" >> /home/ubuntu/app/.env
-          echo "MAIL_DEFAULT_NAME=${{ secrets.MAIL_DEFAULT_NAME }}" >> /home/ubuntu/app/.env
-          echo "MAIL_CLIENT_PORT=${{ secrets.MAIL_CLIENT_PORT }}" >> /home/ubuntu/app/.env
-
-          echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_JWT_TOKEN_EXPIRES_IN=${{ secrets.AUTH_JWT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          echo "AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ secrets.AUTH_REFRESH_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          echo "AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ secrets.AUTH_FORGOT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          echo "AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ secrets.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-
-          EOF
-
-      - name: Deploy with Docker
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+          docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
           cd /home/ubuntu/app
           docker-compose down
-          docker-compose pull
-          docker-compose up -d --build
+          docker-compose up -d
           EOF
