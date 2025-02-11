@@ -19,6 +19,7 @@ jobs:
       - name: Build and Push Docker Image to GHCR
         run: |
           IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
+          docker build \
                        --build-arg NODE_ENV=${{ secrets.NODE_ENV }} \
                        --build-arg APP_PORT=${{ secrets.APP_PORT }} \
                        --build-arg APP_NAME=${{ secrets.APP_NAME }} \
