@@ -95,7 +95,7 @@ jobs:
           echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
           docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
           cd /home/ubuntu/app
-          docker-compose stop api
-          docker-compose rm -f api
-          docker-compose up -d api
+          docker compose stop api
+          docker compose rm -f api
+          docker compose up -d api
           EOF
