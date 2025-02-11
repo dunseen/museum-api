@@ -23,7 +23,8 @@ jobs:
       - name: Build and Push Docker Image to GHCR
         run: |
           IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
-          sudo docker build -t $IMAGE_NAME .
+          sudo docker pull $IMAGE_NAME || true
+          sudo docker build --cache-from=$IMAGE_NAME -t $IMAGE_NAME .
           sudo docker push $IMAGE_NAME
 
   deploy:
@@ -94,6 +95,7 @@ jobs:
           echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
           docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
           cd /home/ubuntu/app
-          docker-compose down
-          docker-compose up -d
+          docker-compose stop api
+          docker-compose rm -f api
+          docker-compose up -d api
           EOF

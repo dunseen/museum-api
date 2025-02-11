@@ -11,14 +11,6 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
 
-  maildev:
-    container_name: maildev
-    build:
-      context: .
-      dockerfile: maildev.Dockerfile
-    networks:
-      - internal
-
   redis:
     container_name: museum-cache
     image: redis:7-alpine
