@@ -62,7 +62,7 @@ export default registerAs<AppConfig>('app', () => {
       ? parseInt(process.env.APP_PORT, 10)
       : process.env.PORT
         ? parseInt(process.env.PORT, 10)
-        : 3000,
+        : 3333,
     apiPrefix: process.env.API_PREFIX || 'api',
     fallbackLanguage: process.env.APP_FALLBACK_LANGUAGE || 'en',
     headerLanguage: process.env.APP_HEADER_LANGUAGE || 'x-custom-lang',

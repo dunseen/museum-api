@@ -13,13 +13,18 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Enable Docker Access
+        run: |
+          sudo usermod -aG docker $USER
+          newgrp docker
+
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.GHCR_TOKEN }}" | sudo docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
 
       - name: Build and Push Docker Image to GHCR
         run: |
           IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
-          docker build \
+          sudo docker build \
                        --build-arg NODE_ENV=${{ secrets.NODE_ENV }} \
                        --build-arg APP_PORT=${{ secrets.APP_PORT }} \
                        --build-arg APP_NAME=${{ secrets.APP_NAME }} \
@@ -59,7 +64,7 @@ jobs:
                        --build-arg AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }} \
                        --build-arg AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ secrets.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }} \
                        -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          sudo docker push $IMAGE_NAME
 
   deploy:
     needs: build-and-push
