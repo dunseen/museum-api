@@ -31,6 +31,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug GitHub Actions Workspace
+        run: |
+          pwd
+          ls -l
+
       - name: Set up SSH Connection
         run: |
           mkdir -p ~/.ssh
