@@ -48,44 +48,44 @@ jobs:
       - name: Inject `.env` File on VPS
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
-          echo "NODE_ENV=${{ env.NODE_ENV }}" > /home/ubuntu/app/.env
-          echo "APP_PORT=${{ env.APP_PORT }}" >> /home/ubuntu/app/.env
-          echo "APP_NAME=${{ env.APP_NAME }}" >> /home/ubuntu/app/.env
-          echo "API_PREFIX=${{ env.API_PREFIX }}" >> /home/ubuntu/app/.env
-          echo "APP_FALLBACK_LANGUAGE=${{ env.APP_FALLBACK_LANGUAGE }}" >> /home/ubuntu/app/.env
-          echo "APP_HEADER_LANGUAGE=${{ env.APP_HEADER_LANGUAGE }}" >> /home/ubuntu/app/.env
-          echo "FRONTEND_DOMAIN=${{ env.FRONTEND_DOMAIN }}" >> /home/ubuntu/app/.env
-          echo "BACKEND_DOMAIN=${{ env.BACKEND_DOMAIN }}" >> /home/ubuntu/app/.env
+          echo "NODE_ENV=${{ vars.NODE_ENV }}" > /home/ubuntu/app/.env
+          echo "APP_PORT=${{ vars.APP_PORT }}" >> /home/ubuntu/app/.env
+          echo "APP_NAME=${{ vars.APP_NAME }}" >> /home/ubuntu/app/.env
+          echo "API_PREFIX=${{ vars.API_PREFIX }}" >> /home/ubuntu/app/.env
+          echo "APP_FALLBACK_LANGUAGE=${{ vars.APP_FALLBACK_LANGUAGE }}" >> /home/ubuntu/app/.env
+          echo "APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}" >> /home/ubuntu/app/.env
+          echo "FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}" >> /home/ubuntu/app/.env
+          echo "BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}" >> /home/ubuntu/app/.env
           echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_PORT=${{ env.DATABASE_PORT }}" >> /home/ubuntu/app/.env
+          echo "DATABASE_PORT=${{ vars.DATABASE_PORT }}" >> /home/ubuntu/app/.env
           echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> /home/ubuntu/app/.env
           echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> /home/ubuntu/app/.env
           echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> /home/ubuntu/app/.env
-          echo "REDIS_HOST=${{ env.REDIS_HOST }}" >> /home/ubuntu/app/.env
-          echo "REDIS_PORT=${{ env.REDIS_PORT }}" >> /home/ubuntu/app/.env
+          echo "REDIS_HOST=${{ vars.REDIS_HOST }}" >> /home/ubuntu/app/.env
+          echo "REDIS_PORT=${{ vars.REDIS_PORT }}" >> /home/ubuntu/app/.env
           echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> /home/ubuntu/app/.env
           echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "FILE_DRIVER=${{ env.FILE_DRIVER }}" >> /home/ubuntu/app/.env
-          echo "ACCESS_KEY_ID=${{ env.ACCESS_KEY_ID }}" >> /home/ubuntu/app/.env
+          echo "FILE_DRIVER=${{ vars.FILE_DRIVER }}" >> /home/ubuntu/app/.env
+          echo "ACCESS_KEY_ID=${{ vars.ACCESS_KEY_ID }}" >> /home/ubuntu/app/.env
           echo "SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}" >> /home/ubuntu/app/.env
-          echo "MAIL_HOST=${{ env.MAIL_HOST }}" >> /home/ubuntu/app/.env
-          echo "MAIL_PORT=${{ env.MAIL_PORT }}" >> /home/ubuntu/app/.env
-          echo "MAIL_USERNAME=${{ env.MAIL_USERNAME }}" >> /home/ubuntu/app/.env
+          echo "MAIL_HOST=${{ vars.MAIL_HOST }}" >> /home/ubuntu/app/.env
+          echo "MAIL_PORT=${{ vars.MAIL_PORT }}" >> /home/ubuntu/app/.env
+          echo "MAIL_USERNAME=${{ vars.MAIL_USERNAME }}" >> /home/ubuntu/app/.env
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "MAIL_IGNORE_TLS=${{ env.MAIL_IGNORE_TLS }}" >> /home/ubuntu/app/.env
-          echo "MAIL_SECURE=${{ env.MAIL_SECURE }}" >> /home/ubuntu/app/.env
-          echo "MAIL_REQUIRE_TLS=${{ env.MAIL_REQUIRE_TLS }}" >> /home/ubuntu/app/.env
-          echo "MAIL_DEFAULT_EMAIL=${{ env.MAIL_DEFAULT_EMAIL }}" >> /home/ubuntu/app/.env
-          echo "MAIL_DEFAULT_NAME=${{ env.MAIL_DEFAULT_NAME }}" >> /home/ubuntu/app/.env
-          echo "MAIL_CLIENT_PORT=${{ env.MAIL_CLIENT_PORT }}" >> /home/ubuntu/app/.env
+          echo "MAIL_IGNORE_TLS=${{ vars.MAIL_IGNORE_TLS }}" >> /home/ubuntu/app/.env
+          echo "MAIL_SECURE=${{ vars.MAIL_SECURE }}" >> /home/ubuntu/app/.env
+          echo "MAIL_REQUIRE_TLS=${{ vars.MAIL_REQUIRE_TLS }}" >> /home/ubuntu/app/.env
+          echo "MAIL_DEFAULT_EMAIL=${{ vars.MAIL_DEFAULT_EMAIL }}" >> /home/ubuntu/app/.env
+          echo "MAIL_DEFAULT_NAME=${{ vars.MAIL_DEFAULT_NAME }}" >> /home/ubuntu/app/.env
+          echo "MAIL_CLIENT_PORT=${{ vars.MAIL_CLIENT_PORT }}" >> /home/ubuntu/app/.env
           echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_JWT_TOKEN_EXPIRES_IN=${{ env.AUTH_JWT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
+          echo "AUTH_JWT_TOKEN_EXPIRES_IN=${{ vars.AUTH_JWT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
           echo "AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ env.AUTH_REFRESH_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
+          echo "AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ vars.AUTH_REFRESH_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
           echo "AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ env.AUTH_FORGOT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
+          echo "AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ vars.AUTH_FORGOT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
           echo "AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ env.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
+          echo "AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
           EOF
 
       - name: Deploy to VPS

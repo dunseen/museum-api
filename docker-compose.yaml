@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     container_name: museum-db
@@ -32,7 +30,6 @@ services:
     container_name: museum-storage
     networks:
       - internal
-      - public
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -46,9 +43,6 @@ services:
     restart: always
     env_file:
       - .env
-    build:
-      context: .
-      dockerfile: Dockerfile
     networks:
       - internal
       - public
@@ -58,7 +52,9 @@ services:
 
 volumes:
   museum-db:
+    name: museum-db-volume
   minio_data:
+    name: minio-storage-volume
 
 networks:
   public:
