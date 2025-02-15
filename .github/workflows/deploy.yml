@@ -68,6 +68,7 @@ jobs:
           scp -i ~/.ssh/id_rsa .env ubuntu@146.235.33.144:/home/ubuntu/app/.env
 
   build-and-push:
+    needs: setup-ssh
     runs-on: ubuntu-latest
 
     steps:
