@@ -42,50 +42,50 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 146.235.33.144 >> ~/.ssh/known_hosts
 
-          - name: Inject `.env` File on VPS
-          run: |
-            ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
-            cat > /home/ubuntu/app/.env <<EOT
-            NODE_ENV=${{ vars.NODE_ENV }}
-            APP_PORT=${{ vars.APP_PORT }}
-            APP_NAME=${{ vars.APP_NAME }}
-            API_PREFIX=${{ vars.API_PREFIX }}
-            APP_FALLBACK_LANGUAGE=${{ vars.APP_FALLBACK_LANGUAGE }}
-            APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}
-            FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
-            BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
-            DATABASE_HOST=${{ secrets.DATABASE_HOST }}
-            DATABASE_PORT=${{ vars.DATABASE_PORT }}
-            DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
-            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-            DATABASE_NAME=${{ secrets.DATABASE_NAME }}
-            REDIS_HOST=${{ vars.REDIS_HOST }}
-            REDIS_PORT=${{ vars.REDIS_PORT }}
-            MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
-            MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
-            FILE_DRIVER=${{ vars.FILE_DRIVER }}
-            ACCESS_KEY_ID=${{ vars.ACCESS_KEY_ID }}
-            SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}
-            MAIL_HOST=${{ vars.MAIL_HOST }}
-            MAIL_PORT=${{ vars.MAIL_PORT }}
-            MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            MAIL_IGNORE_TLS=${{ vars.MAIL_IGNORE_TLS }}
-            MAIL_SECURE=${{ vars.MAIL_SECURE }}
-            MAIL_REQUIRE_TLS=${{ vars.MAIL_REQUIRE_TLS }}
-            MAIL_DEFAULT_EMAIL=${{ vars.MAIL_DEFAULT_EMAIL }}
-            MAIL_DEFAULT_NAME=${{ vars.MAIL_DEFAULT_NAME }}
-            MAIL_CLIENT_PORT=${{ vars.MAIL_CLIENT_PORT }}
-            AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}
-            AUTH_JWT_TOKEN_EXPIRES_IN=${{ vars.AUTH_JWT_TOKEN_EXPIRES_IN }}
-            AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}
-            AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ vars.AUTH_REFRESH_TOKEN_EXPIRES_IN }}
-            AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }}
-            AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ vars.AUTH_FORGOT_TOKEN_EXPIRES_IN }}
-            AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}
-            AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}
-            EOT
-            EOF
+      - name: Inject `.env` File on VPS
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
+          cat > /home/ubuntu/app/.env <<EOT
+          NODE_ENV=${{ vars.NODE_ENV }}
+          APP_PORT=${{ vars.APP_PORT }}
+          APP_NAME=${{ vars.APP_NAME }}
+          API_PREFIX=${{ vars.API_PREFIX }}
+          APP_FALLBACK_LANGUAGE=${{ vars.APP_FALLBACK_LANGUAGE }}
+          APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}
+          FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
+          BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT=${{ vars.DATABASE_PORT }}
+          DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          REDIS_HOST=${{ vars.REDIS_HOST }}
+          REDIS_PORT=${{ vars.REDIS_PORT }}
+          MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+          FILE_DRIVER=${{ vars.FILE_DRIVER }}
+          ACCESS_KEY_ID=${{ vars.ACCESS_KEY_ID }}
+          SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}
+          MAIL_HOST=${{ vars.MAIL_HOST }}
+          MAIL_PORT=${{ vars.MAIL_PORT }}
+          MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_IGNORE_TLS=${{ vars.MAIL_IGNORE_TLS }}
+          MAIL_SECURE=${{ vars.MAIL_SECURE }}
+          MAIL_REQUIRE_TLS=${{ vars.MAIL_REQUIRE_TLS }}
+          MAIL_DEFAULT_EMAIL=${{ vars.MAIL_DEFAULT_EMAIL }}
+          MAIL_DEFAULT_NAME=${{ vars.MAIL_DEFAULT_NAME }}
+          MAIL_CLIENT_PORT=${{ vars.MAIL_CLIENT_PORT }}
+          AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}
+          AUTH_JWT_TOKEN_EXPIRES_IN=${{ vars.AUTH_JWT_TOKEN_EXPIRES_IN }}
+          AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}
+          AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ vars.AUTH_REFRESH_TOKEN_EXPIRES_IN }}
+          AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }}
+          AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ vars.AUTH_FORGOT_TOKEN_EXPIRES_IN }}
+          AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}
+          AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}
+          EOT
+          EOF
 
       - name: Copy `docker-compose.yaml` to VPS
         run: |
