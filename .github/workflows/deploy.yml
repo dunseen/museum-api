@@ -13,6 +13,51 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Inject `.env` File on VPS
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
+          cat > /home/ubuntu/app/.env <<EOT
+          NODE_ENV=${{ vars.NODE_ENV }}
+          APP_PORT=${{ vars.APP_PORT }}
+          APP_NAME=${{ vars.APP_NAME }}
+          API_PREFIX=${{ vars.API_PREFIX }}
+          APP_FALLBACK_LANGUAGE=${{ vars.APP_FALLBACK_LANGUAGE }}
+          APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}
+          FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
+          BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT=${{ vars.DATABASE_PORT }}
+          DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          REDIS_HOST=${{ vars.REDIS_HOST }}
+          REDIS_PORT=${{ vars.REDIS_PORT }}
+          MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+          FILE_DRIVER=${{ vars.FILE_DRIVER }}
+          ACCESS_KEY_ID=${{ vars.ACCESS_KEY_ID }}
+          SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}
+          MAIL_HOST=${{ vars.MAIL_HOST }}
+          MAIL_PORT=${{ vars.MAIL_PORT }}
+          MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_IGNORE_TLS=${{ vars.MAIL_IGNORE_TLS }}
+          MAIL_SECURE=${{ vars.MAIL_SECURE }}
+          MAIL_REQUIRE_TLS=${{ vars.MAIL_REQUIRE_TLS }}
+          MAIL_DEFAULT_EMAIL=${{ vars.MAIL_DEFAULT_EMAIL }}
+          MAIL_DEFAULT_NAME=${{ vars.MAIL_DEFAULT_NAME }}
+          MAIL_CLIENT_PORT=${{ vars.MAIL_CLIENT_PORT }}
+          AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}
+          AUTH_JWT_TOKEN_EXPIRES_IN=${{ vars.AUTH_JWT_TOKEN_EXPIRES_IN }}
+          AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}
+          AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ vars.AUTH_REFRESH_TOKEN_EXPIRES_IN }}
+          AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }}
+          AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ vars.AUTH_FORGOT_TOKEN_EXPIRES_IN }}
+          AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}
+          AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}
+          EOT
+          EOF
+
       - name: Enable Docker Access
         run: |
           sudo chmod 666 /var/run/docker.sock
@@ -46,55 +91,13 @@ jobs:
         run: |
           scp -i ~/.ssh/id_rsa docker-compose.yaml ubuntu@146.235.33.144:/home/ubuntu/app/docker-compose.yaml
 
-      - name: Inject `.env` File on VPS
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
-          echo "NODE_ENV=${{ vars.NODE_ENV }}" > /home/ubuntu/app/.env
-          echo "APP_PORT=${{ vars.APP_PORT }}" >> /home/ubuntu/app/.env
-          echo "APP_NAME=${{ vars.APP_NAME }}" >> /home/ubuntu/app/.env
-          echo "API_PREFIX=${{ vars.API_PREFIX }}" >> /home/ubuntu/app/.env
-          echo "APP_FALLBACK_LANGUAGE=${{ vars.APP_FALLBACK_LANGUAGE }}" >> /home/ubuntu/app/.env
-          echo "APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}" >> /home/ubuntu/app/.env
-          echo "FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}" >> /home/ubuntu/app/.env
-          echo "BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_PORT=${{ vars.DATABASE_PORT }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> /home/ubuntu/app/.env
-          echo "REDIS_HOST=${{ vars.REDIS_HOST }}" >> /home/ubuntu/app/.env
-          echo "REDIS_PORT=${{ vars.REDIS_PORT }}" >> /home/ubuntu/app/.env
-          echo "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" >> /home/ubuntu/app/.env
-          echo "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "FILE_DRIVER=${{ vars.FILE_DRIVER }}" >> /home/ubuntu/app/.env
-          echo "ACCESS_KEY_ID=${{ vars.ACCESS_KEY_ID }}" >> /home/ubuntu/app/.env
-          echo "SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}" >> /home/ubuntu/app/.env
-          echo "MAIL_HOST=${{ vars.MAIL_HOST }}" >> /home/ubuntu/app/.env
-          echo "MAIL_PORT=${{ vars.MAIL_PORT }}" >> /home/ubuntu/app/.env
-          echo "MAIL_USERNAME=${{ vars.MAIL_USERNAME }}" >> /home/ubuntu/app/.env
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/ubuntu/app/.env
-          echo "MAIL_IGNORE_TLS=${{ vars.MAIL_IGNORE_TLS }}" >> /home/ubuntu/app/.env
-          echo "MAIL_SECURE=${{ vars.MAIL_SECURE }}" >> /home/ubuntu/app/.env
-          echo "MAIL_REQUIRE_TLS=${{ vars.MAIL_REQUIRE_TLS }}" >> /home/ubuntu/app/.env
-          echo "MAIL_DEFAULT_EMAIL=${{ vars.MAIL_DEFAULT_EMAIL }}" >> /home/ubuntu/app/.env
-          echo "MAIL_DEFAULT_NAME=${{ vars.MAIL_DEFAULT_NAME }}" >> /home/ubuntu/app/.env
-          echo "MAIL_CLIENT_PORT=${{ vars.MAIL_CLIENT_PORT }}" >> /home/ubuntu/app/.env
-          echo "AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_JWT_TOKEN_EXPIRES_IN=${{ vars.AUTH_JWT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          echo "AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_REFRESH_TOKEN_EXPIRES_IN=${{ vars.AUTH_REFRESH_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          echo "AUTH_FORGOT_SECRET=${{ secrets.AUTH_FORGOT_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ vars.AUTH_FORGOT_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          echo "AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}" >> /home/ubuntu/app/.env
-          echo "AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}" >> /home/ubuntu/app/.env
-          EOF
-
       - name: Deploy to VPS
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
           echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
           docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
           cd /home/ubuntu/app
-          docker compose down
-          docker compose up -d
+          docker compose stop api
+          docker compose rm -f api
+          docker compose up -d api
           EOF
