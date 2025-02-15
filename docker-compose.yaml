@@ -34,7 +34,7 @@ services:
     image: ghcr.io/dunseen/museum-api:latest
     restart: always
     env_file:
-      - .env
+      - /home/ubuntu/app/.env
     networks:
       - internal
       - public
