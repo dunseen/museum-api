@@ -18,6 +18,8 @@ RUN sed -i 's/\r//g' /opt/startup.relational.dev.sh
 
 WORKDIR /usr/src/app
 
+COPY .env .env
+
 RUN npm run build
 
 CMD ["/opt/startup.relational.dev.sh"]
