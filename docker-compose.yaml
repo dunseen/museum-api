@@ -3,7 +3,10 @@ services:
     container_name: museum-db
     image: postgres:16.3-alpine
     networks:
+      - public
       - internal
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
     volumes:
       - museum-db:/var/lib/postgresql/data
     environment:
