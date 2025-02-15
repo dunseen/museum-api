@@ -32,7 +32,9 @@ jobs:
           FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
           BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
           DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
           DATABASE_PORT=${{ vars.DATABASE_PORT }}
+          DATABASE_TYPE=${{ vars.DATABASE_TYPE }}
           DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
           DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
           DATABASE_NAME=${{ secrets.DATABASE_NAME }}
