@@ -21,7 +21,7 @@ import { SpecieSeedModule } from './specie/specie-seed.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, appConfig],
-      // envFilePath: ['.env'],
+      envFilePath: ['.env'],
     }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,

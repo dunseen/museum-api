@@ -13,39 +13,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Enable Docker Access
-        run: |
-          sudo chmod 666 /var/run/docker.sock
-
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GHCR_TOKEN }}" | sudo docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-
-      - name: Build and Push Docker Image to GHCR
-        run: |
-          IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
-          sudo docker pull $IMAGE_NAME || true
-          sudo docker build --cache-from=$IMAGE_NAME -t $IMAGE_NAME .
-          sudo docker push $IMAGE_NAME
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
       - name: Set up SSH Connection
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 146.235.33.144 >> ~/.ssh/known_hosts
+          ssh-keyscan -H
 
-      - name: Inject `.env` File on VPS
+      - name: Create `.env` File in GitHub Actions Runner
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
-          cat > /home/ubuntu/app/.env <<EOT
+          cat > .env <<EOT
           NODE_ENV=${{ vars.NODE_ENV }}
           APP_PORT=${{ vars.APP_PORT }}
           APP_NAME=${{ vars.APP_NAME }}
@@ -85,7 +62,39 @@ jobs:
           AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}
           AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}
           EOT
-          EOF
+
+      - name: Copy `.env` File to VPS
+        run: |
+          scp -i ~/.ssh/id_rsa .env ubuntu@146.235.33.144:/home/ubuntu/app/.env
+
+      - name: Enable Docker Access
+        run: |
+          sudo chmod 666 /var/run/docker.sock
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | sudo docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image to GHCR
+        run: |
+          IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
+          sudo docker pull $IMAGE_NAME || true
+          sudo docker build --cache-from=$IMAGE_NAME -t $IMAGE_NAME .
+          sudo docker push $IMAGE_NAME
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH Connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 146.235.33.144 >> ~/.ssh/known_hosts
 
       - name: Copy `docker-compose.yaml` to VPS
         run: |
