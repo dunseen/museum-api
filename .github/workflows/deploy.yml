@@ -40,6 +40,7 @@ jobs:
           DATABASE_NAME=${{ secrets.DATABASE_NAME }}
           REDIS_HOST=${{ vars.REDIS_HOST }}
           REDIS_PORT=${{ vars.REDIS_PORT }}
+          MINIO_WEB_PORT=${{ vars.MINIO_WEB_PORT }}
           MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
           MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
           FILE_DRIVER=${{ vars.FILE_DRIVER }}

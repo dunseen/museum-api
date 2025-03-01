@@ -7,6 +7,8 @@ services:
       - internal
     ports:
       - ${DATABASE_PORT}:${DATABASE_PORT}
+    env_file:
+      - .env
     volumes:
       - museum-db:/var/lib/postgresql/data
     environment:
@@ -25,12 +27,14 @@ services:
     container_name: museum-storage
     networks:
       - internal
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      - public
+    env_file:
+      - .env
     volumes:
       - minio_data:/data
     command: server /data
+    ports:
+      - ${MINIO_WEB_PORT}:${MINIO_WEB_PORT}
 
   api:
     container_name: museum-api
@@ -44,7 +48,8 @@ services:
 
     ports:
       - ${APP_PORT}:${APP_PORT}
-
+env_file:
+  - .env
 volumes:
   museum-db:
     name: museum-db-volume
