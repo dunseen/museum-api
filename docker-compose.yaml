@@ -48,8 +48,7 @@ services:
 
     ports:
       - ${APP_PORT}:${APP_PORT}
-env_file:
-  - .env
+
 volumes:
   museum-db:
     name: museum-db-volume
