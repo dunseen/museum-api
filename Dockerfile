@@ -5,7 +5,7 @@ FROM node:20.16.0-alpine AS build
 RUN apk add --no-cache bash
 WORKDIR /usr/src/app
 COPY package*.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source files and build
 COPY . .
