@@ -35,6 +35,7 @@ services:
     command: server /data --console-address ":${MINIO_WEB_PORT}"
     ports:
       - ${MINIO_WEB_PORT}:${MINIO_WEB_PORT}
+      - ${MINIO_PORT}:${MINIO_PORT}
 
   api:
     container_name: museum-api
