@@ -41,6 +41,7 @@ jobs:
           REDIS_HOST=${{ vars.REDIS_HOST }}
           REDIS_PORT=${{ vars.REDIS_PORT }}
           MINIO_ENDPOINT=${{ vars.MINIO_ENDPOINT }}
+          MINIO_PUBLIC_ENDPOINT=${{ vars.MINIO_PUBLIC_ENDPOINT }}
           MINIO_BUCKET=${{ vars.MINIO_BUCKET }}
           MINIO_WEB_PORT=${{ vars.MINIO_WEB_PORT }}
           MINIO_PORT=${{ vars.MINIO_PORT }}
