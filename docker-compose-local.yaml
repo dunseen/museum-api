@@ -21,6 +21,9 @@ services:
     image: redis:7-alpine
     networks:
       - internal
+      - public
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
 
   minio:
     image: minio/minio:latest
@@ -35,10 +38,11 @@ services:
     command: server /data --console-address ":${MINIO_WEB_PORT}"
     ports:
       - ${MINIO_WEB_PORT}:${MINIO_WEB_PORT}
+      - ${MINIO_PORT}:${MINIO_PORT}
 
   api:
     container_name: museum-api
-    image: ghcr.io/dunseen/museum-api:latest
+    build: .
     restart: always
     env_file:
       - .env

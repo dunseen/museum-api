@@ -40,12 +40,14 @@ jobs:
           DATABASE_NAME=${{ secrets.DATABASE_NAME }}
           REDIS_HOST=${{ vars.REDIS_HOST }}
           REDIS_PORT=${{ vars.REDIS_PORT }}
+          MINIO_ENDPOINT=${{ vars.MINIO_ENDPOINT }}
+          MINIO_BUCKET=${{ vars.MINIO_BUCKET }}
           MINIO_WEB_PORT=${{ vars.MINIO_WEB_PORT }}
+          MINIO_PORT=${{ vars.MINIO_PORT }}
+          MINIO_SSL=${{ vars.MINIO_SSL }}
+          MAX_FILE_SIZE=${{ vars.MAX_FILE_SIZE }}
           MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
           MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
-          FILE_DRIVER=${{ vars.FILE_DRIVER }}
-          ACCESS_KEY_ID=${{ vars.ACCESS_KEY_ID }}
-          SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}
           MAIL_HOST=${{ vars.MAIL_HOST }}
           MAIL_PORT=${{ vars.MAIL_PORT }}
           MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
