@@ -10,9 +10,9 @@ class EnvironmentVariablesValidator {
   @IsString()
   MINIO_PORT: string;
   @IsString()
-  MINIO_ACCESS_KEY: string;
+  MINIO_ROOT_USER: string;
   @IsString()
-  MINIO_SECRET_KEY: string;
+  MINIO_ROOT_PASSWORD: string;
   @IsString()
   MINIO_BUCKET: string;
   @IsNumber()
