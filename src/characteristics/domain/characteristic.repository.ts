@@ -38,4 +38,5 @@ export abstract class CharacteristicRepository {
   ): Promise<Characteristic | null>;
 
   abstract remove(id: Characteristic['id']): Promise<void>;
+  abstract count(): Promise<number>;
 }

@@ -20,6 +20,9 @@ export class CharacteristicRelationalRepository
     @InjectRepository(CharacteristicEntity)
     private readonly characteristicRepository: Repository<CharacteristicEntity>,
   ) {}
+  count(): Promise<number> {
+    return this.characteristicRepository.count();
+  }
 
   async findAllByTypeId(typeId: CharacteristicType['id'], limit = 10) {
     const query = this.characteristicRepository

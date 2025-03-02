@@ -17,6 +17,11 @@ export class SpecieRelationalRepository implements SpecieRepository {
     @InjectRepository(SpecieEntity)
     private readonly specieRepository: Repository<SpecieEntity>,
   ) {}
+
+  count(): Promise<number> {
+    return this.specieRepository.count();
+  }
+
   async findByScientificName(
     scientificName: Specie['scientificName'],
   ): Promise<NullableType<Specie>> {
