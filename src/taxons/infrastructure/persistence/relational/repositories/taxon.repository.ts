@@ -18,11 +18,11 @@ export class TaxonRelationalRepository implements TaxonRepository {
     private readonly taxonRepository: Repository<TaxonEntity>,
   ) {}
 
-  countByType(type: string): Promise<number> {
+  countByHierarchy(name: string): Promise<number> {
     const query = this.taxonRepository
       .createQueryBuilder('t')
       .innerJoinAndSelect('t.hierarchy', 'h')
-      .where('h.type = :type', { type });
+      .where('h.name = :name', { name });
 
     return query.getCount();
   }

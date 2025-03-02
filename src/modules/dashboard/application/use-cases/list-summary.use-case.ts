@@ -13,18 +13,18 @@ export class ListDashboardSummaryUseCase {
   ) {}
 
   async execute(): Promise<ListSummaryCountsDto> {
-    const [specieCount, characteristicCount, familyCount, orderCount] =
+    const [specieCount, characteristicCount, familyCount, genusCount] =
       await Promise.all([
         this.specieRepo.count(),
         this.characteristicRepo.count(),
-        this.taxonRepo.countByType('family'),
-        this.taxonRepo.countByType('order'),
+        this.taxonRepo.countByHierarchy('family'),
+        this.taxonRepo.countByHierarchy('genus'),
       ]);
 
     return {
       characteristicCount,
       familyCount,
-      orderCount,
+      genusCount,
       specieCount,
     };
   }
