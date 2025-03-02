@@ -15,8 +15,9 @@ export class FileRelationalRepository implements FileRepository {
     private readonly fileRepository: Repository<FileEntity>,
   ) {}
 
-  async create(data: FileType): Promise<FileType> {
-    const persistenceModel = FileMapper.toPersistence(data);
+  async create(data: FileType[]): Promise<FileType[]> {
+    const persistenceModel = data.map(FileMapper.toPersistence);
+
     return this.fileRepository.save(
       this.fileRepository.create(persistenceModel),
     );

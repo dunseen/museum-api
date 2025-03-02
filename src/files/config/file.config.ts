@@ -1,48 +1,36 @@
 import { registerAs } from '@nestjs/config';
 
-import { IsEnum, IsString, ValidateIf } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 import validateConfig from '../../utils/validate-config';
-import { FileDriver, FileConfig } from './file-config.type';
+import { FileConfig } from './file-config.type';
 
 class EnvironmentVariablesValidator {
-  @IsEnum(FileDriver)
-  FILE_DRIVER: FileDriver;
-
-  @ValidateIf((envValues) =>
-    [FileDriver.S3, FileDriver.S3_PRESIGNED].includes(envValues.FILE_DRIVER),
-  )
   @IsString()
-  ACCESS_KEY_ID: string;
-
-  @ValidateIf((envValues) =>
-    [FileDriver.S3, FileDriver.S3_PRESIGNED].includes(envValues.FILE_DRIVER),
-  )
+  MINIO_ENDPOINT: string;
   @IsString()
-  SECRET_ACCESS_KEY: string;
-
-  @ValidateIf((envValues) =>
-    [FileDriver.S3, FileDriver.S3_PRESIGNED].includes(envValues.FILE_DRIVER),
-  )
+  MINIO_PORT: string;
   @IsString()
-  AWS_DEFAULT_S3_BUCKET: string;
-
-  @ValidateIf((envValues) =>
-    [FileDriver.S3, FileDriver.S3_PRESIGNED].includes(envValues.FILE_DRIVER),
-  )
+  MINIO_ACCESS_KEY: string;
   @IsString()
-  AWS_S3_REGION: string;
+  MINIO_SECRET_KEY: string;
+  @IsString()
+  MINIO_BUCKET: string;
+  @IsNumber()
+  MAX_FILE_SIZE: number;
 }
 
 export default registerAs<FileConfig>('file', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
-    driver:
-      (process.env.FILE_DRIVER as FileDriver | undefined) ?? FileDriver.LOCAL,
-    accessKeyId: process.env.ACCESS_KEY_ID,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    awsDefaultS3Bucket: process.env.AWS_DEFAULT_S3_BUCKET,
-    awsS3Region: process.env.AWS_S3_REGION,
-    maxFileSize: 5242880, // 5mb
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE!, 10),
+    minio: {
+      endpoint: process.env.MINIO_ENDPOINT,
+      port: Number(process.env.MINIO_PORT) ?? 9000,
+      accessKey: process.env.MINIO_ROOT_USER,
+      secretKey: process.env.MINIO_ROOT_PASSWORD,
+      bucket: process.env.MINIO_BUCKET,
+      ssl: process.env.MINIO_SSL === 'true',
+    },
   };
 });
