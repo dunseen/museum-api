@@ -42,7 +42,7 @@ export class FilesMinioService {
   }
 
   private generateUrl(file: string, bucket: string): string {
-    const host = this.configService.getOrThrow('file.minio.endpoint', {
+    const host = this.configService.getOrThrow('file.minio.publicEndpoint', {
       infer: true,
     });
     const port = this.configService.getOrThrow('file.minio.port', {

@@ -6,6 +6,8 @@ import { FileConfig } from './file-config.type';
 
 class EnvironmentVariablesValidator {
   @IsString()
+  MINIO_PUBLIC_ENDPOINT: string;
+  @IsString()
   MINIO_ENDPOINT: string;
   @IsString()
   MINIO_PORT: string;
@@ -26,6 +28,7 @@ export default registerAs<FileConfig>('file', () => {
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE!, 10),
     minio: {
       endpoint: process.env.MINIO_ENDPOINT,
+      publicEndpoint: process.env.MINIO_PUBLIC_ENDPOINT,
       port: Number(process.env.MINIO_PORT) ?? 9000,
       accessKey: process.env.MINIO_ROOT_USER,
       secretKey: process.env.MINIO_ROOT_PASSWORD,
