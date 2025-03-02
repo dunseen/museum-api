@@ -31,13 +31,12 @@ jobs:
           APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}
           FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
           BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
-          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
-          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_HOST=${{ vars.DATABASE_HOST }}
           DATABASE_PORT=${{ vars.DATABASE_PORT }}
           DATABASE_TYPE=${{ vars.DATABASE_TYPE }}
-          DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
+          DATABASE_USERNAME=${{ vars.DATABASE_USERNAME }}
           DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          DATABASE_NAME=${{ vars.DATABASE_NAME }}
           REDIS_HOST=${{ vars.REDIS_HOST }}
           REDIS_PORT=${{ vars.REDIS_PORT }}
           MINIO_ENDPOINT=${{ vars.MINIO_ENDPOINT }}
