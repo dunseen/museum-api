@@ -18,6 +18,15 @@ export class TaxonRelationalRepository implements TaxonRepository {
     private readonly taxonRepository: Repository<TaxonEntity>,
   ) {}
 
+  countByHierarchy(name: string): Promise<number> {
+    const query = this.taxonRepository
+      .createQueryBuilder('t')
+      .innerJoinAndSelect('t.hierarchy', 'h')
+      .where('h.name = :name', { name });
+
+    return query.getCount();
+  }
+
   async create(data: Taxon): Promise<Taxon> {
     const persistenceModel = TaxonMapper.toPersistence(data);
     const newEntity = await this.taxonRepository.save(

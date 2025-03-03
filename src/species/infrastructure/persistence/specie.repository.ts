@@ -28,4 +28,6 @@ export abstract class SpecieRepository {
   ): Promise<Specie | null>;
 
   abstract remove(id: Specie['id']): Promise<void>;
+
+  abstract count(): Promise<number>;
 }

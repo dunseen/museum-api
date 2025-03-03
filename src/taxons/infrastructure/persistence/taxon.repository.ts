@@ -25,4 +25,5 @@ export abstract class TaxonRepository {
   ): Promise<Taxon | null>;
 
   abstract remove(id: Taxon['id']): Promise<void>;
+  abstract countByHierarchy(name: string): Promise<number>;
 }
