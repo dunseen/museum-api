@@ -4,6 +4,8 @@ export interface IPaginationOptions {
   filters?: {
     name?: string;
     description?: string;
+    genus?: string;
+    family?: string;
   };
 }
 

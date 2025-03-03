@@ -39,6 +39,8 @@ export class PostsController {
         limit,
         filters: {
           name: query?.name,
+          family: query?.family,
+          genus: query?.genus,
         },
       },
     });

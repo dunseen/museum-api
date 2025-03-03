@@ -51,7 +51,6 @@ export class DashboardPostsController {
     private readonly validatePostUseCase: ValidatePostUseCase,
     private readonly listPaginatedPostUseCase: ListPaginatedPostUseCase,
     private readonly findPostByIdUseCase: FindPostByIdUseCase,
-
     private readonly deletePostUseCase: DeletePostUseCase,
   ) {}
 

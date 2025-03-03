@@ -21,4 +21,18 @@ export class FindAllPostsDto {
   @IsString()
   @IsOptional()
   name: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by specie family',
+  })
+  @IsString()
+  @IsOptional()
+  family: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by specie genus',
+  })
+  @IsString()
+  @IsOptional()
+  genus: string;
 }

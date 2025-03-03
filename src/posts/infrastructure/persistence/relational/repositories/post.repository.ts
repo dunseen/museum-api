@@ -70,6 +70,20 @@ export class PostRelationalRepository implements PostRepository {
       );
     }
 
+    if (paginationOptions.filters?.family) {
+      query.andWhere('LOWER(h.name) = "family"');
+      query.andWhere('LOWER(t.name) LIKE LOWER(:family)', {
+        family: `%${paginationOptions.filters.family}%`,
+      });
+    }
+
+    if (paginationOptions.filters?.genus) {
+      query.andWhere('LOWER(h.name) = "genus"');
+      query.andWhere('LOWER(s.genus LIKE LOWER(:genus)', {
+        genus: `%${paginationOptions.filters.genus}%`,
+      });
+    }
+
     const [entities, totalCount] = await query.getManyAndCount();
 
     return [entities.map(PostSimplifiedMapper.toDomain), totalCount];
