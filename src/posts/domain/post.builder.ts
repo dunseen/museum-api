@@ -3,6 +3,7 @@ import { User } from '../../users/domain/user';
 import { NullableType } from '../../utils/types/nullable.type';
 import { PostStatusEnum } from './post-status.enum';
 import { Post } from './post';
+import { randomUUID } from 'crypto';
 
 export class PostBuilder {
   id?: string;
@@ -15,7 +16,7 @@ export class PostBuilder {
   updatedAt: Date = new Date();
 
   setId(id?: string): this {
-    this.id = id;
+    this.id = id ?? randomUUID();
     return this;
   }
 

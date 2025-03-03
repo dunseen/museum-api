@@ -69,6 +69,8 @@ export class DashboardPostsController {
     return this.createPostUseCase.execute(createPostDto, payload);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   @ApiOkResponse({
     type: InfinityPaginationResponse(GetPostDto),
@@ -89,6 +91,8 @@ export class DashboardPostsController {
     return infinityPagination(result, { page, limit });
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiParam({
     name: 'id',
