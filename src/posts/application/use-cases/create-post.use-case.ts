@@ -52,6 +52,7 @@ export class CreatePostUseCase {
     }
 
     const post = Post.builder()
+      .setId()
       .setSpecie(specie)
       .setAuthor(author)
       .setStatus(PostStatusEnum.pending)

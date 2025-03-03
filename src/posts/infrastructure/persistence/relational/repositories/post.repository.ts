@@ -91,6 +91,11 @@ export class PostRelationalRepository implements PostRepository {
     const [entities, totalCount] = await this.postRepository.findAndCount({
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
       take: paginationOptions.limit,
+      relations: ['author', 'validator', 'specie'],
+      loadEagerRelations: false,
+      order: {
+        updatedAt: 'DESC',
+      },
     });
 
     return [entities.map((user) => PostMapper.toDomain(user)), totalCount];
