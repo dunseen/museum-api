@@ -35,4 +35,13 @@ export class FindAllPostsDto {
   @IsString()
   @IsOptional()
   genus: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by characteristic ids separated by comma',
+    example: '1,2,3',
+    type: String,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value ? value.split(',') : []))
+  characteristicIds: string[];
 }

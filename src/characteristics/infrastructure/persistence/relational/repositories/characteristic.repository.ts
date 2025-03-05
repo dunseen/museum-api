@@ -24,13 +24,14 @@ export class CharacteristicRelationalRepository
     return this.characteristicRepository.count();
   }
 
-  async findAllByTypeId(typeId: CharacteristicType['id'], limit = 10) {
+  async findAllByTypeId(typeId: CharacteristicType['id'], limit = 5) {
     const query = this.characteristicRepository
       .createQueryBuilder('c')
       .innerJoinAndSelect('c.type', 't')
       .select('t.name as type')
       .where('c.typeId = :typeId', { typeId })
       .limit(limit)
+      .distinct(true)
       .addSelect('c.id as id')
       .addSelect('c.name as name');
 

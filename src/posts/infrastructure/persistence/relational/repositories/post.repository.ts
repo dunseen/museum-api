@@ -52,6 +52,7 @@ export class PostRelationalRepository implements PostRepository {
       .createQueryBuilder('p')
       .select('p.id')
       .innerJoinAndSelect('p.specie', 's')
+      .leftJoinAndSelect('s.characteristics', 'c')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('t.hierarchy', 'h')
@@ -71,16 +72,28 @@ export class PostRelationalRepository implements PostRepository {
     }
 
     if (paginationOptions.filters?.family) {
-      query.andWhere('LOWER(h.name) = "family"');
-      query.andWhere('LOWER(t.name) LIKE LOWER(:family)', {
-        family: `%${paginationOptions.filters.family}%`,
-      });
+      query.andWhere(
+        'LOWER(h.name) = :hierarchyFamily AND LOWER(t.name) LIKE LOWER(:family)',
+        {
+          hierarchyFamily: 'family',
+          family: `%${paginationOptions.filters.family}%`,
+        },
+      );
     }
 
     if (paginationOptions.filters?.genus) {
-      query.andWhere('LOWER(h.name) = "genus"');
-      query.andWhere('LOWER(s.genus LIKE LOWER(:genus)', {
-        genus: `%${paginationOptions.filters.genus}%`,
+      query.andWhere(
+        'LOWER(h.name) = :hierarchyGenus AND LOWER(t.name) LIKE LOWER(:genus)',
+        {
+          hierarchyGenus: 'genus',
+          genus: `%${paginationOptions.filters.genus}%`,
+        },
+      );
+    }
+
+    if (paginationOptions.filters?.characteristicIds?.length) {
+      query.andWhere('c.id IN (:...ids)', {
+        ids: paginationOptions.filters.characteristicIds,
       });
     }
 
