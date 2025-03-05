@@ -14,7 +14,7 @@ export class ListHomeCharacteristicFiltersUseCase {
 
     const promise = types.map(async (t) => {
       const characteristics =
-        await this.characteristicRepository.findAllByTypeId(t.id);
+        await this.characteristicRepository.findAllByTypeId(t.id, 5);
 
       return {
         type: t.name,
