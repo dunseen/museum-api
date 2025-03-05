@@ -41,6 +41,7 @@ export class PostsController {
           name: query?.name,
           family: query?.family,
           genus: query?.genus,
+          characteristicIds: query?.characteristicIds,
         },
       },
     });

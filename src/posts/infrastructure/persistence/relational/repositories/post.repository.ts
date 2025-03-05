@@ -52,6 +52,7 @@ export class PostRelationalRepository implements PostRepository {
       .createQueryBuilder('p')
       .select('p.id')
       .innerJoinAndSelect('p.specie', 's')
+      .leftJoinAndSelect('s.characteristics', 'c')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('t.hierarchy', 'h')
@@ -88,6 +89,12 @@ export class PostRelationalRepository implements PostRepository {
           genus: `%${paginationOptions.filters.genus}%`,
         },
       );
+    }
+
+    if (paginationOptions.filters?.characteristicIds?.length) {
+      query.andWhere('c.id IN (:...ids)', {
+        ids: paginationOptions.filters.characteristicIds,
+      });
     }
 
     const [entities, totalCount] = await query.getManyAndCount();
