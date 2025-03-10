@@ -84,12 +84,11 @@ export class CharacteristicRelationalRepository
     const [entities, totalCount] = await query
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit)
+      .innerJoinAndSelect('c.type', 't')
+      .leftJoinAndSelect('c.files', 'f')
       .getManyAndCount();
 
-    return [
-      entities.map((user) => CharacteristicMapper.toDomain(user)),
-      totalCount,
-    ];
+    return [entities.map((e) => CharacteristicMapper.toDomain(e)), totalCount];
   }
 
   async findById(
