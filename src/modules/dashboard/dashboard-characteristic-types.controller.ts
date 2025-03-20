@@ -9,9 +9,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { CharacteristicTypesService } from './characteristic-types.service';
-import { CreateCharacteristicTypeDto } from './dto/create-characteristic-type.dto';
-import { UpdateCharacteristicTypeDto } from './dto/update-characteristic-type.dto';
+
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -21,26 +19,29 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { CharacteristicTypesService } from '../../characteristic-types/characteristic-types.service';
+import { CreateCharacteristicTypeDto } from '../../characteristic-types/dto/create-characteristic-type.dto';
+import { FindAllCharacteristicTypesDto } from '../../characteristic-types/dto/find-all-characteristic-types.dto';
+import { GetCharacteristicTypeDto } from '../../characteristic-types/dto/get-characteristic-type.dto';
+import { UpdateCharacteristicTypeDto } from '../../characteristic-types/dto/update-characteristic-type.dto';
+import { Roles } from '../../roles/roles.decorator';
+import { RoleEnum } from '../../roles/roles.enum';
+import { RolesGuard } from '../../roles/roles.guard';
 import {
   InfinityPaginationResponse,
   InfinityPaginationResponseDto,
-} from '../utils/dto/infinity-pagination-response.dto';
-import { infinityPagination } from '../utils/infinity-pagination';
-import { FindAllCharacteristicTypesDto } from './dto/find-all-characteristic-types.dto';
-import { RolesGuard } from '../roles/roles.guard';
-import { Roles } from '../roles/roles.decorator';
-import { RoleEnum } from '../roles/roles.enum';
-import { GetCharacteristicTypeDto } from './dto/get-characteristic-type.dto';
+} from '../../utils/dto/infinity-pagination-response.dto';
+import { infinityPagination } from '../../utils/infinity-pagination';
 
-@ApiTags('Characteristictypes')
+@ApiTags('Dashboard - Characteristictypes')
 @ApiBearerAuth()
 @Roles(RoleEnum.admin, RoleEnum.editor)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller({
-  path: 'characteristic-types',
+  path: 'dashboard/characteristic-types',
   version: '1',
 })
-export class CharacteristicTypesController {
+export class DashboardCharacteristicTypesController {
   constructor(
     private readonly characteristicTypesService: CharacteristicTypesService,
   ) {}

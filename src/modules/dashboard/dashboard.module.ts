@@ -7,13 +7,22 @@ import { DashboardSummaryController } from './dashboard-summary.controller';
 import { TaxonsModule } from '../../taxons/taxons.module';
 import { ListDashboardSummaryUseCase } from './application/use-cases/list-summary.use-case';
 import { SpeciesModule } from '../../species/species.module';
+import { DashboardCharacteristicTypesController } from './dashboard-characteristic-types.controller';
+import { CharacteristicTypesModule } from '../../characteristic-types/characteristic-types.module';
 
 @Module({
-  imports: [PostsModule, CharacteristicsModule, TaxonsModule, SpeciesModule],
+  imports: [
+    PostsModule,
+    CharacteristicsModule,
+    CharacteristicTypesModule,
+    TaxonsModule,
+    SpeciesModule,
+  ],
   providers: [ListDashboardSummaryUseCase],
   controllers: [
     DashboardPostsController,
     DashboardCharacteristicsController,
+    DashboardCharacteristicTypesController,
     DashboardSummaryController,
   ],
 })
