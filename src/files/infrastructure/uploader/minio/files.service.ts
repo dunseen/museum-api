@@ -51,6 +51,14 @@ export class FilesMinioService {
       infer: true,
     });
 
-    return `${host}:${port}/${bucket}/${file}`;
+    const ssl = this.configService.getOrThrow('file.minio.ssl', {
+      infer: true,
+    });
+
+    if (ssl) {
+      return `https://${host}:${port}/${bucket}/${file}`;
+    }
+
+    return `http://${host}:${port}/${bucket}/${file}`;
   }
 }
