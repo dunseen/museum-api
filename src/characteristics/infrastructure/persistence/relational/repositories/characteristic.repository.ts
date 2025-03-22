@@ -86,6 +86,7 @@ export class CharacteristicRelationalRepository
       .take(paginationOptions.limit)
       .innerJoinAndSelect('c.type', 't')
       .leftJoinAndSelect('c.files', 'f')
+      .orderBy('c.createdAt', 'DESC')
       .getManyAndCount();
 
     return [entities.map((e) => CharacteristicMapper.toDomain(e)), totalCount];
