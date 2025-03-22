@@ -17,8 +17,10 @@ export class FilesMinioService {
 
   async create(
     file: Express.MulterS3.File[],
-    specieId?: number,
-    characteristicId?: number,
+    {
+      characteristicId,
+      specieId,
+    }: { characteristicId?: number; specieId?: number },
   ): Promise<{ file: FileType }[]> {
     if (!file) {
       throw new UnprocessableEntityException({
