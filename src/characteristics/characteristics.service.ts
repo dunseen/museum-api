@@ -12,15 +12,20 @@ import { Characteristic } from './domain/characteristic';
 import { CharacteristicTypeRepository } from '../characteristic-types/infrastructure/persistence/characteristic-type.repository';
 import { CharacteristicFactory } from './domain/characteristic.factory';
 import { GetCharacteristicDto } from './application/dto/get-characteristic.dto';
+import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
 
 @Injectable()
 export class CharacteristicsService {
   constructor(
     private readonly characteristicRepository: CharacteristicRepository,
     private readonly characteristicTypeRepository: CharacteristicTypeRepository,
+    private readonly filesMinioService: FilesMinioService,
   ) {}
 
-  async create(createCharacteristicDto: CreateCharacteristicDto) {
+  async create(
+    createCharacteristicDto: CreateCharacteristicDto,
+    file: Express.MulterS3.File[],
+  ) {
     const type = await this.characteristicTypeRepository.findById(
       createCharacteristicDto.typeId,
     );
@@ -53,7 +58,11 @@ export class CharacteristicsService {
       type,
     );
 
-    return this.characteristicRepository.create(characteristic);
+    const data = await this.characteristicRepository.create(characteristic);
+
+    await this.filesMinioService.create(file, { characteristicId: data.id });
+
+    return CharacteristicFactory.toDto(data);
   }
 
   async findAllWithPagination({

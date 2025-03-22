@@ -3,7 +3,6 @@ import {
   Module,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { FilesMinioController } from './files.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { FilesMinioService } from './files.service';
@@ -99,6 +98,7 @@ const infrastructurePersistenceModule = RelationalFilePersistenceModule;
             },
           },
         );
+
         return {
           fileFilter: (_req, file, callback) => {
             if (!file.originalname.match(/\.(jpg|jpeg|png)$/i)) {
@@ -123,7 +123,7 @@ const infrastructurePersistenceModule = RelationalFilePersistenceModule;
       },
     }),
   ],
-  controllers: [FilesMinioController],
+  controllers: [],
   providers: [FilesMinioService],
   exports: [FilesMinioService],
 })

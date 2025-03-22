@@ -8,6 +8,8 @@ import {
   Param,
   Patch,
   Delete,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -30,6 +32,7 @@ import {
   InfinityPaginationResponseDto,
 } from '../../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../../utils/infinity-pagination';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Dashboard - Characteristics')
 @ApiBearerAuth()
@@ -48,8 +51,12 @@ export class DashboardCharacteristicsController {
   @ApiCreatedResponse({
     type: GetCharacteristicDto,
   })
-  create(@Body() createCharacteristicDto: CreateCharacteristicDto) {
-    return this.characteristicsService.create(createCharacteristicDto);
+  @UseInterceptors(FilesInterceptor('file'))
+  create(
+    @UploadedFiles() file: Express.MulterS3.File[],
+    @Body() createCharacteristicDto: CreateCharacteristicDto,
+  ) {
+    return this.characteristicsService.create(createCharacteristicDto, file);
   }
 
   @Get()

@@ -1,4 +1,4 @@
-import { ConflictException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCharacteristicTypeDto } from './dto/create-characteristic-type.dto';
 import { UpdateCharacteristicTypeDto } from './dto/update-characteristic-type.dto';
 import { CharacteristicTypeRepository } from './infrastructure/persistence/characteristic-type.repository';
@@ -21,12 +21,7 @@ export class CharacteristicTypesService {
     );
 
     if (bookedType) {
-      throw new ConflictException({
-        status: HttpStatus.CONFLICT,
-        errors: {
-          name: 'type already booked.',
-        },
-      });
+      return CharacteristicTypeFactory.toDto(bookedType);
     }
 
     const newType = await this.characteristicTypeRepository.create(type);

@@ -17,8 +17,10 @@ export class FilesMinioService {
 
   async create(
     file: Express.MulterS3.File[],
-    specieId?: number,
-    characteristicId?: number,
+    {
+      characteristicId,
+      specieId,
+    }: { characteristicId?: number; specieId?: number },
   ): Promise<{ file: FileType }[]> {
     if (!file) {
       throw new UnprocessableEntityException({
@@ -49,6 +51,14 @@ export class FilesMinioService {
       infer: true,
     });
 
-    return `${host}:${port}/${bucket}/${file}`;
+    const ssl = this.configService.getOrThrow('file.minio.ssl', {
+      infer: true,
+    });
+
+    if (ssl) {
+      return `https://${host}:${port}/${bucket}/${file}`;
+    }
+
+    return `http://${host}:${port}/${bucket}/${file}`;
   }
 }
