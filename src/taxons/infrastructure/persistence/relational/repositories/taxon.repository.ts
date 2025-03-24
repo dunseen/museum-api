@@ -43,6 +43,8 @@ export class TaxonRelationalRepository implements TaxonRepository {
     const [entities, totalCount] = await this.taxonRepository.findAndCount({
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
       take: paginationOptions.limit,
+      relations: ['characteristics'],
+      order: { createdAt: 'DESC' },
     });
 
     return [entities.map((user) => TaxonMapper.toDomain(user)), totalCount];

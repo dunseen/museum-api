@@ -9,6 +9,8 @@ import { TaxonRepository } from './infrastructure/persistence/taxon.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { Taxon } from './domain/taxon';
 import { HierarchyRepository } from '../hierarchies/infrastructure/persistence/hierarchy.repository';
+import { CharacteristicFactory } from '../characteristics/domain/characteristic.factory';
+import { GetTaxonDto } from './dto/get-taxon.dto';
 
 @Injectable()
 export class TaxonsService {
@@ -56,17 +58,32 @@ export class TaxonsService {
     return this.taxonRepository.create(newTaxon);
   }
 
-  findAllWithPagination({
+  async findAllWithPagination({
     paginationOptions,
   }: {
     paginationOptions: IPaginationOptions;
-  }) {
-    return this.taxonRepository.findAllWithPagination({
+  }): Promise<[GetTaxonDto[], number]> {
+    const [taxons, count] = await this.taxonRepository.findAllWithPagination({
       paginationOptions: {
         page: paginationOptions.page,
         limit: paginationOptions.limit,
       },
     });
+
+    const formmatedTaxons: GetTaxonDto[] = taxons.map((taxon) => ({
+      hierarchy: {
+        id: taxon.hierarchy.id,
+        name: taxon.hierarchy.name,
+      },
+      id: taxon.id,
+      name: taxon.name,
+      parent: taxon?.parent
+        ? { id: taxon.parent.id, name: taxon.parent.name }
+        : null,
+      characteristics: taxon.characteristics.map(CharacteristicFactory.toDto),
+    }));
+
+    return [formmatedTaxons, count];
   }
 
   findOne(id: Taxon['id']) {

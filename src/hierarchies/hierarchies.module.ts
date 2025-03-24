@@ -8,6 +8,10 @@ import { ListHierarchyUseCase } from './application/use-cases/list-hierarchy.use
   imports: [RelationalHierarchyPersistenceModule],
   controllers: [HierarchiesController],
   providers: [HierarchiesService, ListHierarchyUseCase],
-  exports: [HierarchiesService, RelationalHierarchyPersistenceModule],
+  exports: [
+    HierarchiesService,
+    RelationalHierarchyPersistenceModule,
+    ListHierarchyUseCase,
+  ],
 })
 export class HierarchiesModule {}
