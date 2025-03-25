@@ -9,9 +9,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { SpeciesService } from './species.service';
-import { CreateSpecieDto } from './dto/create-specie.dto';
-import { UpdateSpecieDto } from './dto/update-specie.dto';
+
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -20,23 +18,26 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../../roles/roles.decorator';
+import { RoleEnum } from '../../roles/roles.enum';
+import { RolesGuard } from '../../roles/roles.guard';
+import { FindAllSpeciesDto } from '../../species/dto/find-all-species.dto';
+import { GetSpecieDto } from '../../species/dto/get-all-species.dto';
 import {
   InfinityPaginationResponse,
   InfinityPaginationResponseDto,
-} from '../utils/dto/infinity-pagination-response.dto';
-import { infinityPagination } from '../utils/infinity-pagination';
-import { FindAllSpeciesDto } from './dto/find-all-species.dto';
-import { RolesGuard } from '../roles/roles.guard';
-import { Roles } from '../roles/roles.decorator';
-import { RoleEnum } from '../roles/roles.enum';
-import { GetSpecieDto } from './dto/get-all-species.dto';
+} from '../../utils/dto/infinity-pagination-response.dto';
+import { infinityPagination } from '../../utils/infinity-pagination';
+import { CreateSpecieDto } from '../../species/dto/create-specie.dto';
+import { UpdateSpecieDto } from '../../species/dto/update-specie.dto';
+import { SpeciesService } from '../../species/species.service';
 
-@ApiTags('Species')
+@ApiTags('Dashboard - Species')
 @Controller({
-  path: 'species',
+  path: 'dashboard/species',
   version: '1',
 })
-export class SpeciesController {
+export class DashboardSpeciesController {
   constructor(private readonly speciesService: SpeciesService) {}
 
   @ApiBearerAuth()

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Hierarchy } from '../../hierarchies/domain/hierarchy';
+import { Characteristic } from '../../characteristics/domain/characteristic';
 
 const TaxonIdType = Number;
 
@@ -7,7 +8,7 @@ export class Taxon {
   @ApiProperty({
     type: TaxonIdType,
   })
-  id: number | string;
+  id: number;
 
   @ApiProperty({
     type: String,
@@ -23,6 +24,9 @@ export class Taxon {
     type: Taxon,
   })
   parent: Taxon | null;
+
+  @ApiProperty({ type: Characteristic, isArray: true })
+  characteristics: Characteristic[];
 
   @ApiProperty()
   createdAt: Date;

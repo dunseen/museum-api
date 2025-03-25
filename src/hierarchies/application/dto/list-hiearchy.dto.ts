@@ -2,9 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ListHierarchyDto {
   @ApiProperty({
-    type: String,
+    type: Number,
   })
-  id: string | number;
+  id: number;
 
   @ApiProperty({
     type: String,

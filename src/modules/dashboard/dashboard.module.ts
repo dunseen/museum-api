@@ -16,6 +16,10 @@ import { MinioService } from 'nestjs-minio-client';
 import { AllConfigType } from '../../config/config.type';
 import { MinioStorageEngine } from '@namatery/multer-minio';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
+import { DashboardSpeciesController } from './dashboard-species.controller';
+import { DashboardTaxonsController } from './dashboard-taxons.controller';
+import { DashboardHierarchiesController } from './dashboard-hierarchies.controller';
+import { HierarchiesModule } from '../../hierarchies/hierarchies.module';
 
 @Module({
   imports: [
@@ -23,6 +27,7 @@ import { randomStringGenerator } from '@nestjs/common/utils/random-string-genera
     CharacteristicsModule,
     CharacteristicTypesModule,
     TaxonsModule,
+    HierarchiesModule,
     SpeciesModule,
     FileMinioModule,
     MulterModule.registerAsync({
@@ -115,6 +120,9 @@ import { randomStringGenerator } from '@nestjs/common/utils/random-string-genera
     DashboardPostsController,
     DashboardCharacteristicsController,
     DashboardCharacteristicTypesController,
+    DashboardTaxonsController,
+    DashboardHierarchiesController,
+    DashboardSpeciesController,
     DashboardSummaryController,
   ],
 })

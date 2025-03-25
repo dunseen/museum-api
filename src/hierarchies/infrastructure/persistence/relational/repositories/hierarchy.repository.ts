@@ -21,6 +21,7 @@ export class HierarchyRelationalRepository implements HierarchyRepository {
 
   async create(data: Hierarchy): Promise<Hierarchy> {
     const persistenceModel = HierarchyMapper.toPersistence(data);
+
     const newEntity = await this.hierarchyRepository.save(
       this.hierarchyRepository.create(persistenceModel),
     );
@@ -29,7 +30,7 @@ export class HierarchyRelationalRepository implements HierarchyRepository {
 
   async findById(id: Hierarchy['id']): Promise<NullableType<Hierarchy>> {
     const entity = await this.hierarchyRepository.findOne({
-      where: { id: Number(id) },
+      where: { id },
     });
 
     return entity ? HierarchyMapper.toDomain(entity) : null;

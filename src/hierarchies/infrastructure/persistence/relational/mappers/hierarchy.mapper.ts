@@ -12,8 +12,9 @@ export class HierarchyMapper {
 
   static toPersistence(domainEntity: Hierarchy): HierarchyEntity {
     const persistenceEntity = new HierarchyEntity();
+
     if (domainEntity.id) {
-      persistenceEntity.id = Number(domainEntity.id);
+      persistenceEntity.id = domainEntity.id;
     }
     persistenceEntity.name = domainEntity.name;
 
