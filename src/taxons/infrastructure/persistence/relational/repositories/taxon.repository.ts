@@ -29,6 +29,7 @@ export class TaxonRelationalRepository implements TaxonRepository {
 
   async create(data: Taxon): Promise<Taxon> {
     const persistenceModel = TaxonMapper.toPersistence(data);
+
     const newEntity = await this.taxonRepository.save(
       this.taxonRepository.create(persistenceModel),
     );
@@ -40,12 +41,23 @@ export class TaxonRelationalRepository implements TaxonRepository {
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<Taxon>> {
-    const [entities, totalCount] = await this.taxonRepository.findAndCount({
-      skip: (paginationOptions.page - 1) * paginationOptions.limit,
-      take: paginationOptions.limit,
-      relations: ['characteristics'],
-      order: { createdAt: 'DESC' },
-    });
+    const query = this.taxonRepository
+      .createQueryBuilder('t')
+      .leftJoinAndSelect('t.characteristics', 'characteristics')
+      .leftJoinAndSelect('characteristics.type', 'type')
+      .leftJoinAndSelect('t.hierarchy', 'hierarchy');
+
+    if (paginationOptions.filters?.name) {
+      query.where('LOWER(t.name) LIKE LOWER(:name) ', {
+        name: `%${paginationOptions.filters.name}%`,
+      });
+    }
+
+    const [entities, totalCount] = await query
+      .skip((paginationOptions.page - 1) * paginationOptions.limit)
+      .take(paginationOptions.limit)
+      .orderBy('t.createdAt', 'DESC')
+      .getManyAndCount();
 
     return [entities.map((user) => TaxonMapper.toDomain(user)), totalCount];
   }
