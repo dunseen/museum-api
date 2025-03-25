@@ -19,7 +19,7 @@ export class TaxonMapper {
       parent.id = raw.parent.id;
     }
 
-    if (raw?.characteristics) {
+    if (raw?.characteristics?.length) {
       domainEntity.characteristics = raw.characteristics.map(
         CharacteristicMapper.toDomain,
       );
@@ -44,6 +44,12 @@ export class TaxonMapper {
 
     if (domainEntity.hierarchy) {
       hierarchy.id = Number(domainEntity.hierarchy.id);
+    }
+
+    if (domainEntity?.characteristics?.length) {
+      persistenceEntity.characteristics = domainEntity.characteristics.map(
+        CharacteristicMapper.toPersistence,
+      );
     }
 
     persistenceEntity.parent = parent;
