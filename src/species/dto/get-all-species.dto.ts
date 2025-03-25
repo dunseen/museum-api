@@ -17,8 +17,9 @@ export class GetSpecieDto {
 
   @ApiProperty({
     type: String,
+    nullable: true,
   })
-  commonName: string;
+  commonName: NullableType<string>;
 
   @ApiProperty({
     type: String,

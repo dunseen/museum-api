@@ -34,8 +34,9 @@ export class SpecieEntity extends EntityRelationalHelper {
   @Column({
     type: 'varchar',
     length: 100,
+    nullable: true,
   })
-  commonName: string;
+  commonName: NullableType<string>;
 
   @Index()
   @Column({
