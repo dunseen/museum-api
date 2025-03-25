@@ -6,7 +6,9 @@ import { Post } from '../../domain/post';
 import { PostStatusEnum } from '../../domain/post-status.enum';
 import { PostFactory } from '../../domain/post.factory';
 import {
+  forwardRef,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -18,6 +20,7 @@ export class CreatePostUseCase {
   constructor(
     private readonly postRepository: PostRepository,
     private readonly userService: UsersService,
+    @Inject(forwardRef(() => SpeciesService))
     private readonly speciesService: SpeciesService,
   ) {}
 

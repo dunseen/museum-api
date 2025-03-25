@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { NullableType } from '../../utils/types/nullable.type';
+import { Transform } from 'class-transformer';
 
 export class CreateSpecieDto {
   @ApiProperty({
@@ -10,15 +12,24 @@ export class CreateSpecieDto {
 
   @ApiProperty({
     type: String,
+    nullable: true,
   })
   @IsString()
-  commonName: string;
+  @IsOptional()
+  commonName: NullableType<string>;
+
+  @ApiProperty({
+    type: String,
+  })
+  @IsString()
+  description: string;
 
   @ApiProperty({
     type: Number,
     isArray: true,
   })
   @IsNotEmpty()
+  @Transform(({ value }) => JSON.parse(value).map(Number))
   taxonIds: number[];
 
   @ApiProperty({
@@ -26,13 +37,9 @@ export class CreateSpecieDto {
     isArray: true,
   })
   @IsNotEmpty()
+  @Transform(({ value }) => JSON.parse(value).map(Number))
   characteristicIds: number[];
 
-  @ApiProperty({
-    type: String,
-    isArray: true,
-  })
-  @IsNotEmpty({ each: true })
-  @IsUUID('all', { each: true })
-  fileIds: string[];
+  @IsOptional()
+  file?: Express.Multer.File;
 }

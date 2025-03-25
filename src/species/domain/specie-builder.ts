@@ -7,7 +7,7 @@ import { NullableType } from '../../utils/types/nullable.type';
 export class SpecieBuilder {
   private id: number;
   private scientificName: string;
-  private commonName: string;
+  private commonName: NullableType<string>;
   private description: NullableType<string>;
   private createdAt: Date;
   private updatedAt: Date;
@@ -25,7 +25,7 @@ export class SpecieBuilder {
     return this;
   }
 
-  setCommonName(commonName: string): SpecieBuilder {
+  setCommonName(commonName: NullableType<string>): SpecieBuilder {
     this.commonName = commonName;
     return this;
   }

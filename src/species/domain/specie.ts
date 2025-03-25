@@ -11,8 +11,8 @@ export class Specie {
   @ApiProperty({ type: String })
   readonly scientificName: string;
 
-  @ApiProperty({ type: String })
-  readonly commonName: string;
+  @ApiProperty({ type: String, nullable: true })
+  readonly commonName: NullableType<string>;
 
   @ApiProperty({ type: String, nullable: true })
   readonly description: NullableType<string>;

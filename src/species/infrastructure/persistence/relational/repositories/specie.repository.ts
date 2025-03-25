@@ -54,14 +54,18 @@ export class SpecieRelationalRepository implements SpecieRepository {
       .leftJoinAndSelect('characteristics.type', 'type');
 
     if (paginationOptions.filters?.name) {
-      query.where('s.scientificName LIKE :name OR s.commonName LIKE :name', {
-        name: `%${paginationOptions.filters.name}%`,
-      });
+      query.where(
+        'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
+        {
+          name: `%${paginationOptions.filters.name}%`,
+        },
+      );
     }
 
     const [entities, totalCount] = await query
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit)
+      .orderBy('s.createdAt', 'DESC')
       .getManyAndCount();
 
     return [entities.map((user) => SpecieMapper.toDomain(user)), totalCount];

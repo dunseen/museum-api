@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PostService } from './domain/post.service';
 import { RelationalPostPersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalUserPersistenceModule } from '../users/infrastructure/persistence/relational/relational-persistence.module';
@@ -27,8 +27,8 @@ const providers = [
   imports: [
     RelationalPostPersistenceModule,
     RelationalUserPersistenceModule,
-    SpeciesModule,
     UsersModule,
+    forwardRef(() => SpeciesModule),
   ],
   controllers: [PostsController],
   providers,

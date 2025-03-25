@@ -11,10 +11,12 @@ import { IPaginationOptions } from '../utils/types/pagination-options';
 import { Specie } from './domain/specie';
 import { CharacteristicRepository } from '../characteristics/domain/characteristic.repository';
 import { TaxonRepository } from '../taxons/infrastructure/persistence/taxon.repository';
-import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { SpecieBuilder } from './domain/specie-builder';
 import { SpecieFactory } from './domain/specie.factory';
 import { GetSpecieDto } from './dto/get-all-species.dto';
+import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
+import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
+import { CreatePostUseCase } from '../posts/application/use-cases/create-post.use-case';
 
 @Injectable()
 export class SpeciesService {
@@ -22,7 +24,8 @@ export class SpeciesService {
     private readonly specieRepository: SpecieRepository,
     private readonly characteristicRepository: CharacteristicRepository,
     private readonly taxonRepository: TaxonRepository,
-    private readonly fileRepository: FileRepository,
+    private readonly filesMinioService: FilesMinioService,
+    private readonly createPostUseCase: CreatePostUseCase,
   ) {}
 
   private async _validateCharacteristic(
@@ -64,24 +67,6 @@ export class SpeciesService {
     await Promise.all(promise);
   }
 
-  private async _validateFile(fileIds: string[], specie: Specie) {
-    const promise = fileIds.map(async (id) => {
-      const file = await this.fileRepository.findById(id);
-      if (!file) {
-        throw new BadRequestException({
-          status: HttpStatus.BAD_REQUEST,
-          errors: {
-            fileIds: `file with id: ${id} not found`,
-          },
-        });
-      }
-
-      specie.addFile(file);
-    });
-
-    await Promise.all(promise);
-  }
-
   private async _validateIfSpecieExists(scientificName: string) {
     const bookedSpecie =
       await this.specieRepository.findByScientificName(scientificName);
@@ -94,22 +79,39 @@ export class SpeciesService {
     }
   }
 
-  async create(createSpecieDto: CreateSpecieDto) {
+  async create(
+    createSpecieDto: CreateSpecieDto,
+    files: Express.MulterS3.File[],
+    payload: JwtPayloadType,
+  ) {
     const specie = new SpecieBuilder()
       .setCommonName(createSpecieDto.commonName)
       .setScientificName(createSpecieDto.scientificName)
+      .setDescription(createSpecieDto.description)
       .build();
 
-    const { characteristicIds, taxonIds, fileIds } = createSpecieDto;
+    const { characteristicIds, taxonIds } = createSpecieDto;
 
     await Promise.all([
       this._validateIfSpecieExists(createSpecieDto.scientificName),
       this._validateCharacteristic(characteristicIds, specie),
       this._validateTaxon(taxonIds, specie),
-      this._validateFile(fileIds, specie),
     ]);
 
-    return this.specieRepository.create(specie);
+    const createdSpecie = await this.specieRepository.create(specie);
+
+    await this.filesMinioService.create(files, {
+      specieId: createdSpecie.id,
+    });
+
+    await this.createPostUseCase.execute(
+      {
+        specieId: createdSpecie.id,
+      },
+      payload,
+    );
+
+    return SpecieFactory.toDto(createdSpecie);
   }
 
   async findAllWithPagination({

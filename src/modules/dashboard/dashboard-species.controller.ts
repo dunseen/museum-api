@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 
 import {
@@ -31,6 +33,9 @@ import { infinityPagination } from '../../utils/infinity-pagination';
 import { CreateSpecieDto } from '../../species/dto/create-specie.dto';
 import { UpdateSpecieDto } from '../../species/dto/update-specie.dto';
 import { SpeciesService } from '../../species/species.service';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { JwtPayload } from '../../auth/strategies/jwt.decorator';
+import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 
 @ApiTags('Dashboard - Species')
 @Controller({
@@ -47,8 +52,13 @@ export class DashboardSpeciesController {
   @ApiCreatedResponse({
     type: GetSpecieDto,
   })
-  create(@Body() createSpecieDto: CreateSpecieDto) {
-    return this.speciesService.create(createSpecieDto);
+  @UseInterceptors(FilesInterceptor('file'))
+  create(
+    @UploadedFiles() file: Express.MulterS3.File[],
+    @Body() createSpecieDto: CreateSpecieDto,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.speciesService.create(createSpecieDto, file, payload);
   }
 
   @Get()
