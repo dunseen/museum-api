@@ -14,4 +14,8 @@ export class FindAllTaxonsDto {
   @IsNumber()
   @IsOptional()
   limit = 10;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  name?: string;
 }
