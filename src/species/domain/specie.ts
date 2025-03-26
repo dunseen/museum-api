@@ -35,7 +35,7 @@ export class Specie {
   constructor(
     id: number,
     scientificName: string,
-    commonName: string,
+    commonName: NullableType<string>,
     description: NullableType<string>,
     createdAt?: Date,
     updatedAt?: Date,
