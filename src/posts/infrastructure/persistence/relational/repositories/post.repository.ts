@@ -53,6 +53,7 @@ export class PostRelationalRepository implements PostRepository {
       .select('p.id')
       .innerJoinAndSelect('p.specie', 's')
       .leftJoinAndSelect('s.characteristics', 'c')
+      .leftJoinAndSelect('c.type', 'type')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('t.hierarchy', 'h')
@@ -119,7 +120,7 @@ export class PostRelationalRepository implements PostRepository {
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
       take: paginationOptions.limit,
       relations: ['author', 'validator', 'specie'],
-      loadEagerRelations: false,
+      loadEagerRelations: true,
       order: {
         updatedAt: 'DESC',
       },
