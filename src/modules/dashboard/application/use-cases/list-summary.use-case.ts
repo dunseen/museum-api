@@ -17,8 +17,8 @@ export class ListDashboardSummaryUseCase {
       await Promise.all([
         this.specieRepo.count(),
         this.characteristicRepo.count(),
-        this.taxonRepo.countByHierarchy('family'),
-        this.taxonRepo.countByHierarchy('genus'),
+        this.taxonRepo.countByHierarchy('família'),
+        this.taxonRepo.countByHierarchy('gênero'),
       ]);
 
     return {

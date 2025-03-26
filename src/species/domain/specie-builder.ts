@@ -60,7 +60,7 @@ export class SpecieBuilder {
   }
 
   build(): Specie {
-    if (!this.scientificName || !this.commonName) {
+    if (!this.scientificName) {
       throw new Error(
         'ID, scientific name, and common name are required to build a Specie.',
       );

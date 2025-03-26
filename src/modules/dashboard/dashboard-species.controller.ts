@@ -46,7 +46,7 @@ export class DashboardSpeciesController {
   constructor(private readonly speciesService: SpeciesService) {}
 
   @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @ApiCreatedResponse({

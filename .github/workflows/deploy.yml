@@ -76,12 +76,12 @@ jobs:
         run: |
           sudo chmod 666 /var/run/docker.sock
 
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GHCR_TOKEN }}" | sudo docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD  }}" | sudo docker login -u "${{ secrets.DOCKER_HUB_USERNAME  }}" --password-stdin
 
-      - name: Build and Push Docker Image to GHCR
+      - name: Build and Push Docker Image to Docker Hub
         run: |
-          IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
+          IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
           sudo docker pull $IMAGE_NAME || true
           sudo docker build --cache-from=$IMAGE_NAME -t $IMAGE_NAME .
           sudo docker push $IMAGE_NAME
@@ -108,8 +108,8 @@ jobs:
       - name: Deploy to VPS
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-          docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/museum-api:latest
+          echo "${{ secrets.DOCKER_HUB_PASSWORD  }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME  }}" --password-stdin
+          docker pull ${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
           cd /home/ubuntu/app
           docker compose down 
           docker compose up -d 

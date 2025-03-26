@@ -37,7 +37,7 @@ export class DashboardHierarchiesController {
     private readonly listHierarchyUseCase: ListHierarchyUseCase,
   ) {}
 
-  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @ApiBearerAuth()

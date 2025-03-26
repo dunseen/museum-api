@@ -10,7 +10,7 @@ import { TaxonEntity } from '../../../../taxons/infrastructure/persistence/relat
 const speciesData = [
   {
     scientificName: 'Astragalus carolinianus',
-    commonName: 'Não disponível',
+    commonName: null,
     description: 'Planta herbácea perene encontrada em pradarias.',
     characteristics: [
       { type: 'Descrição', value: 'Planta herbácea perene' },
@@ -18,8 +18,8 @@ const speciesData = [
       { type: 'Flor', value: 'Flores pequenas e esbranquiçadas ou rosadas' },
     ],
     taxons: [
-      { type: 'family', value: 'Fabaceae' },
-      { type: 'genus', value: 'Astragalus' },
+      { type: 'família', value: 'Fabaceae' },
+      { type: 'gênero', value: 'Astragalus' },
     ],
   },
   {
@@ -32,13 +32,13 @@ const speciesData = [
       { type: 'Uso', value: 'Madeira usada na construção civil' },
     ],
     taxons: [
-      { type: 'family', value: 'Malvaceae' },
-      { type: 'genus', value: 'Luehea' },
+      { type: 'família', value: 'Malvaceae' },
+      { type: 'gênero', value: 'Luehea' },
     ],
   },
   {
     scientificName: 'Eugenia subglomerata',
-    commonName: 'Não disponível',
+    commonName: null,
     description: 'Arbusto com folhas simples e frutos comestíveis.',
     characteristics: [
       { type: 'Folhagem', value: 'Folhas simples e opostas' },
@@ -46,13 +46,13 @@ const speciesData = [
       { type: 'Flor', value: 'Flores pequenas e brancas' },
     ],
     taxons: [
-      { type: 'family', value: 'Myrtaceae' },
-      { type: 'genus', value: 'Eugenia' },
+      { type: 'família', value: 'Myrtaceae' },
+      { type: 'gênero', value: 'Eugenia' },
     ],
   },
   {
     scientificName: 'Eriosema defoliatum',
-    commonName: 'Não disponível',
+    commonName: null,
     description: 'Planta herbácea encontrada no Cerrado.',
     characteristics: [
       { type: 'Habitat', value: 'Encontrada em áreas de Cerrado' },
@@ -60,13 +60,13 @@ const speciesData = [
       { type: 'Folhagem', value: 'Folhas trifolioladas' },
     ],
     taxons: [
-      { type: 'family', value: 'Fabaceae' },
-      { type: 'genus', value: 'Eriosema' },
+      { type: 'família', value: 'Fabaceae' },
+      { type: 'gênero', value: 'Eriosema' },
     ],
   },
   {
     scientificName: 'Hyptis recurvata',
-    commonName: 'Não disponível',
+    commonName: null,
     description: 'Planta herbácea aromática comum em regiões tropicais.',
     characteristics: [
       { type: 'Folhagem', value: 'Folhas aromáticas' },
@@ -74,13 +74,13 @@ const speciesData = [
       { type: 'Habitat', value: 'Comum em regiões tropicais' },
     ],
     taxons: [
-      { type: 'family', value: 'Lamiaceae' },
-      { type: 'genus', value: 'Hyptis' },
+      { type: 'família', value: 'Lamiaceae' },
+      { type: 'gênero', value: 'Hyptis' },
     ],
   },
   {
     scientificName: 'Tapeinostemon longiflorum var. longiflorum',
-    commonName: 'Não disponível',
+    commonName: null,
     description:
       'Planta herbácea com flores longas encontrada em florestas úmidas.',
     characteristics: [
@@ -88,8 +88,8 @@ const speciesData = [
       { type: 'Habitat', value: 'Encontrada em florestas úmidas' },
     ],
     taxons: [
-      { type: 'family', value: 'Apocynaceae' },
-      { type: 'genus', value: 'Tapeinostemon' },
+      { type: 'família', value: 'Apocynaceae' },
+      { type: 'gênero', value: 'Tapeinostemon' },
     ],
   },
   {
@@ -102,13 +102,13 @@ const speciesData = [
       { type: 'Fruto', value: 'Frutos grandes e lenhosos' },
     ],
     taxons: [
-      { type: 'family', value: 'Fabaceae' },
-      { type: 'genus', value: 'Parkia' },
+      { type: 'família', value: 'Fabaceae' },
+      { type: 'gênero', value: 'Parkia' },
     ],
   },
   {
     scientificName: 'Doliocarpus sellowianus',
-    commonName: 'Não disponível',
+    commonName: null,
     description: 'Trepadeira lenhosa comum em florestas tropicais.',
     characteristics: [
       { type: 'Folhagem', value: 'Folhas simples e alternas' },
@@ -116,8 +116,8 @@ const speciesData = [
       { type: 'Fruto', value: 'Frutos do tipo cápsula' },
     ],
     taxons: [
-      { type: 'family', value: 'Dilleniaceae' },
-      { type: 'genus', value: 'Doliocarpus' },
+      { type: 'família', value: 'Dilleniaceae' },
+      { type: 'gênero', value: 'Doliocarpus' },
     ],
   },
   {
@@ -130,8 +130,8 @@ const speciesData = [
       { type: 'Folhagem', value: 'Folhas trifolioladas' },
     ],
     taxons: [
-      { type: 'family', value: 'Capparaceae' },
-      { type: 'genus', value: 'Crateva' },
+      { type: 'família', value: 'Capparaceae' },
+      { type: 'gênero', value: 'Crateva' },
     ],
   },
   {
@@ -144,8 +144,8 @@ const speciesData = [
       { type: 'Flor', value: 'Flores amarelas' },
     ],
     taxons: [
-      { type: 'family', value: 'Malpighiaceae' },
-      { type: 'genus', value: 'Byrsonima' },
+      { type: 'família', value: 'Malpighiaceae' },
+      { type: 'gênero', value: 'Byrsonima' },
     ],
   },
 ];
