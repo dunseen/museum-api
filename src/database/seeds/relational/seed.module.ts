@@ -12,8 +12,11 @@ import appConfig from '../../../config/app.config';
 
 import { SpecieSeedModule } from './specie/specie-seed.module';
 
+import { CitySeedModule } from './city/city-seed.module';
+
 @Module({
   imports: [
+    CitySeedModule,
     SpecieSeedModule,
     RoleSeedModule,
     StatusSeedModule,
