@@ -12,6 +12,7 @@ export class State {
     example: 'Pará',
   })
   name: string;
+
   @ApiProperty({
     type: String,
     example: 'PA',

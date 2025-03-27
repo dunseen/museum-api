@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNumber, IsOptional } from 'class-validator';
 
 export class FindAllCitiesDto {
   @ApiProperty({
@@ -7,6 +8,8 @@ export class FindAllCitiesDto {
     description: 'State id',
     example: 1,
   })
+  @Transform(({ value }) => parseInt(value))
   @IsNumber()
+  @IsOptional()
   stateId: number;
 }

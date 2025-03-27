@@ -6,6 +6,7 @@ export class StateMapper {
     const domainEntity = new State();
     domainEntity.id = raw.id;
     domainEntity.name = raw.name;
+    domainEntity.code = raw.code;
 
     return domainEntity;
   }
@@ -17,6 +18,7 @@ export class StateMapper {
     }
 
     persistenceEntity.name = domainEntity.name;
+    persistenceEntity.code = domainEntity.code;
 
     return persistenceEntity;
   }
