@@ -40,8 +40,14 @@ import { CharacteristicTypesModule } from './characteristic-types/characteristic
 import { PostsModule } from './posts/posts.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 
+import { StatesModule } from './states/states.module';
+
+import { CitiesModule } from './cities/cities.module';
+
 @Module({
   imports: [
+    CitiesModule,
+    StatesModule,
     DashboardModule,
     PostsModule,
     CharacteristicTypesModule,
