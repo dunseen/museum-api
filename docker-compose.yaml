@@ -39,7 +39,7 @@ services:
 
   api:
     container_name: museum-api
-    image: ghcr.io/dunseen/museum-api:latest
+    image: davys/museum-api:latest
     restart: always
     env_file:
       - .env

@@ -81,8 +81,7 @@ jobs:
 
       - name: Build and Push Docker Image to Docker Hub
         run: |
-          IMAGE_TAG=$(git rev-parse --short HEAD)
-          IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:$IMAGE_TAG
+          IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
           sudo docker pull $IMAGE_NAME || true
           sudo docker build --cache-from=$IMAGE_NAME -t $IMAGE_NAME .
           sudo docker push $IMAGE_NAME
@@ -110,7 +109,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@146.235.33.144 << 'EOF'
           echo "${{ secrets.DOCKER_HUB_PASSWORD  }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME  }}" --password-stdin
-          docker pull ${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:${{ env.IMAGE_TAG }}
+          docker pull ${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
           cd /home/ubuntu/app
           docker compose down api
           docker compose up api -d 
