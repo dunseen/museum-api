@@ -13,17 +13,13 @@ import appConfig from '../../../config/app.config';
 import { SpecieSeedModule } from './specie/specie-seed.module';
 
 import { CitySeedModule } from './city/city-seed.module';
+import fileConfig from '../../../files/config/file.config';
 
 @Module({
   imports: [
-    CitySeedModule,
-    SpecieSeedModule,
-    RoleSeedModule,
-    StatusSeedModule,
-    UserSeedModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, appConfig],
+      load: [databaseConfig, appConfig, fileConfig],
       envFilePath: ['.env'],
     }),
     TypeOrmModule.forRootAsync({
@@ -32,6 +28,11 @@ import { CitySeedModule } from './city/city-seed.module';
         return new DataSource(options).initialize();
       },
     }),
+    CitySeedModule,
+    SpecieSeedModule,
+    RoleSeedModule,
+    StatusSeedModule,
+    UserSeedModule,
   ],
 })
 export class SeedModule {}

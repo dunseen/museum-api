@@ -18,6 +18,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiParam,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { CreateCharacteristicDto } from '../../characteristics/application/dto/create-characteristic.dto';
 import { FindAllCharacteristicsDto } from '../../characteristics/application/dto/find-all-characteristics.dto';
@@ -51,12 +52,13 @@ export class DashboardCharacteristicsController {
   @ApiCreatedResponse({
     type: GetCharacteristicDto,
   })
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FilesInterceptor('file'))
   create(
-    @UploadedFiles() file: Express.MulterS3.File[],
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() createCharacteristicDto: CreateCharacteristicDto,
   ) {
-    return this.characteristicsService.create(createCharacteristicDto, file);
+    return this.characteristicsService.create(createCharacteristicDto, files);
   }
 
   @Get()

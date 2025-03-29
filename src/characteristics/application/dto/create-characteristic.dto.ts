@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import { lowerCaseTransformer } from '../../../utils/transformers/lower-case.transformer';
 
 export class CreateCharacteristicDto {
@@ -23,6 +23,13 @@ export class CreateCharacteristicDto {
   @IsString()
   typeId: number;
 
-  @IsOptional()
-  file?: Express.Multer.File;
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+    description: 'The file associated with the characteristic',
+  })
+  file: any;
 }

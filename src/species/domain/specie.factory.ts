@@ -15,6 +15,14 @@ export class SpecieFactory {
       commonName: data.commonName,
       description: data.description,
       characteristics: data.characteristics.map(CharacteristicFactory.toDto),
+      collectedAt: data.collectedAt,
+      location: {
+        address: data.location?.toString(),
+        lat: data.lat,
+        long: data.long,
+        city: data.city,
+        state: data.state,
+      },
       taxonomy: {
         kingdom: hierarchyMap['reino'],
         division: hierarchyMap['divisão'],

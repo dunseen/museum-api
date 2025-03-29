@@ -46,21 +46,11 @@ import { CitiesModule } from './cities/cities.module';
 
 @Module({
   imports: [
-    CitiesModule,
-    StatesModule,
-    DashboardModule,
-    PostsModule,
-    CharacteristicTypesModule,
-    CharacteristicsModule,
-    HierarchiesModule,
-    TaxonsModule,
-    SpeciesModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, authConfig, appConfig, mailConfig, fileConfig],
       envFilePath: ['.env'],
     }),
-    infrastructureDatabaseModule,
     I18nModule.forRootAsync({
       useFactory: (configService: ConfigService<AllConfigType>) => ({
         fallbackLanguage: configService.getOrThrow('app.fallbackLanguage', {
@@ -84,6 +74,14 @@ import { CitiesModule } from './cities/cities.module';
       imports: [ConfigModule],
       inject: [ConfigService],
     }),
+    infrastructureDatabaseModule,
+    DashboardModule,
+    PostsModule,
+    CharacteristicTypesModule,
+    CharacteristicsModule,
+    HierarchiesModule,
+    TaxonsModule,
+    SpeciesModule,
     UsersModule,
     FilesModule,
     AuthModule,
@@ -91,6 +89,8 @@ import { CitiesModule } from './cities/cities.module';
     MailModule,
     MailerModule,
     HomeModule,
+    CitiesModule,
+    StatesModule,
   ],
 })
 export class AppModule {}

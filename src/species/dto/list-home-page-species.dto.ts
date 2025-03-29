@@ -3,4 +3,6 @@ import { GetSpecieDto } from './get-all-species.dto';
 
 export class ListHomePageSpeciesDto extends OmitType(GetSpecieDto, [
   'characteristics',
+  'location',
+  'collectedAt',
 ]) {}

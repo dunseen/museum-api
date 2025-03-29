@@ -3,6 +3,8 @@ import { Taxon } from '../../taxons/domain/taxon';
 import { Characteristic } from '../../characteristics/domain/characteristic';
 import { FileType } from '../../files/domain/file';
 import { NullableType } from '../../utils/types/nullable.type';
+import { City } from '../../cities/domain/city';
+import { State } from '../../states/domain/state';
 
 export class Specie {
   @ApiProperty({ type: Number })
@@ -13,6 +15,15 @@ export class Specie {
 
   @ApiProperty({ type: String, nullable: true })
   readonly commonName: NullableType<string>;
+
+  @ApiProperty({ type: String, nullable: true })
+  readonly location: NullableType<string>;
+
+  @ApiProperty({ type: Number })
+  readonly lat: number;
+
+  @ApiProperty({ type: Number })
+  readonly long: number;
 
   @ApiProperty({ type: String, nullable: true })
   readonly description: NullableType<string>;
@@ -26,8 +37,17 @@ export class Specie {
   @ApiProperty({ type: FileType, isArray: true })
   private readonly _files: FileType[] = [];
 
+  @ApiProperty({ type: City })
+  private _city: City;
+
+  @ApiProperty({ type: State })
+  private _state: State;
+
   @ApiProperty()
   readonly createdAt: Date;
+
+  @ApiProperty()
+  readonly collectedAt: Date;
 
   @ApiProperty()
   updatedAt: Date;
@@ -37,6 +57,10 @@ export class Specie {
     scientificName: string,
     commonName: NullableType<string>,
     description: NullableType<string>,
+    location: NullableType<string>,
+    lat: number,
+    long: number,
+    collectedAt: Date,
     createdAt?: Date,
     updatedAt?: Date,
   ) {
@@ -44,6 +68,10 @@ export class Specie {
     this.scientificName = scientificName;
     this.commonName = commonName;
     this.description = description;
+    this.location = location;
+    this.lat = lat;
+    this.long = long;
+    this.collectedAt = collectedAt;
     this.createdAt = createdAt ?? new Date();
     this.updatedAt = updatedAt ?? new Date();
   }
@@ -58,6 +86,20 @@ export class Specie {
 
   get files(): ReadonlyArray<FileType> {
     return this._files;
+  }
+
+  get city(): City {
+    return this._city;
+  }
+
+  get state(): State {
+    return this._state;
+  }
+  addCity(city: City) {
+    this._city = city;
+  }
+  addState(state: State) {
+    this._state = state;
   }
   addTaxon(taxon: Taxon) {
     this._taxons.push(taxon);

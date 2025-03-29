@@ -14,4 +14,4 @@ import { StateEntity } from './entities/state.entity';
   ],
   exports: [StateRepository],
 })
-export class RelationalstatePersistenceModule {}
+export class RelationalStatePersistenceModule {}
