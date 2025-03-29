@@ -17,6 +17,9 @@ import { GetSpecieDto } from './dto/get-all-species.dto';
 import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { CreatePostUseCase } from '../posts/application/use-cases/create-post.use-case';
+import { generateFileName } from '../utils/string';
+import { CityRepository } from '../cities/infrastructure/persistence/city.repository';
+import { StateRepository } from '../states/infrastructure/persistence/state.repository';
 
 @Injectable()
 export class SpeciesService {
@@ -24,6 +27,8 @@ export class SpeciesService {
     private readonly specieRepository: SpecieRepository,
     private readonly characteristicRepository: CharacteristicRepository,
     private readonly taxonRepository: TaxonRepository,
+    private readonly cityRepository: CityRepository,
+    private readonly stateRepository: StateRepository,
     private readonly filesMinioService: FilesMinioService,
     private readonly createPostUseCase: CreatePostUseCase,
   ) {}
@@ -79,13 +84,43 @@ export class SpeciesService {
     }
   }
 
+  private async _validateCity(cityId: number, specie: Specie) {
+    const city = await this.cityRepository.findById(cityId);
+
+    if (!city) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { cityId: 'city not found' },
+      });
+    }
+
+    specie.addCity(city);
+  }
+
+  private async _validateState(stateId: number, specie: Specie) {
+    const state = await this.stateRepository.findById(stateId);
+
+    if (!state) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { stateId: 'state not found' },
+      });
+    }
+
+    specie.addState(state);
+  }
+
   async create(
     createSpecieDto: CreateSpecieDto,
-    files: Express.MulterS3.File[],
+    files: Express.Multer.File[],
     payload: JwtPayloadType,
   ) {
     const specie = new SpecieBuilder()
       .setCommonName(createSpecieDto.commonName)
+      .setLocation(createSpecieDto.location.address)
+      .setLat(createSpecieDto.location.lat)
+      .setLong(createSpecieDto.location.long)
+      .setCollectedAt(createSpecieDto.collectedAt)
       .setScientificName(createSpecieDto.scientificName)
       .setDescription(createSpecieDto.description)
       .build();
@@ -96,13 +131,20 @@ export class SpeciesService {
       this._validateIfSpecieExists(createSpecieDto.scientificName),
       this._validateCharacteristic(characteristicIds, specie),
       this._validateTaxon(taxonIds, specie),
+      this._validateCity(createSpecieDto.location.cityId, specie),
+      this._validateState(createSpecieDto.location.stateId, specie),
     ]);
 
+    console.log('specie', specie);
     const createdSpecie = await this.specieRepository.create(specie);
 
-    await this.filesMinioService.create(files, {
-      specieId: createdSpecie.id,
-    });
+    await this.filesMinioService.save(
+      files.map((f) => ({
+        fileStream: f.buffer,
+        path: `/species/${createdSpecie.scientificName}/${generateFileName(f.originalname)}`,
+        characteristicId: createdSpecie.id,
+      })),
+    );
 
     await this.createPostUseCase.execute(
       {
@@ -136,8 +178,15 @@ export class SpeciesService {
     return this.specieRepository.findById(id);
   }
 
-  update(id: Specie['id'], updateSpecieDto: UpdateSpecieDto) {
-    return this.specieRepository.update(id, updateSpecieDto);
+  async update(id: Specie['id'], updateSpecieDto: UpdateSpecieDto) {
+    const { location, ...rest } = updateSpecieDto;
+
+    return this.specieRepository.update(id, {
+      ...rest,
+      lat: location?.lat,
+      long: location?.long,
+      location: location?.address,
+    });
   }
 
   remove(id: Specie['id']) {

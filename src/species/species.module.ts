@@ -6,6 +6,8 @@ import { RelationalTaxonPersistenceModule } from '../taxons/infrastructure/persi
 import { RelationalFilePersistenceModule } from '../files/infrastructure/persistence/relational/relational-persistence.module';
 import { FileMinioModule } from '../files/infrastructure/uploader/minio/files.module';
 import { PostsModule } from '../posts/posts.module';
+import { RelationalCityPersistenceModule } from '../cities/infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalStatePersistenceModule } from '../states/infrastructure/persistence/relational/relational-persistence.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { PostsModule } from '../posts/posts.module';
     RelationalCharacteristicPersistenceModule,
     RelationalTaxonPersistenceModule,
     RelationalFilePersistenceModule,
+    RelationalCityPersistenceModule,
+    RelationalStatePersistenceModule,
     FileMinioModule,
     forwardRef(() => PostsModule),
   ],
