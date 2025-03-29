@@ -27,4 +27,4 @@ services:
       context: .
       dockerfile: relational.e2e.Dockerfile
     env_file:
-      - env-example-relational
+      - env-example

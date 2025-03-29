@@ -44,6 +44,10 @@ services:
     container_name: museum-api
     build: .
     restart: always
+    depends_on:
+      - postgres
+      - redis
+      - minio
     env_file:
       - .env
     networks:
