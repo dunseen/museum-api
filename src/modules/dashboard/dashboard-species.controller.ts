@@ -14,6 +14,7 @@ import {
 
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiParam,
@@ -52,13 +53,14 @@ export class DashboardSpeciesController {
   @ApiCreatedResponse({
     type: GetSpecieDto,
   })
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FilesInterceptor('file'))
   create(
-    @UploadedFiles() file: Express.MulterS3.File[],
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() createSpecieDto: CreateSpecieDto,
     @JwtPayload() payload: JwtPayloadType,
   ) {
-    return this.speciesService.create(createSpecieDto, file, payload);
+    return this.speciesService.create(createSpecieDto, files, payload);
   }
 
   @Get()

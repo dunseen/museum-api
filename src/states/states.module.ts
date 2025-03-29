@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { StatesService } from './states.service';
 import { StatesController } from './states.controller';
-import { RelationalstatePersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalStatePersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
 
 @Module({
-  imports: [RelationalstatePersistenceModule],
+  imports: [RelationalStatePersistenceModule],
   controllers: [StatesController],
   providers: [StatesService],
-  exports: [StatesService, RelationalstatePersistenceModule],
+  exports: [StatesService, RelationalStatePersistenceModule],
 })
 export class StatesModule {}
