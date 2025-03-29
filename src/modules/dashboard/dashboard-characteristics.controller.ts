@@ -37,7 +37,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Dashboard - Characteristics')
 @ApiBearerAuth()
-@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
+@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller({
   path: 'dashboard/characteristics',

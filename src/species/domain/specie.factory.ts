@@ -5,10 +5,6 @@ import { Specie } from './specie';
 
 export class SpecieFactory {
   static toDto(data: Specie): GetSpecieDto {
-    const hierarchyMap = Object.fromEntries(
-      data.taxons.map((taxon) => [taxon.hierarchy.name, taxon.name]),
-    );
-
     return {
       id: data.id,
       scientificName: data.scientificName,
@@ -23,37 +19,25 @@ export class SpecieFactory {
         city: data.city,
         state: data.state,
       },
-      taxonomy: {
-        kingdom: hierarchyMap['reino'],
-        division: hierarchyMap['divisão'],
-        class: hierarchyMap['classe'],
-        order: hierarchyMap['ordem'],
-        family: hierarchyMap['família'],
-        genus: hierarchyMap['gênero'],
-      },
+      taxons: data.taxons.map((taxon) => ({
+        name: taxon.name,
+        hierarchy: taxon.hierarchy.name,
+      })),
       files: data.files.map((f) => f),
     };
   }
 
   static toListHomePageDto(data: Specie): ListHomePageSpeciesDto {
-    const hierarchyMap = Object.fromEntries(
-      data.taxons.map((taxon) => [taxon.hierarchy.name, taxon.name]),
-    );
-
     return {
       id: data.id,
       scientificName: data.scientificName,
       commonName: data.commonName,
       description: data.description,
       files: data.files.map((f) => f),
-      taxonomy: {
-        kingdom: hierarchyMap['reino'],
-        division: hierarchyMap['divisão'],
-        class: hierarchyMap['classe'],
-        order: hierarchyMap['ordem'],
-        family: hierarchyMap['família'],
-        genus: hierarchyMap['gênero'],
-      },
+      taxons: data.taxons.map((taxon) => ({
+        name: taxon.name,
+        hierarchy: taxon.hierarchy.name,
+      })),
     };
   }
 }

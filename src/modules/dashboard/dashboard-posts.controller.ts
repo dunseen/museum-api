@@ -105,7 +105,7 @@ export class DashboardPostsController {
     return this.findPostByIdUseCase.execute(id);
   }
 
-  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
+  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch(':id/validate')
@@ -123,7 +123,7 @@ export class DashboardPostsController {
     return this.validatePostUseCase.execute(id, updatePostDto, payload);
   }
 
-  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
+  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')

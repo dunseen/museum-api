@@ -12,21 +12,6 @@ export class RoleSeedService {
   ) {}
 
   async run() {
-    const countUser = await this.repository.count({
-      where: {
-        id: RoleEnum.user,
-      },
-    });
-
-    if (!countUser) {
-      await this.repository.save(
-        this.repository.create({
-          id: RoleEnum.user,
-          name: 'USER',
-        }),
-      );
-    }
-
     const countAdmin = await this.repository.count({
       where: {
         id: RoleEnum.admin,

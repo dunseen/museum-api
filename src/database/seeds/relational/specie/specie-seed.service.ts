@@ -13,6 +13,9 @@ import { FilesMinioService } from '../../../../files/infrastructure/uploader/min
 import { generateFileName } from '../../../../utils/string';
 import { CityEntity } from '../../../../cities/infrastructure/persistence/relational/entities/city.entity';
 import { StateEntity } from '../../../../states/infrastructure/persistence/relational/entities/state.entity';
+import { PostEntity } from '../../../../posts/infrastructure/persistence/relational/entities/post.entity';
+import { UserEntity } from '../../../../users/infrastructure/persistence/relational/entities/user.entity';
+import { PostStatusEnum } from '../../../../posts/domain/post-status.enum';
 
 const speciesData = [
   {
@@ -240,12 +243,11 @@ export class SpecieSeedService {
     private hierarchyRepository: Repository<HierarchyEntity>,
     @InjectRepository(TaxonEntity)
     private taxonRepository: Repository<TaxonEntity>,
-
-    @InjectRepository(TaxonEntity)
-    private cityRepository: Repository<CityEntity>,
-    @InjectRepository(TaxonEntity)
-    private stateRepository: Repository<StateEntity>,
     private readonly fileService: FilesMinioService,
+    @InjectRepository(PostEntity)
+    private postRepository: Repository<PostEntity>,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
   ) {}
 
   async run() {
@@ -363,6 +365,22 @@ export class SpecieSeedService {
         } else {
           console.warn(`⚠️ Image directory not found: ${imageDir}`);
         }
+      }
+      const user = await this.userRepository.findOne({
+        where: {
+          email: 'admin@example.com',
+        },
+      });
+
+      if (user) {
+        const post = this.postRepository.create({
+          author: user,
+          validator: user,
+          specie,
+          status: PostStatusEnum.published,
+        });
+
+        await this.postRepository.save(post);
       }
     }
   }

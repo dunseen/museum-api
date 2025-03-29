@@ -3,26 +3,14 @@ import { ApiProperty } from '@nestjs/swagger';
 export class ListTaxonDto {
   @ApiProperty({
     type: String,
+    description: 'Taxon name',
+    example: 'Animalia',
   })
-  kingdom: string;
+  name: string;
   @ApiProperty({
     type: String,
+    description: 'Taxon hierarchy',
+    example: 'Família',
   })
-  division: string;
-  @ApiProperty({
-    type: String,
-  })
-  class: string;
-  @ApiProperty({
-    type: String,
-  })
-  order: string;
-  @ApiProperty({
-    type: String,
-  })
-  family: string;
-  @ApiProperty({
-    type: String,
-  })
-  genus: string;
+  hierarchy: string;
 }

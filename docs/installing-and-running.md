@@ -67,7 +67,7 @@ Switching between TypeORM and Mongoose is implemented based on the [Hexagonal Ar
 1. Run seeds
 
    ```bash
-   npm run seed:run:relational
+   npm run seed:run
    ```
 
 1. Run app in dev mode

@@ -35,7 +35,7 @@ import { infinityPagination } from '../../utils/infinity-pagination';
 
 @ApiTags('Dashboard - Characteristictypes')
 @ApiBearerAuth()
-@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
+@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller({
   path: 'dashboard/characteristic-types',
