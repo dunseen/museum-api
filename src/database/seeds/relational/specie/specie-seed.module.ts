@@ -6,6 +6,7 @@ import { CharacteristicEntity } from '../../../../characteristics/infrastructure
 import { CharacteristicTypeEntity } from '../../../../characteristic-types/infrastructure/persistence/relational/entities/characteristic-type.entity';
 import { TaxonEntity } from '../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { HierarchyEntity } from '../../../../hierarchies/infrastructure/persistence/relational/entities/hierarchy.entity';
+import { FileMinioModule } from '../../../../files/infrastructure/uploader/minio/files.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { HierarchyEntity } from '../../../../hierarchies/infrastructure/persiste
       TaxonEntity,
       HierarchyEntity,
     ]),
+    FileMinioModule,
   ],
   providers: [SpecieSeedService],
   exports: [SpecieSeedService],
