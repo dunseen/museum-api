@@ -1,5 +1,7 @@
 import { CharacteristicMapper } from '../../../../../characteristics/infrastructure/persistence/relational/mappers/characteristic.mapper';
+import { CityMapper } from '../../../../../cities/infrastructure/persistence/relational/mappers/city.mapper';
 import { FileMapper } from '../../../../../files/infrastructure/persistence/relational/mappers/file.mapper';
+import { StateMapper } from '../../../../../states/infrastructure/persistence/relational/mappers/state.mapper';
 import { TaxonMapper } from '../../../../../taxons/infrastructure/persistence/relational/mappers/taxon.mapper';
 import { Specie } from '../../../../domain/specie';
 import { SpecieBuilder } from '../../../../domain/specie-builder';
@@ -12,6 +14,12 @@ export class SpecieMapper {
       .setScientificName(raw.scientificName)
       .setCommonName(raw.commonName)
       .setDescription(raw.description)
+      .setCity(raw.city)
+      .setState(StateMapper.toDomain(raw.state))
+      .setLocation(raw.location)
+      .setLat(raw.lat)
+      .setLong(raw.long)
+      .setCollectedAt(raw.collectedAt)
       .setUpdatedAt(raw.updatedAt)
       .setCreatedAt(raw.createdAt)
       .build();
@@ -77,6 +85,30 @@ export class SpecieMapper {
 
     if (domainEntity?.updatedAt) {
       persistenceEntity.updatedAt = domainEntity.updatedAt;
+    }
+
+    if (domainEntity?.collectedAt) {
+      persistenceEntity.collectedAt = domainEntity.collectedAt;
+    }
+
+    if (domainEntity?.city) {
+      persistenceEntity.city = CityMapper.toPersistence(domainEntity.city);
+    }
+
+    if (domainEntity?.state) {
+      persistenceEntity.state = StateMapper.toPersistence(domainEntity.state);
+    }
+
+    if (domainEntity?.lat) {
+      persistenceEntity.lat = domainEntity.lat;
+    }
+
+    if (domainEntity?.long) {
+      persistenceEntity.long = domainEntity.long;
+    }
+
+    if (domainEntity?.location) {
+      persistenceEntity.location = domainEntity.location;
     }
 
     return persistenceEntity;

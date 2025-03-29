@@ -51,6 +51,8 @@ export class SpecieRelationalRepository implements SpecieRepository {
       .leftJoinAndSelect('s.taxons', 'taxons')
       .leftJoinAndSelect('s.files', 'files')
       .leftJoinAndSelect('taxons.hierarchy', 'hierarchy')
+      .leftJoinAndSelect('s.city', 'city')
+      .leftJoinAndSelect('s.state', 'state')
       .leftJoinAndSelect('characteristics.type', 'type');
 
     if (paginationOptions.filters?.name) {

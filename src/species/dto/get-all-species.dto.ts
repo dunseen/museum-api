@@ -1,9 +1,23 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { FileType } from '../../files/domain/file';
 import { ListTaxonDto } from '../../taxons/dto/list-taxonomy.dto';
 import { GetSimpleCharacteristicDto } from '../../characteristics/application/dto/get-simple-characteristic.dto';
 import { NullableType } from '../../utils/types/nullable.type';
+import { LocationDto } from './create-specie.dto';
+import { City } from '../../cities/domain/city';
+import { State } from '../../states/domain/state';
 
+class ListLocationDto extends PartialType(LocationDto) {
+  @ApiProperty({
+    type: City,
+  })
+  city: City;
+
+  @ApiProperty({
+    type: State,
+  })
+  state: State;
+}
 export class GetSpecieDto {
   @ApiProperty({
     type: Number,
@@ -27,6 +41,11 @@ export class GetSpecieDto {
   })
   description: NullableType<string>;
 
+  @ApiProperty({
+    type: Date,
+  })
+  collectedAt: Date;
+
   @ApiProperty({ type: ListTaxonDto })
   taxonomy: ListTaxonDto;
 
@@ -41,4 +60,9 @@ export class GetSpecieDto {
     isArray: true,
   })
   files: FileType[];
+
+  @ApiProperty({
+    type: ListLocationDto,
+  })
+  location: ListLocationDto;
 }
