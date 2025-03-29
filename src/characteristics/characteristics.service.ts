@@ -13,6 +13,7 @@ import { CharacteristicTypeRepository } from '../characteristic-types/infrastruc
 import { CharacteristicFactory } from './domain/characteristic.factory';
 import { GetCharacteristicDto } from './application/dto/get-characteristic.dto';
 import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
+import { generateFileName } from '../utils/string';
 
 @Injectable()
 export class CharacteristicsService {
@@ -24,7 +25,7 @@ export class CharacteristicsService {
 
   async create(
     createCharacteristicDto: CreateCharacteristicDto,
-    file: Express.MulterS3.File[],
+    files: Express.Multer.File[],
   ) {
     const type = await this.characteristicTypeRepository.findById(
       createCharacteristicDto.typeId,
@@ -60,7 +61,13 @@ export class CharacteristicsService {
 
     const data = await this.characteristicRepository.create(characteristic);
 
-    await this.filesMinioService.create(file, { characteristicId: data.id });
+    await this.filesMinioService.save(
+      files.map((f) => ({
+        fileStream: f.buffer,
+        path: `/characteristics/${data.name}/${generateFileName(f.originalname)}`,
+        characteristicId: data.id,
+      })),
+    );
 
     return CharacteristicFactory.toDto(data);
   }
