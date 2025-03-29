@@ -90,36 +90,35 @@ export class UserSeedService {
           },
         }),
       );
-
-      const countUser = await this.repository.count({
-        where: {
-          role: {
-            id: RoleEnum.user,
-          },
+    }
+    const countOperator = await this.repository.count({
+      where: {
+        role: {
+          id: RoleEnum.operator,
         },
-      });
+      },
+    });
 
-      if (!countUser) {
-        const salt = await bcrypt.genSalt();
-        const password = await bcrypt.hash('secret', salt);
+    if (!countOperator) {
+      const salt = await bcrypt.genSalt();
+      const password = await bcrypt.hash('secret', salt);
 
-        await this.repository.save(
-          this.repository.create({
-            firstName: 'user',
-            lastName: 'default',
-            email: 'user.default@example.com',
-            password,
-            role: {
-              id: RoleEnum.user,
-              name: 'User',
-            },
-            status: {
-              id: StatusEnum.active,
-              name: 'Active',
-            },
-          }),
-        );
-      }
+      await this.repository.save(
+        this.repository.create({
+          firstName: 'User',
+          lastName: 'Operator',
+          email: 'operator@example.com',
+          password,
+          role: {
+            id: RoleEnum.operator,
+            name: 'Operator',
+          },
+          status: {
+            id: StatusEnum.active,
+            name: 'Active',
+          },
+        }),
+      );
     }
   }
 }

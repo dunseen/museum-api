@@ -102,7 +102,7 @@ export class AuthService {
       ...dto,
       email: dto.email,
       role: {
-        id: RoleEnum.user,
+        id: RoleEnum.operator,
       },
       status: {
         id: StatusEnum.inactive,

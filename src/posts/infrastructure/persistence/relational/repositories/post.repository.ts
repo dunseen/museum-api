@@ -29,6 +29,8 @@ export class PostRelationalRepository implements PostRepository {
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('s.characteristics', 'c')
+      .leftJoinAndSelect('s.city', 'city')
+      .leftJoinAndSelect('s.state', 'state')
       .innerJoinAndSelect('c.type', 'type')
       .innerJoinAndSelect('t.hierarchy', 'h')
       .where(
@@ -36,7 +38,10 @@ export class PostRelationalRepository implements PostRepository {
         {
           name,
         },
-      );
+      )
+      .andWhere('p.status = :status', {
+        status: PostStatusEnum.published,
+      });
 
     const post = await query.getOne();
 
@@ -56,6 +61,8 @@ export class PostRelationalRepository implements PostRepository {
       .leftJoinAndSelect('c.type', 'type')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
+      .leftJoinAndSelect('s.city', 'city')
+      .leftJoinAndSelect('s.state', 'state')
       .innerJoinAndSelect('t.hierarchy', 'h')
       .where('p.status = :status', {
         status: PostStatusEnum.published,
@@ -64,7 +71,7 @@ export class PostRelationalRepository implements PostRepository {
       .take(paginationOptions.limit);
 
     if (paginationOptions.filters?.name) {
-      query.where(
+      query.andWhere(
         'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
         {
           name: `%${paginationOptions.filters.name}%`,

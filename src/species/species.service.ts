@@ -135,14 +135,13 @@ export class SpeciesService {
       this._validateState(createSpecieDto.location.stateId, specie),
     ]);
 
-    console.log('specie', specie);
     const createdSpecie = await this.specieRepository.create(specie);
 
     await this.filesMinioService.save(
       files.map((f) => ({
         fileStream: f.buffer,
         path: `/species/${createdSpecie.scientificName}/${generateFileName(f.originalname)}`,
-        characteristicId: createdSpecie.id,
+        specieId: createdSpecie.id,
       })),
     );
 

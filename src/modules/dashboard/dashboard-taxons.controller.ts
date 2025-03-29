@@ -35,7 +35,7 @@ import { GetTaxonDto } from '../../taxons/dto/get-taxon.dto';
 
 @ApiTags('Dashboard - Taxons')
 @ApiBearerAuth()
-@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.user)
+@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller({
   path: 'dashboard/taxons',

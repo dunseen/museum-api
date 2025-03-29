@@ -46,8 +46,8 @@ export class GetSpecieDto {
   })
   collectedAt: Date;
 
-  @ApiProperty({ type: ListTaxonDto })
-  taxonomy: ListTaxonDto;
+  @ApiProperty({ type: ListTaxonDto, isArray: true })
+  taxons: ListTaxonDto[];
 
   @ApiProperty({
     type: GetSimpleCharacteristicDto,
