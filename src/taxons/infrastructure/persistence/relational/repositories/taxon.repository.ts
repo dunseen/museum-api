@@ -45,11 +45,30 @@ export class TaxonRelationalRepository implements TaxonRepository {
       .createQueryBuilder('t')
       .leftJoinAndSelect('t.characteristics', 'characteristics')
       .leftJoinAndSelect('characteristics.type', 'type')
-      .leftJoinAndSelect('t.hierarchy', 'hierarchy');
+      .leftJoinAndSelect('t.hierarchy', 'hierarchy')
+      .leftJoinAndSelect('t.parent', 'parent')
+      .leftJoinAndSelect('parent.hierarchy', 'parentHierarchy');
 
     if (paginationOptions.filters?.name) {
       query.where('LOWER(t.name) LIKE LOWER(:name) ', {
         name: `%${paginationOptions.filters.name}%`,
+      });
+    }
+
+    if (paginationOptions.filters?.hierarchyId) {
+      query.andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('t2."hierarchyId"')
+          .from('taxon', 't')
+          .innerJoin('taxon', 't2', 't2.id = t."parentId"')
+          .innerJoin('hierarchy', 'h', 't."hierarchyId" = h.id')
+          .where('t."hierarchyId" = :hierarchyId', {
+            hierarchyId: paginationOptions?.filters?.hierarchyId,
+          })
+          .getQuery();
+
+        return 't."hierarchyId" IN ' + subQuery;
       });
     }
 

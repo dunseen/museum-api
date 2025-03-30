@@ -69,6 +69,7 @@ export class DashboardTaxonsController {
           limit,
           filters: {
             name: query?.name,
+            hierarchyId: query?.hierarchyId,
           },
         },
       }),
