@@ -7,6 +7,7 @@ export interface IPaginationOptions {
     genus?: string;
     family?: string;
     characteristicIds?: string[];
+    hierarchyId?: number;
   };
 }
 

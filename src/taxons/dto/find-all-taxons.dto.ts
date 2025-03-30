@@ -18,4 +18,9 @@ export class FindAllTaxonsDto {
   @ApiPropertyOptional()
   @IsOptional()
   name?: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  hierarchyId?: number;
 }

@@ -27,5 +27,6 @@ export class CreateTaxonDto {
     isArray: true,
   })
   @IsNumber({}, { each: true })
+  @IsOptional()
   characteristicIds: number[];
 }

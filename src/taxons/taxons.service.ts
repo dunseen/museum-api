@@ -92,6 +92,7 @@ export class TaxonsService {
         limit: paginationOptions.limit,
         filters: {
           name: paginationOptions.filters?.name,
+          hierarchyId: paginationOptions.filters?.hierarchyId,
         },
       },
     });

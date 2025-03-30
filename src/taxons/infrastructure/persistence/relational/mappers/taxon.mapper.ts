@@ -6,7 +6,6 @@ import { TaxonEntity } from '../entities/taxon.entity';
 export class TaxonMapper {
   static toDomain(raw: TaxonEntity): Taxon {
     const domainEntity = new Taxon();
-    let parent: TaxonEntity | null = null;
 
     domainEntity.id = raw.id;
     domainEntity.name = raw.name;
@@ -15,8 +14,7 @@ export class TaxonMapper {
     domainEntity.updatedAt = raw.updatedAt;
 
     if (raw.parent) {
-      parent = new TaxonEntity();
-      parent.id = raw.parent.id;
+      domainEntity.parent = TaxonMapper.toDomain(raw.parent);
     }
 
     if (raw?.characteristics?.length) {
@@ -29,7 +27,6 @@ export class TaxonMapper {
   }
 
   static toPersistence(domainEntity: Taxon): TaxonEntity {
-    let parent: TaxonEntity | null = null;
     const hierarchy = new HierarchyEntity();
 
     const persistenceEntity = new TaxonEntity();
@@ -38,8 +35,9 @@ export class TaxonMapper {
     }
 
     if (domainEntity.parent) {
-      parent = new TaxonEntity();
+      const parent = new TaxonEntity();
       parent.id = Number(domainEntity.parent.id);
+      persistenceEntity.parent = parent;
     }
 
     if (domainEntity.hierarchy) {
@@ -52,7 +50,6 @@ export class TaxonMapper {
       );
     }
 
-    persistenceEntity.parent = parent;
     persistenceEntity.hierarchy = hierarchy;
     persistenceEntity.name = domainEntity.name;
     persistenceEntity.createdAt = domainEntity.createdAt;
