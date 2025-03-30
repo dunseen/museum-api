@@ -28,8 +28,9 @@ const speciesData = [
       { type: 'Flor', value: 'Flores pequenas e esbranquiçadas ou rosadas' },
     ],
     taxons: [
-      { type: 'família', value: 'Fabaceae' },
-      { type: 'gênero', value: 'Astragalus' },
+      { type: 'ordem', value: 'Fabales', parent: null },
+      { type: 'família', value: 'Fabaceae', parent: 'Fabales' },
+      { type: 'gênero', value: 'Astragalus', parent: 'Fabaceae' },
     ],
     images: './images/astragalus-carolinianus/',
     lat: -23.5505,
@@ -49,8 +50,13 @@ const speciesData = [
       { type: 'Uso', value: 'Madeira usada na construção civil' },
     ],
     taxons: [
-      { type: 'família', value: 'Malvaceae' },
-      { type: 'gênero', value: 'Luehea' },
+      { type: 'ordem', value: 'Malvales', parent: null },
+      {
+        type: 'família',
+        value: 'Malvaceae',
+        parent: 'Malvales',
+      },
+      { type: 'gênero', value: 'Luehea', parent: 'Malvaceae' },
     ],
     images: './images/luehea-paniculataa/',
     lat: -23.5505,
@@ -70,8 +76,13 @@ const speciesData = [
       { type: 'Flor', value: 'Flores pequenas e brancas' },
     ],
     taxons: [
-      { type: 'família', value: 'Myrtaceae' },
-      { type: 'gênero', value: 'Eugenia' },
+      { type: 'ordem', value: 'Myrtales', parent: null },
+      {
+        type: 'família',
+        value: 'Myrtaceae',
+        parent: 'Myrtales',
+      },
+      { type: 'gênero', value: 'Eugenia', parent: 'Myrtaceae' },
     ],
     images: './images/eugenia-subglomerata/',
     lat: -23.5505,
@@ -91,8 +102,13 @@ const speciesData = [
       { type: 'Folhagem', value: 'Folhas trifolioladas' },
     ],
     taxons: [
-      { type: 'família', value: 'Fabaceae' },
-      { type: 'gênero', value: 'Eriosema' },
+      { type: 'ordem', value: 'Fabales', parent: null },
+      {
+        type: 'família',
+        value: 'Fabaceae',
+        parent: 'Fabales',
+      },
+      { type: 'gênero', value: 'Eriosema', parent: 'Fabaceae' },
     ],
     images: './images/eriosema-defoliatum/',
     lat: -23.5505,
@@ -112,8 +128,13 @@ const speciesData = [
       { type: 'Habitat', value: 'Comum em regiões tropicais' },
     ],
     taxons: [
-      { type: 'família', value: 'Lamiaceae' },
-      { type: 'gênero', value: 'Hyptis' },
+      { type: 'ordem', value: 'Lamiales', parent: null },
+      {
+        type: 'família',
+        value: 'Lamiaceae',
+        parent: 'Lamiales',
+      },
+      { type: 'gênero', value: 'Hyptis', parent: 'Lamiaceae' },
     ],
     images: './images/hyptis-recurvata/',
     lat: -23.5505,
@@ -133,8 +154,13 @@ const speciesData = [
       { type: 'Habitat', value: 'Encontrada em florestas úmidas' },
     ],
     taxons: [
-      { type: 'família', value: 'Apocynaceae' },
-      { type: 'gênero', value: 'Tapeinostemon' },
+      { type: 'ordem', value: 'Gentianales', parent: null },
+      {
+        type: 'família',
+        value: 'Apocynaceae',
+        parent: 'Gentianales',
+      },
+      { type: 'gênero', value: 'Tapeinostemon', parent: 'Apocynaceae' },
     ],
     images: './images/tapeinostemon-longiflorum/',
     lat: -23.5505,
@@ -154,8 +180,13 @@ const speciesData = [
       { type: 'Fruto', value: 'Frutos grandes e lenhosos' },
     ],
     taxons: [
-      { type: 'família', value: 'Fabaceae' },
-      { type: 'gênero', value: 'Parkia' },
+      { type: 'ordem', value: 'Fabales', parent: null },
+      {
+        type: 'família',
+        value: 'Fabaceae',
+        parent: 'Fabales',
+      },
+      { type: 'gênero', value: 'Parkia', parent: 'Fabaceae' },
     ],
     images: './images/parkia-gigantocarpa/',
     lat: -23.5505,
@@ -175,8 +206,13 @@ const speciesData = [
       { type: 'Fruto', value: 'Frutos do tipo cápsula' },
     ],
     taxons: [
-      { type: 'família', value: 'Dilleniaceae' },
-      { type: 'gênero', value: 'Doliocarpus' },
+      { type: 'ordem', value: 'Dilleniales', parent: null },
+      {
+        type: 'família',
+        value: 'Dilleniaceae',
+        parent: 'Dilleniales',
+      },
+      { type: 'gênero', value: 'Doliocarpus', parent: 'Dilleniaceae' },
     ],
     images: './images/doliocarpus-sellowianus/',
     lat: -23.5505,
@@ -196,8 +232,13 @@ const speciesData = [
       { type: 'Folhagem', value: 'Folhas trifolioladas' },
     ],
     taxons: [
-      { type: 'família', value: 'Capparaceae' },
-      { type: 'gênero', value: 'Crateva' },
+      { type: 'ordem', value: 'Brassicales', parent: null },
+      {
+        type: 'família',
+        value: 'Capparaceae',
+        parent: 'Brassicales',
+      },
+      { type: 'gênero', value: 'Crateva', parent: 'Capparaceae' },
     ],
     images: './images/crateva-tapia/',
     lat: -23.5505,
@@ -217,8 +258,13 @@ const speciesData = [
       { type: 'Flor', value: 'Flores amarelas' },
     ],
     taxons: [
-      { type: 'família', value: 'Malpighiaceae' },
-      { type: 'gênero', value: 'Byrsonima' },
+      { type: 'ordem', value: 'Malpighiales', parent: null },
+      {
+        type: 'família',
+        value: 'Malpighiaceae',
+        parent: 'Malpighiales',
+      },
+      { type: 'gênero', value: 'Byrsonima', parent: 'Malpighiaceae' },
     ],
     images: './images/byrsonima/',
     lat: -23.5505,
@@ -300,18 +346,29 @@ export class SpecieSeedService {
         });
 
         if (!taxonEntity) {
-          taxonEntity = await this.taxonRepository.save({
+          const newTaxon = this.taxonRepository.create({
             name: taxon.value.toLowerCase(),
             hierarchy: {
               id: hierarchy.id,
             },
           });
+
+          if (taxon.parent) {
+            const parentTaxon = await this.taxonRepository.findOne({
+              where: { name: taxon.parent.toLowerCase() },
+            });
+
+            if (parentTaxon) {
+              newTaxon.parent = parentTaxon;
+            }
+          }
+
+          taxonEntity = await this.taxonRepository.save(newTaxon);
         }
 
         taxons.push(taxonEntity);
       }
 
-      // Verificar e inserir espécie
       let specie = await this.specieRepository.findOne({
         where: { scientificName: specieData.scientificName },
       });
@@ -356,6 +413,14 @@ export class SpecieSeedService {
                   specieId: specie.id,
                 },
               ]);
+
+              const characteristicFiles = characteristics.map((c) => ({
+                characteristicId: c.id,
+                fileStream,
+                path: `characteristics/${c.name}/${fileName}`,
+              }));
+
+              await this.fileService.save(characteristicFiles);
 
               console.log(`✅ Uploaded ${file} to Minio as ${objectName}`);
             } catch (error) {
