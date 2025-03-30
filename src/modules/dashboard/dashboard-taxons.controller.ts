@@ -3,11 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
   Query,
+  Put,
 } from '@nestjs/common';
 
 import {
@@ -90,7 +90,7 @@ export class DashboardTaxonsController {
     return this.taxonsService.findOne(Number(id));
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ApiParam({
     name: 'id',
     type: String,

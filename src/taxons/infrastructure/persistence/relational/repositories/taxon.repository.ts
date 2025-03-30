@@ -111,6 +111,6 @@ export class TaxonRelationalRepository implements TaxonRepository {
   }
 
   async remove(id: Taxon['id']): Promise<void> {
-    await this.taxonRepository.delete(id);
+    await this.taxonRepository.softDelete(id);
   }
 }

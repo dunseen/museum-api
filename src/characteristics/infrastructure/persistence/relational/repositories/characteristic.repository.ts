@@ -127,6 +127,6 @@ export class CharacteristicRelationalRepository
   }
 
   async remove(id: Characteristic['id']): Promise<void> {
-    await this.characteristicRepository.delete(Number(id));
+    await this.characteristicRepository.softDelete(Number(id));
   }
 }
