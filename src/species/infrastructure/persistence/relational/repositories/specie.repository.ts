@@ -103,6 +103,6 @@ export class SpecieRelationalRepository implements SpecieRepository {
   }
 
   async remove(id: Specie['id']): Promise<void> {
-    await this.specieRepository.delete(id);
+    await this.specieRepository.softDelete(id);
   }
 }
