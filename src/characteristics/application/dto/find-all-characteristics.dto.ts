@@ -19,9 +19,4 @@ export class FindAllCharacteristicsDto {
   @IsString()
   @IsOptional()
   name?: string;
-
-  @ApiPropertyOptional({ description: 'Filter by characteristic description' })
-  @IsNumber()
-  @IsOptional()
-  description?: string;
 }

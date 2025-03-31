@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { FileType } from '../../../files/domain/file';
+import { GetCharacteristicTypeDto } from '../../../characteristic-types/dto/get-characteristic-type.dto';
 
 export class GetCharacteristicDto {
   @ApiProperty({
@@ -13,14 +14,9 @@ export class GetCharacteristicDto {
   name: string;
 
   @ApiProperty({
-    type: String,
+    type: GetCharacteristicTypeDto,
   })
-  description: string;
-
-  @ApiProperty({
-    type: String,
-  })
-  type: string;
+  type: GetCharacteristicTypeDto;
 
   @ApiProperty({
     type: FileType,

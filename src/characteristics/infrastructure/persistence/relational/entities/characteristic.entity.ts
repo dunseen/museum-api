@@ -29,13 +29,6 @@ export class CharacteristicEntity extends EntityRelationalHelper {
   })
   name: string;
 
-  @Index()
-  @Column({
-    type: 'varchar',
-    length: 255,
-  })
-  description: string;
-
   @ManyToOne(() => CharacteristicTypeEntity, { eager: true })
   type: CharacteristicTypeEntity;
 

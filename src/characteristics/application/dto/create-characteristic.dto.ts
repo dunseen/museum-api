@@ -15,12 +15,6 @@ export class CreateCharacteristicDto {
     type: String,
   })
   @IsString()
-  description: string;
-
-  @ApiProperty({
-    type: String,
-  })
-  @IsString()
   typeId: number;
 
   @ApiProperty({
