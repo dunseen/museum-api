@@ -75,6 +75,34 @@ export class FilesMinioService {
     return response.map((file) => ({ file }));
   }
 
+  async delete(uuids: string[]): Promise<void> {
+    const bucket = this.configService.getOrThrow('file.minio.bucket', {
+      infer: true,
+    });
+
+    const pathsPromise = uuids.map(async (uuid) => {
+      const file = await this.fileRepository.findById(uuid);
+
+      if (!file) {
+        throw new UnprocessableEntityException({
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          errors: {
+            file: 'notFound',
+          },
+        });
+      }
+
+      return file.path;
+    });
+
+    const paths = await Promise.all(pathsPromise);
+
+    await Promise.all([
+      this.minioService.client.removeObjects(bucket, paths),
+      this.fileRepository.delete(uuids),
+    ]);
+  }
+
   private generateUrl(file: string, bucket: string): string {
     const host = this.configService.getOrThrow('file.minio.publicEndpoint', {
       infer: true,

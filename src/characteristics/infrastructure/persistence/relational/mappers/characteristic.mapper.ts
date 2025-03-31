@@ -1,5 +1,5 @@
 import { CharacteristicType } from '../../../../../characteristic-types/domain/characteristic-type';
-import { CharacteristicTypeEntity } from '../../../../../characteristic-types/infrastructure/persistence/relational/entities/characteristic-type.entity';
+import { CharacteristicTypeMapper } from '../../../../../characteristic-types/infrastructure/persistence/relational/mappers/characteristic-type.mapper';
 import { Characteristic } from '../../../../domain/characteristic';
 import { CharacteristicEntity } from '../entities/characteristic.entity';
 
@@ -14,7 +14,6 @@ export class CharacteristicMapper {
 
     const domainEntity = Characteristic.create(
       raw.name,
-      raw.description,
       type,
       raw.files,
       raw.createdAt,
@@ -29,28 +28,20 @@ export class CharacteristicMapper {
     domainEntity: Partial<Characteristic>,
   ): CharacteristicEntity {
     const persistenceEntity = new CharacteristicEntity();
-    const type = new CharacteristicTypeEntity();
 
     if (domainEntity.id) {
       persistenceEntity.id = Number(domainEntity.id);
     }
-    if (domainEntity?.type?.id) {
-      type.id = Number(domainEntity.type.id);
-    }
-
-    if (domainEntity?.type?.name) {
-      type.name = domainEntity.type.name;
-    }
-
-    if (domainEntity?.description) {
-      persistenceEntity.description = domainEntity.description;
+    if (domainEntity?.type) {
+      persistenceEntity.type = CharacteristicTypeMapper.toPersistence(
+        domainEntity.type,
+      );
     }
 
     if (domainEntity?.name) {
       persistenceEntity.name = domainEntity.name;
     }
 
-    persistenceEntity.type = type;
     persistenceEntity.createdAt = domainEntity.createdAt ?? new Date();
     persistenceEntity.updatedAt = domainEntity.updatedAt ?? new Date();
 

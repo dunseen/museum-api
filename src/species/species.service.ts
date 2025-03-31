@@ -140,7 +140,7 @@ export class SpeciesService {
     await this.filesMinioService.save(
       files.map((f) => ({
         fileStream: f.buffer,
-        path: `/species/${createdSpecie.scientificName}/${generateFileName(f.originalname)}`,
+        path: `/species/${createdSpecie.id}/${generateFileName(f.originalname)}`,
         specieId: createdSpecie.id,
       })),
     );

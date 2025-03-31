@@ -14,6 +14,8 @@ import { CharacteristicFactory } from './domain/characteristic.factory';
 import { GetCharacteristicDto } from './application/dto/get-characteristic.dto';
 import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
 import { generateFileName } from '../utils/string';
+import { CharacteristicEntity } from './infrastructure/persistence/relational/entities/characteristic.entity';
+import { CharacteristicTypeMapper } from '../characteristic-types/infrastructure/persistence/relational/mappers/characteristic-type.mapper';
 
 @Injectable()
 export class CharacteristicsService {
@@ -55,7 +57,6 @@ export class CharacteristicsService {
 
     const characteristic = Characteristic.create(
       createCharacteristicDto.name,
-      createCharacteristicDto.description,
       type,
     );
 
@@ -64,7 +65,7 @@ export class CharacteristicsService {
     await this.filesMinioService.save(
       files.map((f) => ({
         fileStream: f.buffer,
-        path: `/characteristics/${data.name}/${generateFileName(f.originalname)}`,
+        path: `/characteristics/${data.id}/${generateFileName(f.originalname)}`,
         characteristicId: data.id,
       })),
     );
@@ -101,8 +102,51 @@ export class CharacteristicsService {
   async update(
     id: Characteristic['id'],
     updateCharacteristicDto: UpdateCharacteristicDto,
+    files: Express.Multer.File[],
   ) {
-    await this.characteristicRepository.update(id, updateCharacteristicDto);
+    const characteristicToUpdate = new CharacteristicEntity();
+
+    if (updateCharacteristicDto?.typeId) {
+      const type = await this.characteristicTypeRepository.findById(
+        updateCharacteristicDto.typeId,
+      );
+
+      if (!type) {
+        throw new UnprocessableEntityException({
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          errors: {
+            type: 'characteristic type not found',
+          },
+        });
+      }
+
+      characteristicToUpdate.type =
+        CharacteristicTypeMapper.toPersistence(type);
+    }
+
+    if (updateCharacteristicDto?.name) {
+      characteristicToUpdate.name = updateCharacteristicDto.name;
+    }
+
+    await this.characteristicRepository.update(id, characteristicToUpdate);
+
+    console.log(updateCharacteristicDto);
+
+    if (files?.length) {
+      await this.filesMinioService.save(
+        files.map((f) => ({
+          fileStream: f.buffer,
+          path: `/characteristics/${id}/${generateFileName(f.originalname)}`,
+          characteristicId: id,
+        })),
+      );
+    }
+
+    if (updateCharacteristicDto?.filesToDelete?.length) {
+      await this.filesMinioService.delete(
+        updateCharacteristicDto.filesToDelete,
+      );
+    }
   }
 
   remove(id: Characteristic['id']) {

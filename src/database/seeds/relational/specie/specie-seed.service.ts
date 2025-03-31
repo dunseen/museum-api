@@ -397,13 +397,15 @@ export class SpecieSeedService {
 
       if (specieData.images) {
         const imageDir = path.resolve(__dirname, specieData.images);
+
         if (fs.existsSync(imageDir)) {
           const files = fs.readdirSync(imageDir);
+
           for (const file of files) {
             const filePath = path.join(imageDir, file);
             const fileStream = fs.createReadStream(filePath);
             const fileName = generateFileName(file);
-            const objectName = `species/${specie.scientificName}/${fileName}`;
+            const objectName = `species/${specie.id}/${fileName}`;
 
             try {
               await this.fileService.save([
@@ -414,13 +416,20 @@ export class SpecieSeedService {
                 },
               ]);
 
-              const characteristicFiles = characteristics.map((c) => ({
-                characteristicId: c.id,
-                fileStream,
-                path: `characteristics/${c.name}/${fileName}`,
-              }));
+              for (const characteristic of characteristics) {
+                const filePath = path.join(imageDir, file);
+                const fileStream = fs.createReadStream(filePath);
+                const fileName = generateFileName(file);
+                const objectName = `characteristics/${characteristic.id}/${fileName}`;
 
-              await this.fileService.save(characteristicFiles);
+                await this.fileService.save([
+                  {
+                    fileStream,
+                    path: objectName,
+                    characteristicId: characteristic.id,
+                  },
+                ]);
+              }
 
               console.log(`✅ Uploaded ${file} to Minio as ${objectName}`);
             } catch (error) {

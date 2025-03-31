@@ -6,10 +6,10 @@ import {
   Get,
   Query,
   Param,
-  Patch,
   Delete,
   UseInterceptors,
   UploadedFiles,
+  Put,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -77,7 +77,6 @@ export class DashboardCharacteristicsController {
         limit,
         filters: {
           name: query?.name,
-          description: query?.description,
         },
       },
     });
@@ -98,7 +97,7 @@ export class DashboardCharacteristicsController {
     return this.characteristicsService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ApiParam({
     name: 'id',
     type: Number,
@@ -107,11 +106,18 @@ export class DashboardCharacteristicsController {
   @ApiOkResponse({
     type: GetCharacteristicDto,
   })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('file'))
   update(
     @Param('id') id: number,
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() updateCharacteristicDto: UpdateCharacteristicDto,
   ) {
-    return this.characteristicsService.update(id, updateCharacteristicDto);
+    return this.characteristicsService.update(
+      id,
+      updateCharacteristicDto,
+      files,
+    );
   }
 
   @Delete(':id')

@@ -4,7 +4,6 @@ import { FileType } from '../../files/domain/file';
 export class Characteristic {
   private readonly _id?: number;
   private readonly _name: string;
-  private readonly _description: string;
   private readonly _type: CharacteristicType;
   private readonly _files: ReadonlyArray<FileType>;
   private readonly _createdAt: Date;
@@ -12,7 +11,6 @@ export class Characteristic {
 
   private constructor(
     name: string,
-    description: string,
     type: CharacteristicType,
     files: FileType[],
     createdAt: Date,
@@ -21,7 +19,6 @@ export class Characteristic {
   ) {
     this._id = id;
     this._name = name;
-    this._description = description;
     this._type = type;
     this._files = files;
     this._createdAt = createdAt;
@@ -32,22 +29,13 @@ export class Characteristic {
 
   static create(
     name: string,
-    description: string,
     type: CharacteristicType,
     files: FileType[] = [],
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
     id?: number,
   ): Characteristic {
-    return new Characteristic(
-      name,
-      description,
-      type,
-      files,
-      createdAt,
-      updatedAt,
-      id,
-    );
+    return new Characteristic(name, type, files, createdAt, updatedAt, id);
   }
 
   get id(): number | undefined {
@@ -56,10 +44,6 @@ export class Characteristic {
 
   get name(): string {
     return this._name;
-  }
-
-  get description(): string {
-    return this._description;
   }
 
   get type(): Readonly<CharacteristicType> {
@@ -93,7 +77,6 @@ export class Characteristic {
   withUpdatedType(newType: CharacteristicType): Characteristic {
     return new Characteristic(
       this._name,
-      this._description,
       newType,
       [...this._files],
       this._createdAt,
@@ -105,7 +88,6 @@ export class Characteristic {
   withAddedFile(newFile: FileType): Characteristic {
     return new Characteristic(
       this._name,
-      this._description,
       this._type,
       [...this._files, newFile],
       this._createdAt,
