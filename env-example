@@ -26,8 +26,7 @@ DATABASE_URL=
 # Minio
 # This is the name of the service in docker-compose
 MINIO_ENDPOINT=minio 
-# This is the name of the service in docker-compose
-MINIO_PUBLIC_ENDPOINT=minio 
+MINIO_PUBLIC_ENDPOINT=127.0.0.1
 
 MINIO_PORT=9000
 MINIO_WEB_PORT=9001
