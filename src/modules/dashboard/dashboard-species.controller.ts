@@ -3,13 +3,13 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
   Query,
   UseInterceptors,
   UploadedFiles,
+  Put,
 } from '@nestjs/common';
 
 import {
@@ -102,7 +102,7 @@ export class DashboardSpeciesController {
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.editor)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Patch(':id')
+  @Put(':id')
   @ApiParam({
     name: 'id',
     type: Number,
@@ -111,8 +111,14 @@ export class DashboardSpeciesController {
   @ApiOkResponse({
     type: GetSpecieDto,
   })
-  update(@Param('id') id: number, @Body() updateSpecieDto: UpdateSpecieDto) {
-    return this.speciesService.update(id, updateSpecieDto);
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('file'))
+  update(
+    @Param('id') id: number,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() updateSpecieDto: UpdateSpecieDto,
+  ) {
+    return this.speciesService.update(id, updateSpecieDto, files);
   }
 
   @ApiBearerAuth()

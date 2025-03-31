@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { NullableType } from '../../../../../utils/types/nullable.type';
 import { FilterUserDto, SortUserDto } from '../../../../dto/query-user.dto';
@@ -37,25 +37,42 @@ export class UsersRelationalRepository implements UserRepository {
     sortOptions?: SortUserDto[] | null;
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<User>> {
-    const where: FindOptionsWhere<UserEntity> = {};
-    if (filterOptions?.roles?.length) {
-      where.role = filterOptions.roles.map((role) => ({
-        id: role.id,
-      }));
+    const query = this.usersRepository.createQueryBuilder('u');
+    query.innerJoinAndSelect('u.role', 'role');
+    query.innerJoinAndSelect('u.status', 'status');
+
+    // Apply filters
+    if (filterOptions?.email) {
+      query.andWhere('LOWER(u.email) LIKE LOWER(:email)', {
+        email: `%${filterOptions.email}%`,
+      });
     }
 
-    const [entities, totalCount] = await this.usersRepository.findAndCount({
-      skip: (paginationOptions.page - 1) * paginationOptions.limit,
-      take: paginationOptions.limit,
-      where: where,
-      order: sortOptions?.reduce(
-        (accumulator, sort) => ({
-          ...accumulator,
-          [sort.orderBy]: sort.order,
-        }),
-        {},
-      ),
-    });
+    if (filterOptions?.roles?.length) {
+      query.andWhere('role IN (:...roleIds)', {
+        roleIds: filterOptions.roles.map((role) => role.id),
+      });
+    }
+
+    // Apply sorting
+    if (sortOptions?.length) {
+      sortOptions.forEach((sort) => {
+        query.addOrderBy(
+          `u.${sort.orderBy}`,
+          sort.order.toUpperCase() as 'ASC' | 'DESC',
+        );
+      });
+    } else {
+      // Default sorting
+      query.addOrderBy('u.createdAt', 'DESC');
+    }
+
+    // Apply pagination
+    query.skip((paginationOptions.page - 1) * paginationOptions.limit);
+    query.take(paginationOptions.limit);
+
+    // Execute query
+    const [entities, totalCount] = await query.getManyAndCount();
 
     return [entities.map((user) => UserMapper.toDomain(user)), totalCount];
   }
@@ -90,7 +107,7 @@ export class UsersRelationalRepository implements UserRepository {
     const updatedEntity = await this.usersRepository.save(
       this.usersRepository.create(
         UserMapper.toPersistence({
-          ...UserMapper.toDomain(entity),
+          id,
           ...payload,
         }),
       ),

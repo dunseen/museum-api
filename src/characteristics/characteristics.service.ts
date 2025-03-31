@@ -105,6 +105,7 @@ export class CharacteristicsService {
     files: Express.Multer.File[],
   ) {
     const characteristicToUpdate = new CharacteristicEntity();
+    characteristicToUpdate.id = Number(id);
 
     if (updateCharacteristicDto?.typeId) {
       const type = await this.characteristicTypeRepository.findById(
@@ -129,8 +130,6 @@ export class CharacteristicsService {
     }
 
     await this.characteristicRepository.update(id, characteristicToUpdate);
-
-    console.log(updateCharacteristicDto);
 
     if (files?.length) {
       await this.filesMinioService.save(

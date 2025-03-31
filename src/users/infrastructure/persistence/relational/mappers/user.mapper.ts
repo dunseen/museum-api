@@ -21,7 +21,7 @@ export class UserMapper {
     return domainEntity;
   }
 
-  static toPersistence(domainEntity: User): UserEntity {
+  static toPersistence(domainEntity: Partial<User>): UserEntity {
     let role: RoleEntity | undefined = undefined;
 
     if (domainEntity.role) {
@@ -40,17 +40,46 @@ export class UserMapper {
     if (domainEntity.id) {
       persistenceEntity.id = domainEntity.id;
     }
-    persistenceEntity.email = domainEntity.email;
-    persistenceEntity.password = domainEntity.password;
-    persistenceEntity.previousPassword = domainEntity.previousPassword;
-    persistenceEntity.firstName = domainEntity.firstName;
-    persistenceEntity.lastName = domainEntity.lastName;
-    persistenceEntity.phone = domainEntity.phone;
-    persistenceEntity.role = role;
-    persistenceEntity.status = status;
-    persistenceEntity.createdAt = domainEntity.createdAt;
-    persistenceEntity.updatedAt = domainEntity.updatedAt;
-    persistenceEntity.deletedAt = domainEntity.deletedAt;
+    if (domainEntity.email) {
+      persistenceEntity.email = domainEntity.email;
+    }
+    if (domainEntity.password) {
+      persistenceEntity.password = domainEntity.password;
+    }
+    if (domainEntity.previousPassword) {
+      persistenceEntity.previousPassword = domainEntity.previousPassword;
+    }
+
+    if (domainEntity.firstName) {
+      persistenceEntity.firstName = domainEntity.firstName;
+    }
+
+    if (domainEntity.lastName) {
+      persistenceEntity.lastName = domainEntity.lastName;
+    }
+    if (domainEntity.phone) {
+      persistenceEntity.phone = domainEntity.phone;
+    }
+    if (domainEntity.role) {
+      persistenceEntity.role = role;
+    }
+
+    if (domainEntity.status) {
+      persistenceEntity.status = status;
+    }
+
+    if (domainEntity.deletedAt) {
+      persistenceEntity.deletedAt = domainEntity.deletedAt;
+    }
+
+    if (domainEntity.createdAt) {
+      persistenceEntity.createdAt = domainEntity.createdAt;
+    }
+
+    if (domainEntity.updatedAt) {
+      persistenceEntity.updatedAt = domainEntity.updatedAt;
+    }
+
     return persistenceEntity;
   }
 }

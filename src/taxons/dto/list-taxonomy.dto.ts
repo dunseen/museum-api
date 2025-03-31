@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ListHierarchyDto } from '../../hierarchies/application/dto/list-hiearchy.dto';
 
 export class ListTaxonDto {
+  @ApiProperty({
+    type: Number,
+    description: 'Taxon id',
+    example: 1,
+  })
+  id: number;
   @ApiProperty({
     type: String,
     description: 'Taxon name',
@@ -8,9 +15,8 @@ export class ListTaxonDto {
   })
   name: string;
   @ApiProperty({
-    type: String,
+    type: ListHierarchyDto,
     description: 'Taxon hierarchy',
-    example: 'Família',
   })
-  hierarchy: string;
+  hierarchy: ListHierarchyDto;
 }

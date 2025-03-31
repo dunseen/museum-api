@@ -3,6 +3,7 @@ export interface IPaginationOptions {
   limit: number;
   filters?: {
     name?: string;
+    email?: string;
     description?: string;
     genus?: string;
     family?: string;
