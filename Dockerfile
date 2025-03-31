@@ -21,14 +21,14 @@ RUN apk add --no-cache bash
 WORKDIR /usr/src/app
 COPY --from=build /usr/src/app ./
 COPY ./wait-for-it.sh /opt/wait-for-it.sh
-COPY ./startup.relational.dev.sh /opt/startup.relational.dev.sh
+COPY ./startup.dev.sh /opt/startup.dev.sh
 
 # Set permissions and remove carriage returns
-RUN chmod +x /opt/wait-for-it.sh /opt/startup.relational.dev.sh && \
-    sed -i 's/\r//g' /opt/wait-for-it.sh /opt/startup.relational.dev.sh
+RUN chmod +x /opt/wait-for-it.sh /opt/startup.dev.sh && \
+    sed -i 's/\r//g' /opt/wait-for-it.sh /opt/startup.dev.sh
 
 # Set environment variables
 ENV NODE_ENV=production
 
 # Start the application
-CMD ["/opt/startup.relational.dev.sh"]
+CMD ["/opt/startup.dev.sh"]

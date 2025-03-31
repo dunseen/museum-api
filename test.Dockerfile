@@ -10,13 +10,13 @@ COPY . /usr/src/app
 
 COPY ./wait-for-it.sh /opt/wait-for-it.sh
 RUN chmod +x /opt/wait-for-it.sh
-COPY ./startup.relational.test.sh /opt/startup.relational.test.sh
-RUN chmod +x /opt/startup.relational.test.sh
+COPY ./startup.test.sh /opt/startup.test.sh
+RUN chmod +x /opt/startup.test.sh
 RUN sed -i 's/\r//g' /opt/wait-for-it.sh
-RUN sed -i 's/\r//g' /opt/startup.relational.test.sh
+RUN sed -i 's/\r//g' /opt/startup.test.sh
 
 WORKDIR /usr/src/app
 
 RUN echo "" > .env
 
-CMD ["/opt/startup.relational.test.sh"]
+CMD ["/opt/startup.test.sh"]

@@ -22,7 +22,7 @@
 Generate resource with the following commands:
 
 ### For document oriented database (MongoDB + Mongoose)
-  
+
 ```bash
 npm run generate:resource:document -- --name=ResourceName
 ```
@@ -36,13 +36,13 @@ npm run generate:resource:document -- --name=Category
 ### For relational database (PostgreSQL + TypeORM)
 
 ```bash
-npm run generate:resource:relational -- --name=ResourceName
+npm run generate:resource -- --name=ResourceName
 ```
 
 Example:
 
 ```bash
-npm run generate:resource:relational -- --name=Category
+npm run generate:resource -- --name=Category
 ```
 
 #### Video guideline for relational database (PostgreSQL + TypeORM)
@@ -72,7 +72,7 @@ npm run add:property:to-document
 ### Property for relational database (PostgreSQL + TypeORM)
 
 ```bash
-npm run add:property:to-relational
+npm run add:property
 ```
 
 #### Video guideline how to add property for relational database (PostgreSQL + TypeORM)
