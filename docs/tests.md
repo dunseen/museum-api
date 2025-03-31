@@ -25,7 +25,7 @@ npm run test:e2e
 ### For relational database
 
 ```bash
-npm run test:e2e:relational:docker
+npm run test:e2e:docker
 ```
 
 ### For document database
