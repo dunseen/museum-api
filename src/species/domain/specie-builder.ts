@@ -98,9 +98,7 @@ export class SpecieBuilder {
 
   build(): Specie {
     if (!this.scientificName) {
-      throw new Error(
-        'ID, scientific name, and common name are required to build a Specie.',
-      );
+      throw new Error('ID, scientific name is required to build a Specie.');
     }
 
     const specie = new Specie(

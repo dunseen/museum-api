@@ -20,8 +20,12 @@ export class SpecieFactory {
         state: data.state,
       },
       taxons: data.taxons.map((taxon) => ({
+        id: taxon.id,
         name: taxon.name,
-        hierarchy: taxon.hierarchy.name,
+        hierarchy: {
+          id: taxon.hierarchy.id,
+          name: taxon.hierarchy.name,
+        },
       })),
       files: data.files.map((f) => f),
     };
@@ -35,8 +39,12 @@ export class SpecieFactory {
       description: data.description,
       files: data.files.map((f) => f),
       taxons: data.taxons.map((taxon) => ({
+        id: taxon.id,
         name: taxon.name,
-        hierarchy: taxon.hierarchy.name,
+        hierarchy: {
+          id: taxon.hierarchy.id,
+          name: taxon.hierarchy.name,
+        },
       })),
     };
   }

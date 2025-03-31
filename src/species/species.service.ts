@@ -177,15 +177,89 @@ export class SpeciesService {
     return this.specieRepository.findById(id);
   }
 
-  async update(id: Specie['id'], updateSpecieDto: UpdateSpecieDto) {
-    const { location, ...rest } = updateSpecieDto;
+  async update(
+    id: Specie['id'],
+    updateSpecieDto: UpdateSpecieDto,
+    files: Express.Multer.File[],
+  ) {
+    const specie = await this.specieRepository.findById(id);
 
-    return this.specieRepository.update(id, {
-      ...rest,
-      lat: location?.lat,
-      long: location?.long,
-      location: location?.address,
-    });
+    if (!specie) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { id: 'specie not found' },
+      });
+    }
+
+    const specieBuilder = new SpecieBuilder().setId(specie.id);
+
+    if (updateSpecieDto?.scientificName) {
+      specieBuilder.setScientificName(updateSpecieDto.scientificName);
+    }
+
+    if (updateSpecieDto?.commonName) {
+      specieBuilder.setCommonName(updateSpecieDto.commonName);
+    }
+
+    if (updateSpecieDto?.description) {
+      specieBuilder.setDescription(updateSpecieDto.description);
+    }
+
+    if (updateSpecieDto?.collectedAt) {
+      specieBuilder.setCollectedAt(updateSpecieDto.collectedAt);
+    }
+
+    if (updateSpecieDto?.location?.address) {
+      specieBuilder.setLocation(updateSpecieDto.location.address);
+    }
+
+    if (updateSpecieDto?.location?.lat) {
+      specieBuilder.setLat(updateSpecieDto.location.lat);
+    }
+
+    if (updateSpecieDto?.location?.long) {
+      specieBuilder.setLong(updateSpecieDto.location.long);
+    }
+
+    const specieToUpdate = specieBuilder.build();
+
+    if (updateSpecieDto?.characteristicIds) {
+      await this._validateCharacteristic(
+        updateSpecieDto.characteristicIds,
+        specieToUpdate,
+      );
+    }
+
+    if (updateSpecieDto?.taxonIds) {
+      await this._validateTaxon(updateSpecieDto.taxonIds, specieToUpdate);
+    }
+
+    if (updateSpecieDto?.location?.cityId) {
+      await this._validateCity(updateSpecieDto.location.cityId, specieToUpdate);
+    }
+
+    if (updateSpecieDto?.location?.stateId) {
+      await this._validateState(
+        updateSpecieDto.location.stateId,
+        specieToUpdate,
+      );
+    }
+
+    if (files?.length) {
+      await this.filesMinioService.save(
+        files.map((f) => ({
+          fileStream: f.buffer,
+          path: `/species/${id}/${generateFileName(f.originalname)}`,
+          specieId: id,
+        })),
+      );
+    }
+
+    if (updateSpecieDto?.filesToDelete?.length) {
+      await this.filesMinioService.delete(updateSpecieDto.filesToDelete);
+    }
+
+    return this.specieRepository.update(id, specieToUpdate);
   }
 
   remove(id: Specie['id']) {

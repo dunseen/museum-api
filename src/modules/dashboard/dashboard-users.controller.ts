@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
@@ -11,9 +10,10 @@ import {
   HttpStatus,
   HttpCode,
   SerializeOptions,
+  Put,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from '@nestjs/passport';
+
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -21,30 +21,30 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Roles } from '../roles/roles.decorator';
-import { RoleEnum } from '../roles/roles.enum';
-import { AuthGuard } from '@nestjs/passport';
-
+import { Roles } from '../../roles/roles.decorator';
+import { RoleEnum } from '../../roles/roles.enum';
+import { RolesGuard } from '../../roles/roles.guard';
+import { User } from '../../users/domain/user';
+import { CreateUserDto } from '../../users/dto/create-user.dto';
+import { QueryUserDto } from '../../users/dto/query-user.dto';
+import { UpdateUserDto } from '../../users/dto/update-user.dto';
+import { UsersService } from '../../users/users.service';
 import {
   InfinityPaginationResponse,
   InfinityPaginationResponseDto,
-} from '../utils/dto/infinity-pagination-response.dto';
-import { NullableType } from '../utils/types/nullable.type';
-import { QueryUserDto } from './dto/query-user.dto';
-import { User } from './domain/user';
-import { UsersService } from './users.service';
-import { RolesGuard } from '../roles/roles.guard';
-import { infinityPagination } from '../utils/infinity-pagination';
+} from '../../utils/dto/infinity-pagination-response.dto';
+import { infinityPagination } from '../../utils/infinity-pagination';
+import { NullableType } from '../../utils/types/nullable.type';
 
 @ApiBearerAuth()
 @Roles(RoleEnum.admin)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@ApiTags('Users')
+@ApiTags('Dashboard - Users')
 @Controller({
-  path: 'users',
+  path: 'dashboard/users',
   version: '1',
 })
-export class UsersController {
+export class DashboardUsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiCreatedResponse({
@@ -109,7 +109,7 @@ export class UsersController {
   @SerializeOptions({
     groups: ['admin'],
   })
-  @Patch(':id')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   @ApiParam({
     name: 'id',

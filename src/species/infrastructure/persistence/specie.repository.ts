@@ -25,7 +25,7 @@ export abstract class SpecieRepository {
   abstract update(
     id: Specie['id'],
     payload: DeepPartial<Specie>,
-  ): Promise<Specie | null>;
+  ): Promise<void>;
 
   abstract remove(id: Specie['id']): Promise<void>;
 

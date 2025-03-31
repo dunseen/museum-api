@@ -45,6 +45,7 @@ export class SpecieMapper {
 
   static toPersistence(domainEntity: Partial<Specie>): SpecieEntity {
     const persistenceEntity = new SpecieEntity();
+
     if (domainEntity.id) {
       persistenceEntity.id = domainEntity.id;
     }
@@ -91,12 +92,12 @@ export class SpecieMapper {
       persistenceEntity.collectedAt = domainEntity.collectedAt;
     }
 
-    if (domainEntity?.city) {
-      persistenceEntity.city = CityMapper.toPersistence(domainEntity.city);
-    }
-
     if (domainEntity?.state) {
       persistenceEntity.state = StateMapper.toPersistence(domainEntity.state);
+    }
+
+    if (domainEntity?.city) {
+      persistenceEntity.city = CityMapper.toPersistence(domainEntity.city);
     }
 
     if (domainEntity?.lat) {

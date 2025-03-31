@@ -81,7 +81,7 @@ export class SpecieRelationalRepository implements SpecieRepository {
     return entity ? SpecieMapper.toDomain(entity) : null;
   }
 
-  async update(id: Specie['id'], payload: Partial<Specie>): Promise<Specie> {
+  async update(id: Specie['id'], payload: Partial<Specie>): Promise<void> {
     const entity = await this.specieRepository.findOne({
       where: { id },
     });
@@ -90,16 +90,9 @@ export class SpecieRelationalRepository implements SpecieRepository {
       throw new Error('Record not found');
     }
 
-    const updatedEntity = await this.specieRepository.save(
-      this.specieRepository.create(
-        SpecieMapper.toPersistence({
-          ...SpecieMapper.toDomain(entity),
-          ...payload,
-        }),
-      ),
+    await this.specieRepository.save(
+      this.specieRepository.create(SpecieMapper.toPersistence(payload)),
     );
-
-    return SpecieMapper.toDomain(updatedEntity);
   }
 
   async remove(id: Specie['id']): Promise<void> {
