@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "typeorm": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "compose:up:local": "docker compose -f docker-compose-local.yaml up -d",
+    "compose:up:local": "docker compose --compatibility -f docker-compose-local.yaml up --build -d",
     "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate",
     "migration:create": "npm run typeorm -- migration:create",
     "migration:run": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:run",
