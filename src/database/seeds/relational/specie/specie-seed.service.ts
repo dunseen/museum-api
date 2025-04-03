@@ -393,68 +393,68 @@ export class SpecieSeedService {
           characteristics,
           taxons,
         });
-      }
 
-      if (specieData.images) {
-        const imageDir = path.resolve(__dirname, specieData.images);
+        if (specieData.images) {
+          const imageDir = path.resolve(__dirname, specieData.images);
 
-        if (fs.existsSync(imageDir)) {
-          const files = fs.readdirSync(imageDir);
+          if (fs.existsSync(imageDir)) {
+            const files = fs.readdirSync(imageDir);
 
-          for (const file of files) {
-            const filePath = path.join(imageDir, file);
-            const fileStream = fs.createReadStream(filePath);
-            const fileName = generateFileName(file);
-            const objectName = `species/${specie.id}/${fileName}`;
+            for (const file of files) {
+              const filePath = path.join(imageDir, file);
+              const fileStream = fs.createReadStream(filePath);
+              const fileName = generateFileName(file);
+              const objectName = `species/${specie.id}/${fileName}`;
 
-            try {
-              await this.fileService.save([
-                {
-                  fileStream,
-                  path: objectName,
-                  specieId: specie.id,
-                },
-              ]);
-
-              for (const characteristic of characteristics) {
-                const filePath = path.join(imageDir, file);
-                const fileStream = fs.createReadStream(filePath);
-                const fileName = generateFileName(file);
-                const objectName = `characteristics/${characteristic.id}/${fileName}`;
-
+              try {
                 await this.fileService.save([
                   {
                     fileStream,
                     path: objectName,
-                    characteristicId: characteristic.id,
+                    specieId: specie.id,
                   },
                 ]);
+
+                for (const characteristic of characteristics) {
+                  const filePath = path.join(imageDir, file);
+                  const fileStream = fs.createReadStream(filePath);
+                  const fileName = generateFileName(file);
+                  const objectName = `characteristics/${characteristic.id}/${fileName}`;
+
+                  await this.fileService.save([
+                    {
+                      fileStream,
+                      path: objectName,
+                      characteristicId: characteristic.id,
+                    },
+                  ]);
+                }
+
+                console.log(`✅ Uploaded ${file} to Minio as ${objectName}`);
+              } catch (error) {
+                console.error(`❌ Failed to upload ${file} to Minio:`, error);
               }
-
-              console.log(`✅ Uploaded ${file} to Minio as ${objectName}`);
-            } catch (error) {
-              console.error(`❌ Failed to upload ${file} to Minio:`, error);
             }
+          } else {
+            console.warn(`⚠️ Image directory not found: ${imageDir}`);
           }
-        } else {
-          console.warn(`⚠️ Image directory not found: ${imageDir}`);
         }
-      }
-      const user = await this.userRepository.findOne({
-        where: {
-          email: 'admin@example.com',
-        },
-      });
-
-      if (user) {
-        const post = this.postRepository.create({
-          author: user,
-          validator: user,
-          specie,
-          status: PostStatusEnum.published,
+        const user = await this.userRepository.findOne({
+          where: {
+            email: 'admin@example.com',
+          },
         });
 
-        await this.postRepository.save(post);
+        if (user) {
+          const post = this.postRepository.create({
+            author: user,
+            validator: user,
+            specie,
+            status: PostStatusEnum.published,
+          });
+
+          await this.postRepository.save(post);
+        }
       }
     }
   }
