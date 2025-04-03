@@ -111,6 +111,6 @@ jobs:
           echo "${{ secrets.DOCKER_HUB_PASSWORD  }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME  }}" --password-stdin
           docker pull ${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
           cd /home/ubuntu/app
-          docker compose down api
-          docker compose up api -d 
+          docker compose down
+          docker compose up -d 
           EOF
