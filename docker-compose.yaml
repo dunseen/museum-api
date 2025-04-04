@@ -15,6 +15,7 @@ services:
   postgres:
     container_name: museum-db
     image: postgres:16.3-alpine
+    restart: always
     networks:
       - public
       - internal
@@ -32,11 +33,13 @@ services:
   redis:
     container_name: museum-cache
     image: redis:7-alpine
+    restart: always
     networks:
       - internal
 
   minio:
     image: minio/minio:latest
+    restart: always
     container_name: museum-storage
     networks:
       - internal

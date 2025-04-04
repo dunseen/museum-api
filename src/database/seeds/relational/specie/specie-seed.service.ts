@@ -402,35 +402,42 @@ export class SpecieSeedService {
 
             for (const file of files) {
               const filePath = path.join(imageDir, file);
-              const fileStream = fs.createReadStream(filePath);
               const fileName = generateFileName(file);
-              const objectName = `species/${specie.id}/${fileName}`;
+              const specieObjectName = `species/${specie.id}/${fileName}`;
 
               try {
+                // Upload specie image
+                const specieFileStream = fs.createReadStream(filePath);
                 await this.fileService.save([
                   {
-                    fileStream,
-                    path: objectName,
+                    fileStream: specieFileStream,
+                    path: specieObjectName,
                     specieId: specie.id,
                   },
                 ]);
 
+                console.log(
+                  `✅ Uploaded ${file} to Minio as ${specieObjectName}`,
+                );
+
+                // Upload characteristic images
                 for (const characteristic of characteristics) {
-                  const filePath = path.join(imageDir, file);
-                  const fileStream = fs.createReadStream(filePath);
-                  const fileName = generateFileName(file);
-                  const objectName = `characteristics/${characteristic.id}/${fileName}`;
+                  const characteristicObjectName = `characteristics/${characteristic.id}/${fileName}`;
+                  const characteristicFileStream =
+                    fs.createReadStream(filePath);
 
                   await this.fileService.save([
                     {
-                      fileStream,
-                      path: objectName,
+                      fileStream: characteristicFileStream,
+                      path: characteristicObjectName,
                       characteristicId: characteristic.id,
                     },
                   ]);
-                }
 
-                console.log(`✅ Uploaded ${file} to Minio as ${objectName}`);
+                  console.log(
+                    `✅ Uploaded ${file} to Minio as ${characteristicObjectName}`,
+                  );
+                }
               } catch (error) {
                 console.error(`❌ Failed to upload ${file} to Minio:`, error);
               }
