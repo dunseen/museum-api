@@ -20,15 +20,33 @@ export class PostRelationalRepository implements PostRepository {
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
   ) {}
-  async findBySpecieName(name: string): Promise<NullableType<Post>> {
+  async findPublishedBySpecieId(specieId: number): Promise<Post[]> {
     const query = this.postRepository
       .createQueryBuilder('p')
       .innerJoinAndSelect('p.author', 'author')
       .leftJoin('p.validator', 'validator')
-      .innerJoinAndSelect('p.specie', 's')
+      .innerJoinAndSelect('p.species', 's')
+      .where('s.id = :specieId', {
+        specieId,
+      })
+      .andWhere('p.status = :status', {
+        status: PostStatusEnum.published,
+      });
+
+    const post = await query.getMany();
+
+    return post.map(PostMapper.toDomain);
+  }
+  async searchBySpecieName(name: string): Promise<NullableType<Post>> {
+    const query = this.postRepository
+      .createQueryBuilder('p')
+      .innerJoinAndSelect('p.author', 'author')
+      .leftJoin('p.validator', 'validator')
+      .innerJoinAndSelect('p.species', 's')
       .leftJoinAndSelect('s.files', 'f')
       .innerJoinAndSelect('s.taxons', 't')
       .innerJoinAndSelect('s.characteristics', 'c')
+      .innerJoinAndSelect('c.files', 'f2')
       .leftJoinAndSelect('s.city', 'city')
       .leftJoinAndSelect('s.state', 'state')
       .innerJoinAndSelect('c.type', 'type')
@@ -55,8 +73,8 @@ export class PostRelationalRepository implements PostRepository {
   }): Promise<WithCountList<ListHomePagePostsDto>> {
     const query = this.postRepository
       .createQueryBuilder('p')
-      .select('p.id')
-      .innerJoinAndSelect('p.specie', 's')
+      .select(['p.id', 'p.createdAt'])
+      .innerJoinAndSelect('p.species', 's')
       .leftJoinAndSelect('s.characteristics', 'c')
       .leftJoinAndSelect('c.type', 'type')
       .leftJoinAndSelect('s.files', 'f')
@@ -67,6 +85,8 @@ export class PostRelationalRepository implements PostRepository {
       .where('p.status = :status', {
         status: PostStatusEnum.published,
       })
+      .orderBy('p.createdAt', 'DESC')
+      .addOrderBy('s.scientificName', 'ASC')
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit);
 
@@ -125,7 +145,7 @@ export class PostRelationalRepository implements PostRepository {
   }): Promise<WithCountList<Post>> {
     const query = this.postRepository
       .createQueryBuilder('p')
-      .innerJoinAndSelect('p.specie', 's')
+      .innerJoinAndSelect('p.species', 's')
       .leftJoinAndSelect('p.author', 'author')
       .leftJoinAndSelect('p.validator', 'validator')
       .leftJoinAndSelect('s.characteristics', 'c')
@@ -135,6 +155,7 @@ export class PostRelationalRepository implements PostRepository {
       .leftJoinAndSelect('s.city', 'city')
       .leftJoinAndSelect('s.state', 'state')
       .innerJoinAndSelect('t.hierarchy', 'h')
+      .orderBy('p.updatedAt', 'DESC')
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit);
 
@@ -192,7 +213,7 @@ export class PostRelationalRepository implements PostRepository {
         id,
         author: payload.author,
         validator: payload.validator,
-        specie: payload.specie,
+        species: payload.species,
         status: payload.status,
         rejectReason: payload.rejectReason,
         updatedAt: payload.updatedAt,
@@ -201,7 +222,7 @@ export class PostRelationalRepository implements PostRepository {
     );
   }
 
-  async remove(id: Post['id']): Promise<void> {
-    await this.postRepository.delete(id);
+  async remove(id: string[] | string): Promise<void> {
+    await this.postRepository.softDelete(id);
   }
 }

@@ -34,7 +34,9 @@ export class TaxonEntity extends EntityRelationalHelper {
   @ManyToOne(() => TaxonEntity, { nullable: true })
   parent: TaxonEntity | null;
 
-  @ManyToMany(() => CharacteristicEntity)
+  @ManyToMany(() => CharacteristicEntity, {
+    cascade: true,
+  })
   @JoinTable({
     name: 'taxon_characteristic',
   })

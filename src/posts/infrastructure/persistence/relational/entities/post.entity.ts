@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -37,8 +39,11 @@ export class PostEntity extends EntityRelationalHelper {
   @ManyToOne(() => UserEntity, { eager: true })
   validator: NullableType<UserEntity>;
 
-  @ManyToOne(() => SpecieEntity, { eager: true })
-  specie: SpecieEntity;
+  @ManyToMany(() => SpecieEntity, { eager: true })
+  @JoinTable({
+    name: 'post_specie',
+  })
+  species: SpecieEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

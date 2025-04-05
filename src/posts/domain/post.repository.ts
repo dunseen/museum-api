@@ -24,9 +24,10 @@ export abstract class PostRepository {
   }): Promise<WithCountList<ListHomePagePostsDto>>;
 
   abstract findById(id: Post['id']): Promise<NullableType<Post>>;
-  abstract findBySpecieName(name: string): Promise<NullableType<Post>>;
+  abstract searchBySpecieName(name: string): Promise<NullableType<Post>>;
+  abstract findPublishedBySpecieId(id: number): Promise<Post[]>;
 
   abstract update(id: Post['id'], payload: DeepPartial<Post>): Promise<void>;
 
-  abstract remove(id: Post['id']): Promise<void>;
+  abstract remove(id: string[] | string): Promise<void>;
 }

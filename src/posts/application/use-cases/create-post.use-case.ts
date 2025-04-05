@@ -34,17 +34,6 @@ export class CreatePostUseCase {
       });
     }
 
-    const postExists = await this.postRepository.findBySpecieName(
-      specie.scientificName,
-    );
-
-    if (postExists) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        error: 'Post already exists for this specie',
-      });
-    }
-
     const author = await this.userService.findById(payload.id);
 
     if (!author) {
@@ -56,7 +45,7 @@ export class CreatePostUseCase {
 
     const post = Post.builder()
       .setId()
-      .setSpecie(specie)
+      .setSpecie([specie])
       .setAuthor(author)
       .setStatus(PostStatusEnum.pending)
       .build();

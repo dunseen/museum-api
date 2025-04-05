@@ -123,7 +123,7 @@ export class CharacteristicRelationalRepository
     return CharacteristicMapper.toDomain(updatedEntity);
   }
 
-  async remove(id: Characteristic['id']): Promise<void> {
-    await this.characteristicRepository.softDelete(Number(id));
+  async remove(id: number[] | number): Promise<void> {
+    await this.characteristicRepository.delete(id);
   }
 }

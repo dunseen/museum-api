@@ -40,6 +40,10 @@ export class ValidatePostUseCase {
           updatePostDto.rejectReason,
         );
       } else {
+        await this.postService.invalidatePublishedPostsBySpecieId(
+          post.species[0].id,
+        );
+
         updatedPost = post.withUpdateStatus(
           PostStatusEnum.published,
           validator,

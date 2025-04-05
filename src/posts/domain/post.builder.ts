@@ -11,7 +11,7 @@ export class PostBuilder {
   rejectReason: NullableType<string> = null;
   author!: User;
   validator: NullableType<User> = null;
-  specie!: Specie;
+  species: Specie[] = [];
   createdAt: Date = new Date();
   updatedAt: Date = new Date();
 
@@ -40,8 +40,8 @@ export class PostBuilder {
     return this;
   }
 
-  setSpecie(specie: Specie): this {
-    this.specie = specie;
+  setSpecie(species: Specie[]): this {
+    this.species = species;
     return this;
   }
 

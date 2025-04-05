@@ -14,7 +14,7 @@ export class PostFactory {
       validator: post.validator
         ? UserFactory.createAuthor(post.validator)
         : null,
-      specie: SpecieFactory.toDto(post.specie),
+      specie: SpecieFactory.toDto(post.species[0]),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     };
@@ -23,7 +23,7 @@ export class PostFactory {
   static toListHomePageDto(post: Post): ListHomePagePostsDto {
     return {
       id: post.id,
-      specie: SpecieFactory.toListHomePageDto(post.specie),
+      specie: SpecieFactory.toListHomePageDto(post.species[0]),
     };
   }
 }

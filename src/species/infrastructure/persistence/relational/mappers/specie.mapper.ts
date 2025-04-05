@@ -15,7 +15,7 @@ export class SpecieMapper {
       .setCommonName(raw.commonName)
       .setDescription(raw.description)
       .setCity(raw.city)
-      .setState(StateMapper.toDomain(raw.state))
+      .setState(raw.state && StateMapper.toDomain(raw.state))
       .setLocation(raw.location)
       .setLat(raw.lat)
       .setLong(raw.long)
@@ -50,11 +50,9 @@ export class SpecieMapper {
       persistenceEntity.id = domainEntity.id;
     }
 
-    if (domainEntity?.characteristics?.length) {
-      persistenceEntity.characteristics = domainEntity.characteristics.map(
-        CharacteristicMapper.toPersistence,
-      );
-    }
+    persistenceEntity.characteristics = domainEntity?.characteristics?.length
+      ? domainEntity.characteristics.map(CharacteristicMapper.toPersistence)
+      : [];
 
     if (domainEntity?.files?.length) {
       persistenceEntity.files = domainEntity.files.map(

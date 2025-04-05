@@ -18,6 +18,7 @@ import { FileEntity } from '../../../../../files/infrastructure/persistence/rela
 import { NullableType } from '../../../../../utils/types/nullable.type';
 import { CityEntity } from '../../../../../cities/infrastructure/persistence/relational/entities/city.entity';
 import { StateEntity } from '../../../../../states/infrastructure/persistence/relational/entities/state.entity';
+import { PostEntity } from '../../../../../posts/infrastructure/persistence/relational/entities/post.entity';
 
 @Entity({
   name: 'specie',
@@ -72,11 +73,14 @@ export class SpecieEntity extends EntityRelationalHelper {
   })
   taxons: TaxonEntity[];
 
-  @ManyToMany(() => CharacteristicEntity, { eager: true })
+  @ManyToMany(() => CharacteristicEntity, { eager: true, cascade: true })
   @JoinTable({
     name: 'specie_characteristic',
   })
   characteristics: CharacteristicEntity[];
+
+  @ManyToMany(() => PostEntity, (post) => post.species)
+  posts: PostEntity[];
 
   @OneToMany(() => FileEntity, (file) => file.specie, {
     cascade: true,

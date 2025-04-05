@@ -31,7 +31,17 @@ export class PostService {
     return post;
   }
 
-  remove(id: Post['id']) {
+  async invalidatePublishedPostsBySpecieId(id: number) {
+    const posts = await this.postRepository.findPublishedBySpecieId(id);
+
+    const ids = posts.map((p) => p.id);
+
+    if (ids.length === 0) return;
+
+    await this.remove(ids);
+  }
+
+  remove(id: string[] | string) {
     return this.postRepository.remove(id);
   }
 }

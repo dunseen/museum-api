@@ -297,6 +297,12 @@ export class SpecieSeedService {
   ) {}
 
   async run() {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: 'admin@example.com',
+      },
+    });
+
     for (const specieData of speciesData) {
       // Verificar e inserir tipos de características
       const characteristics: CharacteristicEntity[] = [];
@@ -446,21 +452,14 @@ export class SpecieSeedService {
             console.warn(`⚠️ Image directory not found: ${imageDir}`);
           }
         }
-        const user = await this.userRepository.findOne({
-          where: {
-            email: 'admin@example.com',
-          },
-        });
 
         if (user) {
-          const post = this.postRepository.create({
+          await this.postRepository.save({
             author: user,
             validator: user,
-            specie,
+            species: [specie],
             status: PostStatusEnum.published,
           });
-
-          await this.postRepository.save(post);
         }
       }
     }

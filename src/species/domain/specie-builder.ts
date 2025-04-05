@@ -20,8 +20,8 @@ export class SpecieBuilder {
   private taxons: Taxon[] = [];
   private characteristics: Characteristic[] = [];
   private files: FileType[] = [];
-  private city: City;
-  private state: State;
+  private city?: City;
+  private state?: State;
   setId(id: number): SpecieBuilder {
     this.id = id;
     return this;
@@ -114,8 +114,12 @@ export class SpecieBuilder {
       this.updatedAt,
     );
 
-    specie.addCity(this.city);
-    specie.addState(this.state);
+    if (this.state) {
+      specie.addState(this.state);
+    }
+    if (this.city) {
+      specie.addCity(this.city);
+    }
 
     this.taxons.forEach(specie.addTaxon);
     this.characteristics.forEach(specie.addCharacteristic);

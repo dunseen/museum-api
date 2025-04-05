@@ -9,7 +9,7 @@ export class PostMapper {
       .setId(raw.id)
       .setRejectReason(raw.reject_reason)
       .setStatus(raw.status)
-      .setSpecie(SpecieMapper.toDomain(raw.specie))
+      .setSpecie(raw.species.map(SpecieMapper.toDomain))
       .setAuthor(UserMapper.toDomain(raw.author))
       .setValidator(raw.validator ? UserMapper.toDomain(raw.validator) : null)
       .setCreatedAt(raw.createdAt)
@@ -23,11 +23,8 @@ export class PostMapper {
       persistenceEntity.id = domainEntity.id;
     }
 
-    if (domainEntity?.specie) {
-      persistenceEntity.specie = SpecieMapper.toPersistence(
-        domainEntity.specie,
-      );
-    }
+    persistenceEntity.species =
+      domainEntity.species?.map(SpecieMapper.toPersistence) ?? [];
 
     if (domainEntity?.author) {
       persistenceEntity.author = UserMapper.toPersistence(domainEntity.author);

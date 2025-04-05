@@ -181,6 +181,7 @@ export class SpeciesService {
     id: Specie['id'],
     updateSpecieDto: UpdateSpecieDto,
     files: Express.Multer.File[],
+    payload: JwtPayloadType,
   ) {
     const specie = await this.specieRepository.findById(id);
 
@@ -223,12 +224,10 @@ export class SpeciesService {
 
     const specieToUpdate = specieBuilder.build();
 
-    if (updateSpecieDto?.characteristicIds) {
-      await this._validateCharacteristic(
-        updateSpecieDto.characteristicIds,
-        specieToUpdate,
-      );
-    }
+    await this._validateCharacteristic(
+      updateSpecieDto.characteristicIds ?? [],
+      specieToUpdate,
+    );
 
     if (updateSpecieDto?.taxonIds) {
       await this._validateTaxon(updateSpecieDto.taxonIds, specieToUpdate);
@@ -259,7 +258,14 @@ export class SpeciesService {
       await this.filesMinioService.delete(updateSpecieDto.filesToDelete);
     }
 
-    return this.specieRepository.update(id, specieToUpdate);
+    await this.specieRepository.update(id, specieToUpdate);
+
+    await this.createPostUseCase.execute(
+      {
+        specieId: id,
+      },
+      payload,
+    );
   }
 
   remove(id: Specie['id']) {

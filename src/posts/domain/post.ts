@@ -10,7 +10,7 @@ export class Post {
   private _rejectReason: NullableType<string>;
   private readonly _author: User;
   private _validator: NullableType<User>;
-  private readonly _specie: Specie;
+  private readonly _species: Specie[];
   private readonly _createdAt: Date;
   private _updatedAt: Date;
 
@@ -20,7 +20,7 @@ export class Post {
     this._rejectReason = builder.rejectReason;
     this._author = builder.author;
     this._validator = builder.validator;
-    this._specie = builder.specie;
+    this._species = builder.species;
     this._createdAt = builder.createdAt;
     this._updatedAt = builder.updatedAt;
 
@@ -54,8 +54,8 @@ export class Post {
     return this._validator;
   }
 
-  get specie(): Specie {
-    return this._specie;
+  get species(): Specie[] {
+    return this._species;
   }
 
   get createdAt(): Date {
@@ -83,7 +83,7 @@ export class Post {
     const builder = new PostBuilder()
       .setId(this._id)
       .setAuthor(this._author)
-      .setSpecie(this._specie)
+      .setSpecie(this._species)
       .setStatus(newStatus)
       .setValidator(validator)
       .setRejectReason(rejectReason ?? this._rejectReason)
@@ -105,7 +105,7 @@ export class Post {
       throw new Error('Post author is required');
     }
 
-    if (!this._specie) {
+    if (!this._species) {
       throw new Error('Post specie is required');
     }
 

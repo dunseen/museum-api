@@ -117,8 +117,9 @@ export class DashboardSpeciesController {
     @Param('id') id: number,
     @UploadedFiles() files: Express.Multer.File[],
     @Body() updateSpecieDto: UpdateSpecieDto,
+    @JwtPayload() payload: JwtPayloadType,
   ) {
-    return this.speciesService.update(id, updateSpecieDto, files);
+    return this.speciesService.update(id, updateSpecieDto, files, payload);
   }
 
   @ApiBearerAuth()

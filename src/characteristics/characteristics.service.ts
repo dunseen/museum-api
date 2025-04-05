@@ -149,6 +149,6 @@ export class CharacteristicsService {
   }
 
   remove(id: Characteristic['id']) {
-    return this.characteristicRepository.remove(id);
+    return this.characteristicRepository.remove(id as number);
   }
 }

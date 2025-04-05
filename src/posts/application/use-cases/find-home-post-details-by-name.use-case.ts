@@ -7,7 +7,7 @@ export class FindHomePostDetailsByNameUseCase {
   constructor(private readonly postRepository: PostRepository) {}
 
   async execute(name: string) {
-    const post = await this.postRepository.findBySpecieName(name);
+    const post = await this.postRepository.searchBySpecieName(name);
 
     if (!post) return null;
 

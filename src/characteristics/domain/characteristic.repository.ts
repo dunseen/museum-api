@@ -37,6 +37,6 @@ export abstract class CharacteristicRepository {
     payload: DeepPartial<Characteristic>,
   ): Promise<Characteristic | null>;
 
-  abstract remove(id: Characteristic['id']): Promise<void>;
+  abstract remove(id: number[] | number): Promise<void>;
   abstract count(): Promise<number>;
 }
