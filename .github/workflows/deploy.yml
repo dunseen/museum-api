@@ -79,12 +79,18 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_HUB_PASSWORD  }}" | sudo docker login -u "${{ secrets.DOCKER_HUB_USERNAME  }}" --password-stdin
 
-      - name: Build and Push Docker Image to Docker Hub
-        run: |
-          IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
-          sudo docker pull $IMAGE_NAME || true
-          sudo docker build --cache-from=$IMAGE_NAME -t $IMAGE_NAME .
-          sudo docker push $IMAGE_NAME
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Multi-Platform Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/museum-api:latest
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/museum-api:latest
+          cache-to: type=inline
 
   deploy:
     needs: build-and-push
