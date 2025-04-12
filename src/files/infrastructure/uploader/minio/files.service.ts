@@ -119,6 +119,6 @@ export class FilesMinioService {
       return `https://${host}:${port}/${bucket}/${file}`;
     }
 
-    return `http://${host}:${port}/${bucket}/${file}`;
+    return `${host}/${bucket}/${file}`;
   }
 }
