@@ -37,12 +37,7 @@ export class PostsController {
       paginationOptions: {
         page,
         limit,
-        filters: {
-          name: query?.name,
-          family: query?.family,
-          genus: query?.genus,
-          characteristicIds: query?.characteristicIds,
-        },
+        filters: query,
       },
     });
   }
