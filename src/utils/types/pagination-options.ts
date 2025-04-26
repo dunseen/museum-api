@@ -5,10 +5,14 @@ export interface IPaginationOptions {
     name?: string;
     email?: string;
     description?: string;
-    genus?: string;
-    family?: string;
     characteristicIds?: string[];
     hierarchyId?: number;
+    orderName?: string;
+    orderHierarchyId?: number;
+    familyName?: string;
+    familyHierarchyId?: number;
+    genusName?: string;
+    genusHierarchyId?: number;
   };
 }
 

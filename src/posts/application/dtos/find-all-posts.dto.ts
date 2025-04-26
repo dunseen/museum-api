@@ -23,18 +23,55 @@ export class FindAllPostsDto {
   name: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by specie family',
+    description: 'Filter by order hierarchy id',
   })
-  @IsString()
   @IsOptional()
-  family: string;
+  @IsNumber()
+  @Transform(({ value }) => (value ? Number(value) : null))
+  orderHierarchyId: number;
 
   @ApiPropertyOptional({
-    description: 'Filter by specie genus',
+    description: 'Filter by order name',
+    example: 'Acanthocobitis',
+    type: String,
   })
   @IsString()
   @IsOptional()
-  genus: string;
+  orderName: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by family hierarchy id',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (value ? Number(value) : null))
+  familyHierarchyId: number;
+
+  @ApiPropertyOptional({
+    description: 'Filter by family name',
+    example: 'Acanthocobitis',
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  familyName: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by genus hierarchy id',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => (value ? Number(value) : null))
+  genusHierarchyId: number;
+
+  @ApiPropertyOptional({
+    description: 'Filter by genus name',
+    example: 'Acanthocobitis',
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  genusName: string;
 
   @ApiPropertyOptional({
     description: 'Filter by characteristic ids separated by comma',
