@@ -37,7 +37,16 @@ export class PostsController {
       paginationOptions: {
         page,
         limit,
-        filters: query,
+        filters: {
+          name: query?.name,
+          orderHierarchyId: query?.orderHierarchyId,
+          orderName: query?.orderName,
+          familyHierarchyId: query?.familyHierarchyId,
+          familyName: query?.familyName,
+          genusHierarchyId: query?.genusHierarchyId,
+          genusName: query?.genusName,
+          characteristicIds: query?.characteristicIds,
+        },
       },
     });
   }
