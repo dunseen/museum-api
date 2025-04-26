@@ -99,22 +99,41 @@ export class PostRelationalRepository implements PostRepository {
       );
     }
 
-    if (paginationOptions.filters?.family) {
+    if (
+      paginationOptions.filters?.orderHierarchyId &&
+      paginationOptions.filters.orderName
+    ) {
       query.andWhere(
-        'LOWER(h.name) = :hierarchyFamily AND LOWER(t.name) LIKE LOWER(:family)',
+        'h.id = :orderHierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)',
         {
-          hierarchyFamily: 'family',
-          family: `%${paginationOptions.filters.family}%`,
+          orderHierarchyId: paginationOptions.filters.orderHierarchyId,
+          taxonName: `%${paginationOptions.filters.orderName}%`,
         },
       );
     }
 
-    if (paginationOptions.filters?.genus) {
+    if (
+      paginationOptions.filters?.familyHierarchyId &&
+      paginationOptions.filters.familyName
+    ) {
       query.andWhere(
-        'LOWER(h.name) = :hierarchyGenus AND LOWER(t.name) LIKE LOWER(:genus)',
+        'h.id = :familyHierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)',
         {
-          hierarchyGenus: 'genus',
-          genus: `%${paginationOptions.filters.genus}%`,
+          familyHierarchyId: paginationOptions.filters.familyHierarchyId,
+          taxonName: `%${paginationOptions.filters.familyName}%`,
+        },
+      );
+    }
+
+    if (
+      paginationOptions.filters?.genusHierarchyId &&
+      paginationOptions.filters.genusName
+    ) {
+      query.andWhere(
+        'h.id = :genusHierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)',
+        {
+          genusHierarchyId: paginationOptions.filters.genusHierarchyId,
+          taxonName: `%${paginationOptions.filters.genusName}%`,
         },
       );
     }
@@ -164,26 +183,6 @@ export class PostRelationalRepository implements PostRepository {
         'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
         {
           name: `%${paginationOptions.filters.name}%`,
-        },
-      );
-    }
-
-    if (paginationOptions.filters?.family) {
-      query.andWhere(
-        'LOWER(h.name) = :hierarchyFamily AND LOWER(t.name) LIKE LOWER(:family)',
-        {
-          hierarchyFamily: 'family',
-          family: `%${paginationOptions.filters.family}%`,
-        },
-      );
-    }
-
-    if (paginationOptions.filters?.genus) {
-      query.andWhere(
-        'LOWER(h.name) = :hierarchyGenus AND LOWER(t.name) LIKE LOWER(:genus)',
-        {
-          hierarchyGenus: 'genus',
-          genus: `%${paginationOptions.filters.genus}%`,
         },
       );
     }
