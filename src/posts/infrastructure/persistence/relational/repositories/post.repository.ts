@@ -13,6 +13,7 @@ import {
 import { ListHomePagePostsDto } from '../../../../application/dtos';
 import { PostSimplifiedMapper } from '../mappers/post-simplified.mapper';
 import { PostStatusEnum } from '../../../../domain/post-status.enum';
+import { PostQueryBuilder } from '../post-query.builder';
 
 @Injectable()
 export class PostRelationalRepository implements PostRepository {
@@ -20,48 +21,43 @@ export class PostRelationalRepository implements PostRepository {
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
   ) {}
-  async findPublishedBySpecieId(specieId: number): Promise<Post[]> {
-    const query = this.postRepository
-      .createQueryBuilder('p')
-      .innerJoinAndSelect('p.author', 'author')
-      .leftJoin('p.validator', 'validator')
-      .innerJoinAndSelect('p.species', 's')
-      .where('s.id = :specieId', {
-        specieId,
-      })
-      .andWhere('p.status = :status', {
-        status: PostStatusEnum.published,
-      });
 
-    const post = await query.getMany();
+  async findPublishedBySpecieId(specieId: number): Promise<Post[]> {
+    const queryBuilder = new PostQueryBuilder(
+      this.postRepository.createQueryBuilder('p'),
+    )
+      .withAuthor()
+      .withValidator()
+      .withSpecies()
+      .withStatus(PostStatusEnum.published)
+      .build();
+
+    queryBuilder.where('s.id = :specieId', { specieId });
+
+    const post = await queryBuilder.getMany();
 
     return post.map(PostMapper.toDomain);
   }
-  async searchBySpecieName(name: string): Promise<NullableType<Post>> {
-    const query = this.postRepository
-      .createQueryBuilder('p')
-      .innerJoinAndSelect('p.author', 'author')
-      .leftJoin('p.validator', 'validator')
-      .innerJoinAndSelect('p.species', 's')
-      .leftJoinAndSelect('s.files', 'f')
-      .innerJoinAndSelect('s.taxons', 't')
-      .innerJoinAndSelect('s.characteristics', 'c')
-      .innerJoinAndSelect('c.files', 'f2')
-      .leftJoinAndSelect('s.city', 'city')
-      .leftJoinAndSelect('s.state', 'state')
-      .innerJoinAndSelect('c.type', 'type')
-      .innerJoinAndSelect('t.hierarchy', 'h')
-      .where(
-        'LOWER(s.scientificName) = LOWER(:name) OR LOWER(s.commonName) = LOWER(:name)',
-        {
-          name,
-        },
-      )
-      .andWhere('p.status = :status', {
-        status: PostStatusEnum.published,
-      });
 
-    const post = await query.getOne();
+  async searchBySpecieName(name: string): Promise<NullableType<Post>> {
+    const queryBuilder = new PostQueryBuilder(
+      this.postRepository.createQueryBuilder('p'),
+    )
+      .withAuthor()
+      .withValidator()
+      .withSpecies()
+      .withFiles()
+      .withTaxons()
+      .withCharacteristics()
+      .withCharacteristicFiles()
+      .withCharacteristicTypes()
+      .withCityAndState()
+      .withHierarchy()
+      .withStatus(PostStatusEnum.published)
+      .withNameFilter(name)
+      .build();
+
+    const post = await queryBuilder.getOne();
 
     return post ? PostMapper.toDomain(post) : null;
   }
@@ -71,44 +67,30 @@ export class PostRelationalRepository implements PostRepository {
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<ListHomePagePostsDto>> {
-    const query = this.postRepository
-      .createQueryBuilder('p')
-      .select(['p.id', 'p.createdAt'])
-      .innerJoinAndSelect('p.species', 's')
-      .leftJoinAndSelect('s.characteristics', 'c')
-      .leftJoinAndSelect('c.type', 'type')
-      .leftJoinAndSelect('s.files', 'f')
-      .innerJoinAndSelect('s.taxons', 't')
-      .leftJoinAndSelect('s.city', 'city')
-      .leftJoinAndSelect('s.state', 'state')
-      .innerJoinAndSelect('t.hierarchy', 'h')
-      .where('p.status = :status', {
-        status: PostStatusEnum.published,
-      })
-      .orderBy('p.createdAt', 'DESC')
-      .addOrderBy('s.scientificName', 'ASC')
-      .skip((paginationOptions.page - 1) * paginationOptions.limit)
-      .take(paginationOptions.limit);
+    const queryBuilder = new PostQueryBuilder(
+      this.postRepository.createQueryBuilder('p'),
+    )
+      .withSpecies()
+      .withCharacteristics()
+      .withCharacteristicTypes()
+      .withTaxons()
+      .withHierarchy()
+      .withFiles()
+      .withCityAndState()
+      .withStatus(PostStatusEnum.published)
+      .withPagination(paginationOptions);
 
     if (paginationOptions.filters?.name) {
-      query.andWhere(
-        'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
-        {
-          name: `%${paginationOptions.filters.name}%`,
-        },
-      );
+      queryBuilder.withNameFilter(paginationOptions.filters?.name);
     }
 
     if (
       paginationOptions.filters?.orderHierarchyId &&
       paginationOptions.filters.orderName
     ) {
-      query.andWhere(
-        'h.id = :orderHierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)',
-        {
-          orderHierarchyId: paginationOptions.filters.orderHierarchyId,
-          taxonName: `%${paginationOptions.filters.orderName}%`,
-        },
+      queryBuilder.withTaxonAndHierarchyFilter(
+        paginationOptions.filters.orderHierarchyId,
+        paginationOptions.filters.orderName,
       );
     }
 
@@ -116,12 +98,9 @@ export class PostRelationalRepository implements PostRepository {
       paginationOptions.filters?.familyHierarchyId &&
       paginationOptions.filters.familyName
     ) {
-      query.andWhere(
-        'h.id = :familyHierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)',
-        {
-          familyHierarchyId: paginationOptions.filters.familyHierarchyId,
-          taxonName: `%${paginationOptions.filters.familyName}%`,
-        },
+      queryBuilder.withTaxonAndHierarchyFilter(
+        paginationOptions.filters.familyHierarchyId,
+        paginationOptions.filters.familyName,
       );
     }
 
@@ -129,22 +108,23 @@ export class PostRelationalRepository implements PostRepository {
       paginationOptions.filters?.genusHierarchyId &&
       paginationOptions.filters.genusName
     ) {
-      query.andWhere(
-        'h.id = :genusHierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)',
-        {
-          genusHierarchyId: paginationOptions.filters.genusHierarchyId,
-          taxonName: `%${paginationOptions.filters.genusName}%`,
-        },
+      queryBuilder.withTaxonAndHierarchyFilter(
+        paginationOptions.filters.genusHierarchyId,
+        paginationOptions.filters.genusName,
       );
     }
 
     if (paginationOptions.filters?.characteristicIds?.length) {
-      query.andWhere('c.id IN (:...ids)', {
-        ids: paginationOptions.filters.characteristicIds,
-      });
+      queryBuilder.withCharacteristicIds(
+        paginationOptions.filters.characteristicIds.map(Number),
+      );
     }
 
-    const [entities, totalCount] = await query.getManyAndCount();
+    const [entities, totalCount] = await queryBuilder
+      .build()
+      .orderBy('p.createdAt', 'DESC')
+      .addOrderBy('s.scientificName', 'ASC')
+      .getManyAndCount();
 
     return [entities.map(PostSimplifiedMapper.toDomain), totalCount];
   }
@@ -162,38 +142,34 @@ export class PostRelationalRepository implements PostRepository {
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<Post>> {
-    const query = this.postRepository
-      .createQueryBuilder('p')
-      .innerJoinAndSelect('p.species', 's')
-      .leftJoinAndSelect('p.author', 'author')
-      .leftJoinAndSelect('p.validator', 'validator')
-      .leftJoinAndSelect('s.characteristics', 'c')
-      .leftJoinAndSelect('c.type', 'type')
-      .leftJoinAndSelect('s.files', 'f')
-      .innerJoinAndSelect('s.taxons', 't')
-      .leftJoinAndSelect('s.city', 'city')
-      .leftJoinAndSelect('s.state', 'state')
-      .innerJoinAndSelect('t.hierarchy', 'h')
-      .orderBy('p.updatedAt', 'DESC')
-      .skip((paginationOptions.page - 1) * paginationOptions.limit)
-      .take(paginationOptions.limit);
+    const queryBuilder = new PostQueryBuilder(
+      this.postRepository.createQueryBuilder('p'),
+    )
+      .withSpecies()
+      .withAuthor()
+      .withValidator()
+      .withCharacteristics()
+      .withCharacteristicTypes()
+      .withFiles()
+      .withTaxons()
+      .withCityAndState()
+      .withHierarchy()
+      .withPagination(paginationOptions);
 
     if (paginationOptions.filters?.name) {
-      query.andWhere(
-        'LOWER(s.scientificName) LIKE LOWER(:name) OR LOWER(s.commonName) LIKE LOWER(:name)',
-        {
-          name: `%${paginationOptions.filters.name}%`,
-        },
-      );
+      queryBuilder.withNameFilter(paginationOptions.filters.name);
     }
 
     if (paginationOptions.filters?.characteristicIds?.length) {
-      query.andWhere('c.id IN (:...ids)', {
-        ids: paginationOptions.filters.characteristicIds,
-      });
+      queryBuilder.withCharacteristicIds(
+        paginationOptions.filters.characteristicIds.map(Number),
+      );
     }
 
-    const [entities, totalCount] = await query.getManyAndCount();
+    const [entities, totalCount] = await queryBuilder
+      .build()
+      .orderBy('p.updatedAt', 'DESC')
+      .getManyAndCount();
 
     return [entities.map(PostMapper.toDomain), totalCount];
   }

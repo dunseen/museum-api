@@ -117,7 +117,7 @@ export class SpeciesService {
   ) {
     const specie = new SpecieBuilder()
       .setCommonName(createSpecieDto.commonName)
-      .setLocation(createSpecieDto.location.address)
+      .setCollectLocation(createSpecieDto.location.address)
       .setLat(createSpecieDto.location.lat)
       .setLong(createSpecieDto.location.long)
       .setCollectedAt(createSpecieDto.collectedAt)
@@ -211,7 +211,7 @@ export class SpeciesService {
     }
 
     if (updateSpecieDto?.location?.address) {
-      specieBuilder.setLocation(updateSpecieDto.location.address);
+      specieBuilder.setCollectLocation(updateSpecieDto.location.address);
     }
 
     if (updateSpecieDto?.location?.lat) {

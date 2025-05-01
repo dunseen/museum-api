@@ -393,9 +393,11 @@ export class SpecieSeedService {
           collectedAt: specieData.collectedAt,
           city,
           state,
-          lat: specieData.lat,
-          long: specieData.long,
-          location: specieData.location,
+          geoLocation: {
+            type: 'Point',
+            coordinates: [specieData.long, specieData.lat],
+          },
+          collectLocation: specieData.location,
           characteristics,
           taxons,
         });
