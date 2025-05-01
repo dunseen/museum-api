@@ -8,6 +8,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  Point,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -55,17 +56,14 @@ export class SpecieEntity extends EntityRelationalHelper {
     type: 'varchar',
     length: 255,
   })
-  location: NullableType<string>;
+  collectLocation: NullableType<string>;
 
   @Column({
-    type: 'decimal',
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
   })
-  lat: number;
-
-  @Column({
-    type: 'decimal',
-  })
-  long: number;
+  geoLocation: Point;
 
   @ManyToMany(() => TaxonEntity, { eager: true })
   @JoinTable({

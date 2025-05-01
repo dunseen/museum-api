@@ -17,7 +17,7 @@ export class Specie {
   readonly commonName: NullableType<string>;
 
   @ApiProperty({ type: String, nullable: true })
-  readonly location: NullableType<string>;
+  readonly collectLocation: NullableType<string>;
 
   @ApiProperty({ type: Number })
   readonly lat: number;
@@ -57,7 +57,7 @@ export class Specie {
     scientificName: string,
     commonName: NullableType<string>,
     description: NullableType<string>,
-    location: NullableType<string>,
+    collectLocation: NullableType<string>,
     lat: number,
     long: number,
     collectedAt: Date,
@@ -68,7 +68,7 @@ export class Specie {
     this.scientificName = scientificName;
     this.commonName = commonName;
     this.description = description;
-    this.location = location;
+    this.collectLocation = collectLocation;
     this.lat = lat;
     this.long = long;
     this.collectedAt = collectedAt;

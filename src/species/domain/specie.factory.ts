@@ -13,7 +13,7 @@ export class SpecieFactory {
       characteristics: data.characteristics.map(CharacteristicFactory.toDto),
       collectedAt: data.collectedAt,
       location: {
-        address: data.location?.toString(),
+        address: data.collectLocation?.toString(),
         lat: data.lat,
         long: data.long,
         city: data.city,

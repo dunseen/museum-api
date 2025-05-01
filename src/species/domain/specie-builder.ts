@@ -11,7 +11,7 @@ export class SpecieBuilder {
   private scientificName: string;
   private commonName: NullableType<string>;
   private description: NullableType<string>;
-  private location: NullableType<string>;
+  private collectLocation: NullableType<string>;
   private lat: number;
   private long: number;
   private collectedAt: Date;
@@ -41,8 +41,8 @@ export class SpecieBuilder {
     return this;
   }
 
-  setLocation(location: NullableType<string>): SpecieBuilder {
-    this.location = location;
+  setCollectLocation(location: NullableType<string>): SpecieBuilder {
+    this.collectLocation = location;
     return this;
   }
 
@@ -106,7 +106,7 @@ export class SpecieBuilder {
       this.scientificName,
       this.commonName,
       this.description,
-      this.location,
+      this.collectLocation,
       this.lat,
       this.long,
       this.collectedAt,

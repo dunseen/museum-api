@@ -16,9 +16,9 @@ export class SpecieMapper {
       .setDescription(raw.description)
       .setCity(raw.city)
       .setState(raw.state && StateMapper.toDomain(raw.state))
-      .setLocation(raw.location)
-      .setLat(raw.lat)
-      .setLong(raw.long)
+      .setCollectLocation(raw.collectLocation)
+      .setLat(raw.geoLocation.coordinates[1])
+      .setLong(raw.geoLocation.coordinates[0])
       .setCollectedAt(raw.collectedAt)
       .setUpdatedAt(raw.updatedAt)
       .setCreatedAt(raw.createdAt)
@@ -98,16 +98,15 @@ export class SpecieMapper {
       persistenceEntity.city = CityMapper.toPersistence(domainEntity.city);
     }
 
-    if (domainEntity?.lat) {
-      persistenceEntity.lat = domainEntity.lat;
+    if (domainEntity?.lat && domainEntity?.long) {
+      persistenceEntity.geoLocation = {
+        type: 'Point',
+        coordinates: [domainEntity.long, domainEntity.lat],
+      };
     }
 
-    if (domainEntity?.long) {
-      persistenceEntity.long = domainEntity.long;
-    }
-
-    if (domainEntity?.location) {
-      persistenceEntity.location = domainEntity.location;
+    if (domainEntity?.collectLocation) {
+      persistenceEntity.collectLocation = domainEntity.collectLocation;
     }
 
     return persistenceEntity;
