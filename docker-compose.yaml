@@ -15,6 +15,7 @@ services:
   postgres:
     container_name: museum-db
     image: postgis/postgis:15-3.3
+    platform: linux/amd64
     restart: always
     networks:
       - public
