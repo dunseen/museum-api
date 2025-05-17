@@ -9,8 +9,6 @@ Plataforma desenvolvida para o gerenciamento, compartilhamento e catalogação d
   <img src="./assets/ufra-logo.png" width="100" alt="UFRA Logo"/>
 </p>
 
-> 📄 Leia em: [Português (README.pt-br.md)](./README.pt-br.md) | [English (README.en.md)](./README.en.md)
-
 ## 📘 Descrição
 
 O herbário é um acervo de plantas preservadas que serve como referência científica para estudos botânicos, ecológicos e conservacionistas. O herbário Felisberto Camargo da Universidade Federal Rural da Amazônia (UFRA) foi criado em 1976 com o objetivo de coletar, identificar e armazenar exemplares de plantas da região amazônica, bem como promover pesquisas e atividades de ensino.
@@ -23,7 +21,7 @@ Além do Museu admin que terá como responsabilidade gerenciar todo o fluxo de d
 
 ## 📚 Documentação
 
-A documentação completa será mantida na Wiki ou [`/docs/readme.md`](./docs/readme.md).
+A documentação completa será mantida na Wiki ou `/docs/readme.md`.
 
 ## 🌱 Funcionalidades
 
