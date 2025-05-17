@@ -44,7 +44,7 @@
     "@aws-sdk/client-s3": "3.622.0",
     "@aws-sdk/s3-request-presigner": "3.622.0",
     "@namatery/multer-minio": "^1.1.2",
-    "@nestjs/common": "10.4.1",
+    "@nestjs/common": "10.4.16",
     "@nestjs/config": "3.2.3",
     "@nestjs/core": "10.4.1",
     "@nestjs/jwt": "10.2.0",
