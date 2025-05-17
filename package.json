@@ -1,8 +1,8 @@
 {
-  "name": "nestjs-boilerplate",
+  "name": "museum-api",
   "version": "1.2.0",
-  "description": "",
-  "author": "",
+  "description": "Museum API is a RESTful API built with NestJS, TypeORM, and PostgreSQL. It provides endpoints for managing museum collections, exhibitions, and visitor information.",
+  "author": "Davys Lima",
   "private": true,
   "license": "MIT",
   "scripts": {
