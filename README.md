@@ -11,7 +11,11 @@ Plataforma desenvolvida para o gerenciamento, compartilhamento e catalogação d
 
 ## 📘 Descrição
 
-Herbário Virtual da UFRA é uma aplicação web desenvolvida com **NestJS**, **Next.js**, **PostgreSQL** e **MinIO** para auxiliar na preservação e estudo da biodiversidade vegetal. O projeto integra funcionalidades voltadas à sistemática vegetal, incluindo taxonomia hierárquica, filtros por características botânicas, gerenciamento de usuários e visualização científica de espécies.
+O herbário é um acervo de plantas preservadas que serve como referência científica para estudos botânicos, ecológicos e conservacionistas. O herbário Felisberto Camargo da Universidade Federal Rural da Amazônia (UFRA) foi criado em 1976 com o objetivo de coletar, identificar e armazenar exemplares de plantas da região amazônica, bem como promover pesquisas e atividades de ensino.
+
+Neste cenário de importância, as tecnologias podem auxiliar no gerenciamento e disponibilidade global do acervo. Assim, com base em pesquisas realizadas no herbário da UFRA, observou-se a necessidade de aumentar a visibilidade e capacidade de compartilhamento de informações. Portanto, o presente trabalho apresenta uma aplicação web para auxiliar qualquer pessoa com interesse em conhecer o acervo. A proposta refere-se à criação de um Museu virtual, desenvolvido para a exibir todas as espécies do herbário, possibilitando o acesso a informações gerais e especificas sobre o acervo do museu em qualquer local do mundo.
+
+Além do Museu admin que terá como responsabilidade gerenciar todo o fluxo de dados necessário para que os conteúdos possam ser disponibilizados, garantindo a integridade e autenticidade das informações.
 
 > 🚀 O projeto é parte integrante do Trabalho de Conclusão de Curso (TCC) em Sistemas de Informação – Universidade Federal Rural da Amazônia.
 
