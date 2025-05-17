@@ -6,7 +6,6 @@
 - [E2E Tests](#e2e-tests)
 - [Tests in Docker](#tests-in-docker)
   - [For relational database](#for-relational-database)
-  - [For document database](#for-document-database)
 
 ## Unit Tests
 
@@ -26,12 +25,6 @@ npm run test:e2e
 
 ```bash
 npm run test:e2e:docker
-```
-
-### For document database
-
-```bash
-npm run test:e2e:document:docker
 ```
 
 ---
