@@ -70,6 +70,7 @@ jobs:
 
       - name: Copy `.env` File to VPS
         run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ vars.VPS_HOST }} "mkdir -p /home/ubuntu/app"
           scp -i ~/.ssh/id_rsa .env ubuntu@${{ vars.VPS_HOST }}:/home/ubuntu/app/.env
 
       - name: Enable Docker Access
