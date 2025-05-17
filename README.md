@@ -6,7 +6,7 @@ Plataforma desenvolvida para o gerenciamento, compartilhamento e catalogação d
 [![Static Badge](https://img.shields.io/badge/UFRA-2025-green?logo=leaflet&logoColor=white)](https://ufra.edu.br)
 
 <p align="center">
-  <img src="https://github.com/dunseen/museum-api/assets/ufra-logo.png" width="100" alt="UFRA Logo"/>
+  <img src="./assets/ufra-logo.png" width="100" alt="UFRA Logo"/>
 </p>
 
 ## 📘 Descrição
