@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20.16.0-alpine AS build
+FROM node:20.19.2-alpine AS build
 
 # Install dependencies
 RUN apk add --no-cache bash
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Runtime
-FROM node:20.16.0-alpine
+FROM node:20.19.2-alpine
 
 # Install runtime dependencies
 RUN apk add --no-cache bash
