@@ -111,12 +111,12 @@ export class FilesMinioService {
       infer: true,
     });
 
-    const ssl = this.configService.getOrThrow('file.minio.ssl', {
+    const env = this.configService.getOrThrow('app.nodeEnv', {
       infer: true,
     });
 
-    if (ssl) {
-      return `https://${host}:${port}/${bucket}/${file}`;
+    if (env === 'production') {
+      return `https://${host}/${bucket}/${file}`;
     }
 
     return `http://${host}:${port}/${bucket}/${file}`;
