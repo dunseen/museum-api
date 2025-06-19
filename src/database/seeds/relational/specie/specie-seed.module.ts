@@ -9,6 +9,7 @@ import { HierarchyEntity } from '../../../../hierarchies/infrastructure/persiste
 import { FileMinioModule } from '../../../../files/infrastructure/uploader/minio/files.module';
 import { PostEntity } from '../../../../posts/infrastructure/persistence/relational/entities/post.entity';
 import { UserEntity } from '../../../../users/infrastructure/persistence/relational/entities/user.entity';
+import { SpecialistEntity } from '../../../../specialists/infrastructure/persistence/relational/entities/specialist.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserEntity } from '../../../../users/infrastructure/persistence/relatio
       HierarchyEntity,
       PostEntity,
       UserEntity,
+      SpecialistEntity,
     ]),
     FileMinioModule,
   ],
