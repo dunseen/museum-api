@@ -1,8 +1,11 @@
+import { SpecialistType } from '../../specialists/domain/specialist';
+
 export interface IPaginationOptions {
   page: number;
   limit: number;
   filters?: {
     name?: string;
+    specialistType?: SpecialistType;
     email?: string;
     description?: string;
     characteristicIds?: string[];

@@ -16,6 +16,8 @@ import { StateEntity } from '../../../../states/infrastructure/persistence/relat
 import { PostEntity } from '../../../../posts/infrastructure/persistence/relational/entities/post.entity';
 import { UserEntity } from '../../../../users/infrastructure/persistence/relational/entities/user.entity';
 import { PostStatusEnum } from '../../../../posts/domain/post-status.enum';
+import { SpecialistEntity } from '../../../../specialists/infrastructure/persistence/relational/entities/specialist.entity';
+import { SpecialistType } from '../../../../specialists/domain/specialist';
 
 const speciesData = [
   {
@@ -38,6 +40,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -64,6 +69,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -90,6 +98,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -116,6 +127,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -142,6 +156,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -168,6 +185,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -194,6 +214,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -220,6 +243,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -246,6 +272,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
   {
@@ -272,6 +301,9 @@ const speciesData = [
     location: 'Av. de todos',
     city: 1,
     state: 8,
+    collector: 'John Doe',
+    determinator: 'Jane Smith',
+    determinatedAt: new Date('2023-01-01'),
     collectedAt: new Date('2023-01-01'),
   },
 ];
@@ -280,20 +312,22 @@ const speciesData = [
 export class SpecieSeedService {
   constructor(
     @InjectRepository(SpecieEntity)
-    private specieRepository: Repository<SpecieEntity>,
+    private readonly specieRepository: Repository<SpecieEntity>,
     @InjectRepository(CharacteristicEntity)
-    private characteristicRepository: Repository<CharacteristicEntity>,
+    private readonly characteristicRepository: Repository<CharacteristicEntity>,
     @InjectRepository(CharacteristicTypeEntity)
-    private characteristicTypeRepository: Repository<CharacteristicTypeEntity>,
+    private readonly characteristicTypeRepository: Repository<CharacteristicTypeEntity>,
     @InjectRepository(HierarchyEntity)
-    private hierarchyRepository: Repository<HierarchyEntity>,
+    private readonly hierarchyRepository: Repository<HierarchyEntity>,
     @InjectRepository(TaxonEntity)
-    private taxonRepository: Repository<TaxonEntity>,
+    private readonly taxonRepository: Repository<TaxonEntity>,
     private readonly fileService: FilesMinioService,
     @InjectRepository(PostEntity)
-    private postRepository: Repository<PostEntity>,
+    private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(SpecialistEntity)
+    private readonly specialistRepository: Repository<SpecialistEntity>,
   ) {}
 
   async run() {
@@ -301,6 +335,24 @@ export class SpecieSeedService {
       where: {
         email: 'admin@example.com',
       },
+    });
+
+    let determinator = await this.specialistRepository.findOne({
+      where: { name: speciesData[0].determinator },
+    });
+
+    determinator ??= await this.specialistRepository.save({
+      name: speciesData[0].determinator,
+      type: SpecialistType.DETERMINATOR,
+    });
+
+    let collector = await this.specialistRepository.findOne({
+      where: { name: speciesData[0].collector },
+    });
+
+    collector ??= await this.specialistRepository.save({
+      name: speciesData[0].collector,
+      type: SpecialistType.COLLECTOR,
     });
 
     for (const specieData of speciesData) {
@@ -390,7 +442,10 @@ export class SpecieSeedService {
           scientificName: specieData.scientificName,
           commonName: specieData.commonName,
           description: specieData.description,
+          determinator,
+          collector,
           collectedAt: specieData.collectedAt,
+          determinatedAt: specieData.determinatedAt,
           city,
           state,
           geoLocation: {

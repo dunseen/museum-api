@@ -5,16 +5,20 @@ import { FileType } from '../../files/domain/file';
 import { NullableType } from '../../utils/types/nullable.type';
 import { City } from '../../cities/domain/city';
 import { State } from '../../states/domain/state';
+import { Specialist } from '../../specialists/domain/specialist';
 
 export class SpecieBuilder {
   private id: number;
   private scientificName: string;
   private commonName: NullableType<string>;
   private description: NullableType<string>;
+  private determinator: NullableType<Specialist>;
+  private collector: NullableType<Specialist>;
   private collectLocation: NullableType<string>;
   private lat: number;
   private long: number;
   private collectedAt: Date;
+  private determinatedAt: Date;
   private createdAt: Date;
   private updatedAt: Date;
   private taxons: Taxon[] = [];
@@ -22,76 +26,91 @@ export class SpecieBuilder {
   private files: FileType[] = [];
   private city?: City;
   private state?: State;
-  setId(id: number): SpecieBuilder {
+  setId(id: number): this {
     this.id = id;
     return this;
   }
 
-  setScientificName(scientificName: string): SpecieBuilder {
+  setScientificName(scientificName: string): this {
     this.scientificName = scientificName;
     return this;
   }
 
-  setCommonName(commonName: NullableType<string>): SpecieBuilder {
+  setCommonName(commonName: NullableType<string>): this {
     this.commonName = commonName;
     return this;
   }
-  setDescription(description: NullableType<string>): SpecieBuilder {
+  setDescription(description: NullableType<string>): this {
     this.description = description;
     return this;
   }
 
-  setCollectLocation(location: NullableType<string>): SpecieBuilder {
+  setDeterminator(determinator: NullableType<Specialist>): this {
+    this.determinator = determinator;
+    return this;
+  }
+
+  setCollector(collector: NullableType<Specialist>): this {
+    this.collector = collector;
+    return this;
+  }
+
+  setCollectLocation(location: NullableType<string>): this {
     this.collectLocation = location;
     return this;
   }
 
-  setLat(lat: number): SpecieBuilder {
+  setLat(lat: number): this {
     this.lat = lat;
     return this;
   }
 
-  setLong(long: number): SpecieBuilder {
+  setLong(long: number): this {
     this.long = long;
     return this;
   }
 
-  setCollectedAt(collectedAt: Date): SpecieBuilder {
+  setCollectedAt(collectedAt: Date): this {
     this.collectedAt = collectedAt;
     return this;
   }
 
-  setCity(city: City): SpecieBuilder {
+  setDeterminatedAt(determinatedAt: Date): this {
+    this.determinatedAt = determinatedAt;
+    return this;
+  }
+
+  setCity(city: City): this {
     this.city = city;
     return this;
   }
 
-  setState(state: State): SpecieBuilder {
+  setState(state: State): this {
     this.state = state;
     return this;
   }
 
-  setCreatedAt(createdAt: Date): SpecieBuilder {
+  setCreatedAt(createdAt: Date): this {
     this.createdAt = createdAt;
     return this;
   }
 
-  setUpdatedAt(updatedAt: Date): SpecieBuilder {
+  setUpdatedAt(updatedAt: Date): this {
     this.updatedAt = updatedAt;
     return this;
   }
 
-  addTaxon(taxon: Taxon): SpecieBuilder {
+  addTaxon(taxon: Taxon): this {
     this.taxons.push(taxon);
     return this;
   }
 
-  addCharacteristic(characteristic: Characteristic): SpecieBuilder {
+  addCharacteristic(characteristic: Characteristic): this {
     this.characteristics.push(characteristic);
     return this;
   }
 
-  addFile(file: FileType): SpecieBuilder {
+  addFile(file: FileType): this {
     this.files.push(file);
     return this;
   }
@@ -106,10 +125,13 @@ export class SpecieBuilder {
       this.scientificName,
       this.commonName,
       this.description,
+      this.collector,
+      this.determinator,
       this.collectLocation,
       this.lat,
       this.long,
       this.collectedAt,
+      this.determinatedAt,
       this.createdAt,
       this.updatedAt,
     );
@@ -121,9 +143,17 @@ export class SpecieBuilder {
       specie.addCity(this.city);
     }
 
-    this.taxons.forEach(specie.addTaxon);
-    this.characteristics.forEach(specie.addCharacteristic);
-    this.files.forEach(specie.addFile);
+    for (const taxon of this.taxons) {
+      specie.addTaxon(taxon);
+    }
+
+    for (const characteristic of this.characteristics) {
+      specie.addCharacteristic(characteristic);
+    }
+
+    for (const file of this.files) {
+      specie.addFile(file);
+    }
 
     return specie;
   }

@@ -1,6 +1,7 @@
 import { CharacteristicMapper } from '../../../../../characteristics/infrastructure/persistence/relational/mappers/characteristic.mapper';
 import { CityMapper } from '../../../../../cities/infrastructure/persistence/relational/mappers/city.mapper';
 import { FileMapper } from '../../../../../files/infrastructure/persistence/relational/mappers/file.mapper';
+import { SpecialistMapper } from '../../../../../specialists/infrastructure/persistence/relational/mappers/specialist.mapper';
 import { StateMapper } from '../../../../../states/infrastructure/persistence/relational/mappers/state.mapper';
 import { TaxonMapper } from '../../../../../taxons/infrastructure/persistence/relational/mappers/taxon.mapper';
 import { Specie } from '../../../../domain/specie';
@@ -14,12 +15,15 @@ export class SpecieMapper {
       .setScientificName(raw.scientificName)
       .setCommonName(raw.commonName)
       .setDescription(raw.description)
+      .setCollector(raw.collector)
+      .setDeterminator(raw.determinator)
       .setCity(raw.city)
       .setState(raw.state && StateMapper.toDomain(raw.state))
       .setCollectLocation(raw.collectLocation)
       .setLat(raw.geoLocation.coordinates[1])
       .setLong(raw.geoLocation.coordinates[0])
       .setCollectedAt(raw.collectedAt)
+      .setDeterminatedAt(raw.determinatedAt)
       .setUpdatedAt(raw.updatedAt)
       .setCreatedAt(raw.createdAt)
       .build();
@@ -88,6 +92,22 @@ export class SpecieMapper {
 
     if (domainEntity?.collectedAt) {
       persistenceEntity.collectedAt = domainEntity.collectedAt;
+    }
+
+    if (domainEntity?.determinatedAt) {
+      persistenceEntity.determinatedAt = domainEntity.determinatedAt;
+    }
+
+    if (domainEntity?.collector) {
+      persistenceEntity.collector = SpecialistMapper.toPersistence(
+        domainEntity.collector,
+      );
+    }
+
+    if (domainEntity?.determinator) {
+      persistenceEntity.determinator = SpecialistMapper.toPersistence(
+        domainEntity.determinator,
+      );
     }
 
     if (domainEntity?.state) {

@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { NullableType } from '../../utils/types/nullable.type';
 import { Transform, Type } from 'class-transformer';
@@ -107,9 +108,32 @@ export class CreateSpecieDto {
   location: LocationDto;
 
   @ApiProperty({
+    type: String,
+    description: 'The id of the collector of the specie',
+    example: '123e4567-e89b-12d3-a456-426',
+  })
+  @IsUUID()
+  collectorId: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'The id of the determinator of the specie',
+    example: '123e4567-e89b-12d3-a456-426',
+  })
+  @IsUUID()
+  determinatorId: string;
+
+  @ApiProperty({
     type: Date,
     description: 'The date when the specie was collected',
   })
   @IsDateString()
   collectedAt: Date;
+
+  @ApiProperty({
+    type: Date,
+    description: 'The date when the specie was determinated',
+  })
+  @IsDateString()
+  determinatedAt: Date;
 }

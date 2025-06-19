@@ -6,6 +6,7 @@ import { NullableType } from '../../utils/types/nullable.type';
 import { LocationDto } from './create-specie.dto';
 import { City } from '../../cities/domain/city';
 import { State } from '../../states/domain/state';
+import { Specialist } from '../../specialists/domain/specialist';
 
 class ListLocationDto extends PartialType(LocationDto) {
   @ApiProperty({
@@ -42,9 +43,26 @@ export class GetSpecieDto {
   description: NullableType<string>;
 
   @ApiProperty({
+    type: Specialist,
+    nullable: true,
+  })
+  collector: NullableType<Specialist>;
+
+  @ApiProperty({
+    type: Specialist,
+    nullable: true,
+  })
+  determinator: NullableType<Specialist>;
+
+  @ApiProperty({
     type: Date,
   })
   collectedAt: Date;
+
+  @ApiProperty({
+    type: Date,
+  })
+  determinatedAt: Date;
 
   @ApiProperty({ type: ListTaxonDto, isArray: true })
   taxons: ListTaxonDto[];

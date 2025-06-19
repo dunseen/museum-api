@@ -8,6 +8,7 @@ import { FileMinioModule } from '../files/infrastructure/uploader/minio/files.mo
 import { PostsModule } from '../posts/posts.module';
 import { RelationalCityPersistenceModule } from '../cities/infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalStatePersistenceModule } from '../states/infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalSpecialistPersistenceModule } from '../specialists/infrastructure/persistence/relational/relational-persistence.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RelationalStatePersistenceModule } from '../states/infrastructure/persi
     RelationalFilePersistenceModule,
     RelationalCityPersistenceModule,
     RelationalStatePersistenceModule,
+    RelationalSpecialistPersistenceModule,
     FileMinioModule,
     forwardRef(() => PostsModule),
   ],

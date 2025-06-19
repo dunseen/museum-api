@@ -5,6 +5,7 @@ import { FileType } from '../../files/domain/file';
 import { NullableType } from '../../utils/types/nullable.type';
 import { City } from '../../cities/domain/city';
 import { State } from '../../states/domain/state';
+import { Specialist } from '../../specialists/domain/specialist';
 
 export class Specie {
   @ApiProperty({ type: Number })
@@ -15,6 +16,12 @@ export class Specie {
 
   @ApiProperty({ type: String, nullable: true })
   readonly commonName: NullableType<string>;
+
+  @ApiProperty({ type: Specialist, nullable: true })
+  readonly collector: NullableType<Specialist>;
+
+  @ApiProperty({ type: Specialist, nullable: true })
+  readonly determinator: NullableType<Specialist>;
 
   @ApiProperty({ type: String, nullable: true })
   readonly collectLocation: NullableType<string>;
@@ -50,6 +57,9 @@ export class Specie {
   readonly collectedAt: Date;
 
   @ApiProperty()
+  readonly determinatedAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   constructor(
@@ -57,10 +67,13 @@ export class Specie {
     scientificName: string,
     commonName: NullableType<string>,
     description: NullableType<string>,
+    collector: NullableType<Specialist>,
+    determinator: NullableType<Specialist>,
     collectLocation: NullableType<string>,
     lat: number,
     long: number,
     collectedAt: Date,
+    determinatedAt: Date,
     createdAt?: Date,
     updatedAt?: Date,
   ) {
@@ -68,10 +81,13 @@ export class Specie {
     this.scientificName = scientificName;
     this.commonName = commonName;
     this.description = description;
+    this.collector = collector;
+    this.determinator = determinator;
     this.collectLocation = collectLocation;
     this.lat = lat;
     this.long = long;
     this.collectedAt = collectedAt;
+    this.determinatedAt = determinatedAt;
     this.createdAt = createdAt ?? new Date();
     this.updatedAt = updatedAt ?? new Date();
   }

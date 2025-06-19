@@ -1,4 +1,5 @@
 import { CharacteristicFactory } from '../../characteristics/domain/characteristic.factory';
+import { SpecialistFactory } from '../../specialists/domain/specialist.factory';
 import { GetSpecieDto } from '../dto/get-all-species.dto';
 import { ListHomePageSpeciesDto } from '../dto/list-home-page-species.dto';
 import { Specie } from './specie';
@@ -10,8 +11,11 @@ export class SpecieFactory {
       scientificName: data.scientificName,
       commonName: data.commonName,
       description: data.description,
+      collector: SpecialistFactory.toDto(data.collector),
+      determinator: SpecialistFactory.toDto(data.determinator),
       characteristics: data.characteristics.map(CharacteristicFactory.toDto),
       collectedAt: data.collectedAt,
+      determinatedAt: data.determinatedAt,
       location: {
         address: data.collectLocation?.toString(),
         lat: data.lat,
