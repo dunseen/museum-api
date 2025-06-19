@@ -47,6 +47,8 @@ export class SpecieRelationalRepository implements SpecieRepository {
   }): Promise<WithCountList<Specie>> {
     const query = this.specieRepository
       .createQueryBuilder('s')
+      .leftJoinAndSelect('s.collector', 'collector')
+      .leftJoinAndSelect('s.determinator', 'determinator')
       .leftJoinAndSelect('s.characteristics', 'characteristics')
       .leftJoinAndSelect('s.taxons', 'taxons')
       .leftJoinAndSelect('s.files', 'files')

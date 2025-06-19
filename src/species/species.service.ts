@@ -20,11 +20,14 @@ import { CreatePostUseCase } from '../posts/application/use-cases/create-post.us
 import { generateFileName } from '../utils/string';
 import { CityRepository } from '../cities/infrastructure/persistence/city.repository';
 import { StateRepository } from '../states/infrastructure/persistence/state.repository';
+import { SpecialistRepository } from '../specialists/infrastructure/persistence/specialist.repository';
 
 @Injectable()
 export class SpeciesService {
   constructor(
     private readonly specieRepository: SpecieRepository,
+
+    private readonly specialistRepository: SpecialistRepository,
     private readonly characteristicRepository: CharacteristicRepository,
     private readonly taxonRepository: TaxonRepository,
     private readonly cityRepository: CityRepository,
@@ -35,7 +38,7 @@ export class SpeciesService {
 
   private async _validateCharacteristic(
     characteristicIds: number[],
-    specie: Specie,
+    specieBuilder: SpecieBuilder,
   ) {
     const promise = characteristicIds.map(async (id) => {
       const characteristic = await this.characteristicRepository.findById(id);
@@ -48,13 +51,16 @@ export class SpeciesService {
         });
       }
 
-      specie.addCharacteristic(characteristic);
+      specieBuilder.addCharacteristic(characteristic);
     });
 
     await Promise.all(promise);
   }
 
-  private async _validateTaxon(taxonIds: number[], specie: Specie) {
+  private async _validateTaxon(
+    taxonIds: number[],
+    specieBuilder: SpecieBuilder,
+  ) {
     const promise = taxonIds.map(async (id) => {
       const taxon = await this.taxonRepository.findById(id);
       if (!taxon) {
@@ -66,7 +72,7 @@ export class SpeciesService {
         });
       }
 
-      specie.addTaxon(taxon);
+      specieBuilder.addTaxon(taxon);
     });
 
     await Promise.all(promise);
@@ -84,7 +90,7 @@ export class SpeciesService {
     }
   }
 
-  private async _validateCity(cityId: number, specie: Specie) {
+  private async _validateCity(cityId: number, specieBuilder: SpecieBuilder) {
     const city = await this.cityRepository.findById(cityId);
 
     if (!city) {
@@ -94,10 +100,10 @@ export class SpeciesService {
       });
     }
 
-    specie.addCity(city);
+    specieBuilder.setCity(city);
   }
 
-  private async _validateState(stateId: number, specie: Specie) {
+  private async _validateState(stateId: number, specieBuilder: SpecieBuilder) {
     const state = await this.stateRepository.findById(stateId);
 
     if (!state) {
@@ -107,7 +113,40 @@ export class SpeciesService {
       });
     }
 
-    specie.addState(state);
+    specieBuilder.setState(state);
+  }
+
+  private async _validateDeterminator(
+    determinatorId: string,
+    specieBuilder: SpecieBuilder,
+  ) {
+    const determinator =
+      await this.specialistRepository.findById(determinatorId);
+
+    if (!determinator) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { determinatorId: 'determinator not found' },
+      });
+    }
+
+    specieBuilder.setDeterminator(determinator);
+  }
+
+  private async _validateCollector(
+    collectorId: string,
+    specieBuilder: SpecieBuilder,
+  ) {
+    const collector = await this.specialistRepository.findById(collectorId);
+
+    if (!collector) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { collectorId: 'collector not found' },
+      });
+    }
+
+    specieBuilder.setCollector(collector);
   }
 
   async create(
@@ -115,25 +154,29 @@ export class SpeciesService {
     files: Express.Multer.File[],
     payload: JwtPayloadType,
   ) {
-    const specie = new SpecieBuilder()
+    const specieBuilder = new SpecieBuilder()
       .setCommonName(createSpecieDto.commonName)
       .setCollectLocation(createSpecieDto.location.address)
       .setLat(createSpecieDto.location.lat)
       .setLong(createSpecieDto.location.long)
       .setCollectedAt(createSpecieDto.collectedAt)
+      .setDeterminatedAt(createSpecieDto.determinatedAt)
       .setScientificName(createSpecieDto.scientificName)
-      .setDescription(createSpecieDto.description)
-      .build();
+      .setDescription(createSpecieDto.description);
 
     const { characteristicIds, taxonIds } = createSpecieDto;
 
     await Promise.all([
       this._validateIfSpecieExists(createSpecieDto.scientificName),
-      this._validateCharacteristic(characteristicIds, specie),
-      this._validateTaxon(taxonIds, specie),
-      this._validateCity(createSpecieDto.location.cityId, specie),
-      this._validateState(createSpecieDto.location.stateId, specie),
+      this._validateCharacteristic(characteristicIds, specieBuilder),
+      this._validateTaxon(taxonIds, specieBuilder),
+      this._validateCity(createSpecieDto.location.cityId, specieBuilder),
+      this._validateState(createSpecieDto.location.stateId, specieBuilder),
+      this._validateCollector(createSpecieDto.collectorId, specieBuilder),
+      this._validateDeterminator(createSpecieDto.determinatorId, specieBuilder),
     ]);
+
+    const specie = specieBuilder.build();
 
     const createdSpecie = await this.specieRepository.create(specie);
 
@@ -210,6 +253,10 @@ export class SpeciesService {
       specieBuilder.setCollectedAt(updateSpecieDto.collectedAt);
     }
 
+    if (updateSpecieDto?.determinatedAt) {
+      specieBuilder.setDeterminatedAt(updateSpecieDto.determinatedAt);
+    }
+
     if (updateSpecieDto?.location?.address) {
       specieBuilder.setCollectLocation(updateSpecieDto.location.address);
     }
@@ -222,25 +269,34 @@ export class SpeciesService {
       specieBuilder.setLong(updateSpecieDto.location.long);
     }
 
-    const specieToUpdate = specieBuilder.build();
-
     await this._validateCharacteristic(
       updateSpecieDto.characteristicIds ?? [],
-      specieToUpdate,
+      specieBuilder,
     );
 
     if (updateSpecieDto?.taxonIds) {
-      await this._validateTaxon(updateSpecieDto.taxonIds, specieToUpdate);
+      await this._validateTaxon(updateSpecieDto.taxonIds, specieBuilder);
     }
 
     if (updateSpecieDto?.location?.cityId) {
-      await this._validateCity(updateSpecieDto.location.cityId, specieToUpdate);
+      await this._validateCity(updateSpecieDto.location.cityId, specieBuilder);
     }
 
     if (updateSpecieDto?.location?.stateId) {
       await this._validateState(
         updateSpecieDto.location.stateId,
-        specieToUpdate,
+        specieBuilder,
+      );
+    }
+
+    if (updateSpecieDto?.collectorId) {
+      await this._validateCollector(updateSpecieDto.collectorId, specieBuilder);
+    }
+
+    if (updateSpecieDto?.determinatorId) {
+      await this._validateDeterminator(
+        updateSpecieDto.determinatorId,
+        specieBuilder,
       );
     }
 
@@ -257,6 +313,8 @@ export class SpeciesService {
     if (updateSpecieDto?.filesToDelete?.length) {
       await this.filesMinioService.delete(updateSpecieDto.filesToDelete);
     }
+
+    const specieToUpdate = specieBuilder.build();
 
     await this.specieRepository.update(id, specieToUpdate);
 

@@ -20,6 +20,7 @@ import { NullableType } from '../../../../../utils/types/nullable.type';
 import { CityEntity } from '../../../../../cities/infrastructure/persistence/relational/entities/city.entity';
 import { StateEntity } from '../../../../../states/infrastructure/persistence/relational/entities/state.entity';
 import { PostEntity } from '../../../../../posts/infrastructure/persistence/relational/entities/post.entity';
+import { SpecialistEntity } from '../../../../../specialists/infrastructure/persistence/relational/entities/specialist.entity';
 
 @Entity({
   name: 'specie',
@@ -98,6 +99,18 @@ export class SpecieEntity extends EntityRelationalHelper {
   })
   city: CityEntity;
 
+  @ManyToOne(() => SpecialistEntity, {
+    cascade: true,
+    eager: true,
+  })
+  collector: SpecialistEntity;
+
+  @ManyToOne(() => SpecialistEntity, {
+    cascade: true,
+    eager: true,
+  })
+  determinator: SpecialistEntity;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -108,6 +121,11 @@ export class SpecieEntity extends EntityRelationalHelper {
     type: 'timestamp',
   })
   collectedAt: Date;
+
+  @Column({
+    type: 'timestamp',
+  })
+  determinatedAt: Date;
 
   @DeleteDateColumn()
   deletedAt: Date;

@@ -5,4 +5,7 @@ export class ListHomePageSpeciesDto extends OmitType(GetSpecieDto, [
   'characteristics',
   'location',
   'collectedAt',
+  'determinatedAt',
+  'collector',
+  'determinator',
 ]) {}
