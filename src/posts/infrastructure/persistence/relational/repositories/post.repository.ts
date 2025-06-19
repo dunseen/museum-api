@@ -46,6 +46,8 @@ export class PostRelationalRepository implements PostRepository {
       .withAuthor()
       .withValidator()
       .withSpecies()
+      .withCollector()
+      .withDeterminator()
       .withFiles()
       .withTaxons()
       .withCharacteristics()

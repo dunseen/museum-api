@@ -20,6 +20,16 @@ export class PostQueryBuilder {
     return this;
   }
 
+  withCollector() {
+    this.query = this.query.leftJoinAndSelect('s.collector', 'collector');
+    return this;
+  }
+
+  withDeterminator() {
+    this.query = this.query.leftJoinAndSelect('s.determinator', 'determinator');
+    return this;
+  }
+
   withSpecies() {
     this.query = this.query.innerJoinAndSelect('p.species', 's');
     return this;

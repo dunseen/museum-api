@@ -11,6 +11,6 @@ export class FindHomePostDetailsByNameUseCase {
 
     if (!post) return null;
 
-    return PostFactory.toDto(post);
+    return PostFactory.toPostDetailsDto(post);
   }
 }
