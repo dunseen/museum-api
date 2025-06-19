@@ -17,6 +17,8 @@ import { DashboardHierarchiesController } from './dashboard-hierarchies.controll
 import { HierarchiesModule } from '../../hierarchies/hierarchies.module';
 import { DashboardUsersController } from './dashboard-users.controller';
 import { UsersModule } from '../../users/users.module';
+import { DashboardSpecialistsController } from './dashboard-specialists.controller';
+import { SpecialistsModule } from '../../specialists/specialists.module';
 
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import { UsersModule } from '../../users/users.module';
     SpeciesModule,
     FileMinioModule,
     UsersModule,
+    SpecialistsModule,
   ],
   providers: [ListDashboardSummaryUseCase],
   controllers: [
@@ -38,6 +41,7 @@ import { UsersModule } from '../../users/users.module';
     DashboardTaxonsController,
     DashboardHierarchiesController,
     DashboardSpeciesController,
+    DashboardSpecialistsController,
     DashboardSummaryController,
   ],
 })
