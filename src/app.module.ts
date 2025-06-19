@@ -44,8 +44,11 @@ import { StatesModule } from './states/states.module';
 
 import { CitiesModule } from './cities/cities.module';
 
+import { SpecialistsModule } from './specialists/specialists.module';
+
 @Module({
   imports: [
+    SpecialistsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, authConfig, appConfig, mailConfig, fileConfig],
