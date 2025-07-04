@@ -23,7 +23,7 @@
 
 ## About databases
 
-Boilerplate supports two types of databases: PostgreSQL with TypeORM and MongoDB with Mongoose. You can choose one of them or use both in your project. The choice of database depends on the requirements of your project.
+The Museum API supports two types of databases: PostgreSQL with TypeORM. You can choose one of them or use both in your project. The choice of database depends on the requirements of your project.
 
 For support of both databases used [Hexagonal Architecture](architecture.md#hexagonal-architecture).
 

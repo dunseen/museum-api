@@ -19,10 +19,6 @@ class EnvironmentVariablesValidator {
 
   @ValidateIf((envValues) => !envValues.DATABASE_URL)
   @IsString()
-  DATABASE_TYPE: string;
-
-  @ValidateIf((envValues) => !envValues.DATABASE_URL)
-  @IsString()
   DATABASE_HOST: string;
 
   @ValidateIf((envValues) => !envValues.DATABASE_URL)
@@ -84,7 +80,6 @@ export default registerAs<DatabaseConfig>('database', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
-    isDocumentDatabase: ['mongodb'].includes(process.env.DATABASE_TYPE ?? ''),
     url: process.env.DATABASE_URL,
     type: process.env.DATABASE_TYPE,
     host: process.env.DATABASE_HOST,
