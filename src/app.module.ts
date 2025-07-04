@@ -45,6 +45,7 @@ import { StatesModule } from './states/states.module';
 import { CitiesModule } from './cities/cities.module';
 
 import { SpecialistsModule } from './specialists/specialists.module';
+import { ChangeLogsModule } from './change-logs/change-logs.module';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { SpecialistsModule } from './specialists/specialists.module';
     HomeModule,
     CitiesModule,
     StatesModule,
+    ChangeLogsModule,
   ],
 })
 export class AppModule {}
