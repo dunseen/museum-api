@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ChangeLogRepository } from '../../../../domain/change-log.repository';
 import { ChangeLog } from '../../../../domain/change-log';
 import { ChangeLogEntity } from '../entities/change-log.entity';
+import { ChangeLogMapper } from '../mappers/change-log.mapper';
 
 @Injectable()
 export class ChangeLogRelationalRepository implements ChangeLogRepository {
@@ -13,7 +14,7 @@ export class ChangeLogRelationalRepository implements ChangeLogRepository {
   ) {}
 
   async create(data: Omit<ChangeLog, 'id' | 'createdAt'>): Promise<ChangeLog> {
-    const entity = this.repository.create(data);
+    const entity = this.repository.create(ChangeLogMapper.toPersistence(data));
     const saved = await this.repository.save(entity);
     return saved;
   }

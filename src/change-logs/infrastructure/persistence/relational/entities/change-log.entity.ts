@@ -2,9 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
+import { UserEntity } from '../../../../../users/infrastructure/persistence/relational/entities/user.entity';
 
 @Entity({ name: 'change_log' })
 export class ChangeLogEntity extends EntityRelationalHelper {
@@ -23,11 +26,17 @@ export class ChangeLogEntity extends EntityRelationalHelper {
   @Column({ type: 'jsonb', nullable: true })
   newValue: Record<string, unknown> | null;
 
-  @Column({ nullable: true })
-  changedBy: string;
+  @ManyToOne(() => UserEntity, {
+    eager: true,
+  })
+  @Index()
+  changedBy: UserEntity;
 
-  @Column({ nullable: true })
-  approvedBy: string;
+  @ManyToOne(() => UserEntity, {
+    eager: true,
+  })
+  @Index()
+  approvedBy: UserEntity;
 
   @CreateDateColumn()
   createdAt: Date;
