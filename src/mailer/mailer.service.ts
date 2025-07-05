@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
+import path from 'path';
 import { ConfigService } from '@nestjs/config';
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
@@ -9,6 +11,8 @@ import { AllConfigType } from '../config/config.type';
 export class MailerService {
   private readonly logger = new Logger(MailerService.name);
   private readonly transporter: nodemailer.Transporter;
+  private readonly layoutPath: string;
+  private readonly logoDataUri: string;
   constructor(private readonly configService: ConfigService<AllConfigType>) {
     this.transporter = nodemailer.createTransport({
       host: configService.get('mail.host', { infer: true }),
@@ -21,6 +25,21 @@ export class MailerService {
         pass: configService.get('mail.password', { infer: true }),
       },
     });
+
+    const workingDir = this.configService.getOrThrow('app.workingDirectory', {
+      infer: true,
+    });
+    this.layoutPath = path.join(
+      workingDir,
+      'src',
+      'mail',
+      'mail-templates',
+      'layout.hbs',
+    );
+    const logoPath = path.join(workingDir, 'assets', 'ufra-logo.png');
+    this.logoDataUri =
+      'data:image/png;base64,' +
+      fsSync.readFileSync(logoPath, { encoding: 'base64' });
   }
 
   async sendMail({
@@ -33,10 +52,17 @@ export class MailerService {
   }): Promise<void> {
     let html: string | undefined;
     if (templatePath) {
-      const template = await fs.readFile(templatePath, 'utf-8');
-      html = Handlebars.compile(template, {
-        strict: true,
-      })(context);
+      const [template, layout] = await Promise.all([
+        fs.readFile(templatePath, 'utf-8'),
+        fs.readFile(this.layoutPath, 'utf-8'),
+      ]);
+      const body = Handlebars.compile(template, { strict: true })(context);
+      html = Handlebars.compile(layout, { strict: true })({
+        ...context,
+        body,
+        logo: this.logoDataUri,
+        lang: (context as Record<string, string>).lang ?? 'pt-BR',
+      });
     }
 
     const defaultEmail = this.configService.get('mail.defaultEmail', {
