@@ -29,6 +29,7 @@ import { User } from '../users/domain/user';
 import { UserRegisteredEvent } from './events/user-registered.event';
 import { ForgotPasswordEvent } from './events/forgot-password.event';
 import { ConfirmNewEmailEvent } from './events/confirm-new-email.event';
+import { AuthEvents } from './events/auth-events.enum';
 
 @Injectable()
 export class AuthService {
@@ -130,7 +131,7 @@ export class AuthService {
     );
 
     this.eventEmitter.emit(
-      'auth.user-registered',
+      AuthEvents.userRegistered,
       new UserRegisteredEvent(dto.email!, hash),
     );
 
@@ -251,7 +252,7 @@ export class AuthService {
     );
 
     this.eventEmitter.emit(
-      'auth.forgot-password',
+      AuthEvents.forgotPassword,
       new ForgotPasswordEvent(email, hash, tokenExpires),
     );
   }
@@ -384,7 +385,7 @@ export class AuthService {
       );
 
       this.eventEmitter.emit(
-        'auth.confirm-new-email',
+        AuthEvents.confirmNewEmail,
         new ConfirmNewEmailEvent(userDto.email!, hash),
       );
     }

@@ -4,12 +4,13 @@ import { MailService } from './mail.service';
 import { UserRegisteredEvent } from '../auth/events/user-registered.event';
 import { ForgotPasswordEvent } from '../auth/events/forgot-password.event';
 import { ConfirmNewEmailEvent } from '../auth/events/confirm-new-email.event';
+import { AuthEvents } from '../auth/events/auth-events.enum';
 
 @Injectable()
 export class AuthMailListener {
   constructor(private readonly mailService: MailService) {}
 
-  @OnEvent('auth.user-registered')
+  @OnEvent(AuthEvents.userRegistered)
   async handleUserRegistered(event: UserRegisteredEvent) {
     await this.mailService.userSignUp({
       to: event.email,
@@ -17,7 +18,7 @@ export class AuthMailListener {
     });
   }
 
-  @OnEvent('auth.forgot-password')
+  @OnEvent(AuthEvents.forgotPassword)
   async handleForgotPassword(event: ForgotPasswordEvent) {
     await this.mailService.forgotPassword({
       to: event.email,
@@ -25,7 +26,7 @@ export class AuthMailListener {
     });
   }
 
-  @OnEvent('auth.confirm-new-email')
+  @OnEvent(AuthEvents.confirmNewEmail)
   async handleConfirmNewEmail(event: ConfirmNewEmailEvent) {
     await this.mailService.confirmNewEmail({
       to: event.email,
