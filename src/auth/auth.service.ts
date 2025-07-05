@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { ConfigService } from '@nestjs/config';
@@ -97,17 +97,20 @@ export class AuthService {
     };
   }
 
-  async register(dto: AuthRegisterLoginDto): Promise<void> {
-    const user = await this.usersService.create({
-      ...dto,
-      email: dto.email,
-      role: {
-        id: RoleEnum.operator,
+  async register(dto: CreateUserDto, payload?: JwtPayloadType): Promise<User> {
+    const user = await this.usersService.create(
+      {
+        ...dto,
+        email: dto.email,
+        role: dto.role ?? {
+          id: RoleEnum.operator,
+        },
+        status: dto.status ?? {
+          id: StatusEnum.inactive,
+        },
       },
-      status: {
-        id: StatusEnum.inactive,
-      },
-    });
+      payload,
+    );
 
     const hash = await this.jwtService.signAsync(
       {
@@ -129,6 +132,8 @@ export class AuthService {
         hash,
       },
     });
+
+    return user;
   }
 
   async confirmEmail(hash: string): Promise<void> {
