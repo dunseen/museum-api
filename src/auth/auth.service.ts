@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { ConfigService } from '@nestjs/config';
@@ -20,12 +20,15 @@ import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.ty
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { UsersService } from '../users/users.service';
 import { AllConfigType } from '../config/config.type';
-import { MailService } from '../mail/mail.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RoleEnum } from '../roles/roles.enum';
 import { Session } from '../session/domain/session';
 import { SessionService } from '../session/session.service';
 import { StatusEnum } from '../statuses/statuses.enum';
 import { User } from '../users/domain/user';
+import { UserRegisteredEvent } from './events/user-registered.event';
+import { ForgotPasswordEvent } from './events/forgot-password.event';
+import { ConfirmNewEmailEvent } from './events/confirm-new-email.event';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +36,7 @@ export class AuthService {
     private jwtService: JwtService,
     private usersService: UsersService,
     private sessionService: SessionService,
-    private mailService: MailService,
+    private eventEmitter: EventEmitter2,
     private configService: ConfigService<AllConfigType>,
   ) {}
 
@@ -97,17 +100,20 @@ export class AuthService {
     };
   }
 
-  async register(dto: AuthRegisterLoginDto): Promise<void> {
-    const user = await this.usersService.create({
-      ...dto,
-      email: dto.email,
-      role: {
-        id: RoleEnum.operator,
+  async register(dto: CreateUserDto, payload?: JwtPayloadType): Promise<User> {
+    const user = await this.usersService.create(
+      {
+        ...dto,
+        email: dto.email,
+        role: dto.role ?? {
+          id: RoleEnum.operator,
+        },
+        status: {
+          id: StatusEnum.inactive,
+        },
       },
-      status: {
-        id: StatusEnum.inactive,
-      },
-    });
+      payload,
+    );
 
     const hash = await this.jwtService.signAsync(
       {
@@ -123,12 +129,12 @@ export class AuthService {
       },
     );
 
-    await this.mailService.userSignUp({
-      to: dto.email,
-      data: {
-        hash,
-      },
-    });
+    this.eventEmitter.emit(
+      'auth.user-registered',
+      new UserRegisteredEvent(dto.email!, hash),
+    );
+
+    return user;
   }
 
   async confirmEmail(hash: string): Promise<void> {
@@ -244,13 +250,10 @@ export class AuthService {
       },
     );
 
-    await this.mailService.forgotPassword({
-      to: email,
-      data: {
-        hash,
-        tokenExpires,
-      },
-    });
+    this.eventEmitter.emit(
+      'auth.forgot-password',
+      new ForgotPasswordEvent(email, hash, tokenExpires),
+    );
   }
 
   async resetPassword(hash: string, password: string): Promise<void> {
@@ -380,12 +383,10 @@ export class AuthService {
         },
       );
 
-      await this.mailService.confirmNewEmail({
-        to: userDto.email,
-        data: {
-          hash,
-        },
-      });
+      this.eventEmitter.emit(
+        'auth.confirm-new-email',
+        new ConfirmNewEmailEvent(userDto.email!, hash),
+      );
     }
 
     delete userDto.email;

@@ -31,6 +31,7 @@ import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { QueryUserDto } from '../../users/dto/query-user.dto';
 import { UpdateUserDto } from '../../users/dto/update-user.dto';
 import { UsersService } from '../../users/users.service';
+import { AuthService } from '../../auth/auth.service';
 import {
   InfinityPaginationResponse,
   InfinityPaginationResponseDto,
@@ -47,7 +48,10 @@ import { NullableType } from '../../utils/types/nullable.type';
   version: '1',
 })
 export class DashboardUsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @ApiCreatedResponse({
     type: User,
@@ -61,7 +65,7 @@ export class DashboardUsersController {
     @Body() createProfileDto: CreateUserDto,
     @JwtPayload() payload: JwtPayloadType,
   ): Promise<User> {
-    return this.usersService.create(createProfileDto, payload);
+    return this.authService.register(createProfileDto, payload);
   }
 
   @ApiOkResponse({
