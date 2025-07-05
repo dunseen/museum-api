@@ -47,9 +47,6 @@ services:
       dockerfile: maildev.Dockerfile
     env_file:
       - .env
-    networks:
-      - internal
-      - public
     ports:
       - ${MAIL_CLIENT_PORT}:${MAIL_CLIENT_PORT}
       - ${MAIL_PORT}:${MAIL_PORT}
@@ -62,6 +59,7 @@ services:
       - postgres
       - redis
       - minio
+      - maildev
     env_file:
       - .env
     networks:
