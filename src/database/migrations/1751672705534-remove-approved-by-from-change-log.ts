@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class RemoveApprovedByFromChangeLog1751672705534 implements MigrationInterface {
+export class RemoveApprovedByFromChangeLog1751672705534
+  implements MigrationInterface
+{
   name = 'RemoveApprovedByFromChangeLog1751672705534';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -16,9 +18,7 @@ export class RemoveApprovedByFromChangeLog1751672705534 implements MigrationInte
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "change_log" ADD "approvedById" uuid`,
-    );
+    await queryRunner.query(`ALTER TABLE "change_log" ADD "approvedById" uuid`);
     await queryRunner.query(
       `CREATE INDEX "IDX_95c6e2d5484ae3244f063d5ecb" ON "change_log" ("approvedById") `,
     );

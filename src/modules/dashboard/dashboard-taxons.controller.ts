@@ -118,10 +118,7 @@ export class DashboardTaxonsController {
     type: String,
     required: true,
   })
-  remove(
-    @Param('id') id: string,
-    @JwtPayload() payload: JwtPayloadType,
-  ) {
+  remove(@Param('id') id: string, @JwtPayload() payload: JwtPayloadType) {
     return this.taxonsService.remove(Number(id), payload);
   }
 }

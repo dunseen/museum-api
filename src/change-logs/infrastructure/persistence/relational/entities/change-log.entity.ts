@@ -21,17 +21,16 @@ export class ChangeLogEntity extends EntityRelationalHelper {
   action: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  oldValue: unknown | null;
+  oldValue: unknown;
 
   @Column({ type: 'jsonb', nullable: true })
-  newValue: unknown | null;
+  newValue: unknown;
 
   @ManyToOne(() => UserEntity, {
     eager: true,
   })
   @Index()
   changedBy: UserEntity;
-
 
   @CreateDateColumn()
   createdAt: Date;

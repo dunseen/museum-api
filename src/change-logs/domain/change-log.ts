@@ -12,10 +12,10 @@ export class ChangeLog {
   action: string;
 
   @ApiProperty({ required: false, type: Object, nullable: true })
-  oldValue: unknown | null;
+  oldValue: unknown;
 
   @ApiProperty({ required: false, type: Object, nullable: true })
-  newValue: unknown | null;
+  newValue: unknown;
 
   @ApiProperty({ type: User })
   changedBy: User;
