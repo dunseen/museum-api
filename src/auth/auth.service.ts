@@ -20,21 +20,24 @@ import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.ty
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { UsersService } from '../users/users.service';
 import { AllConfigType } from '../config/config.type';
-import { MailService } from '../mail/mail.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RoleEnum } from '../roles/roles.enum';
 import { Session } from '../session/domain/session';
 import { SessionService } from '../session/session.service';
 import { StatusEnum } from '../statuses/statuses.enum';
 import { User } from '../users/domain/user';
+import { UserRegisteredEvent } from './events/user-registered.event';
+import { ForgotPasswordEvent } from './events/forgot-password.event';
+import { ConfirmNewEmailEvent } from './events/confirm-new-email.event';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly usersService: UsersService,
-    private readonly sessionService: SessionService,
-    private readonly mailService: MailService,
-    private readonly configService: ConfigService<AllConfigType>,
+    private jwtService: JwtService,
+    private usersService: UsersService,
+    private sessionService: SessionService,
+    private eventEmitter: EventEmitter2,
+    private configService: ConfigService<AllConfigType>,
   ) {}
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
@@ -126,12 +129,10 @@ export class AuthService {
       },
     );
 
-    await this.mailService.userSignUp({
-      to: dto.email,
-      data: {
-        hash,
-      },
-    });
+    this.eventEmitter.emit(
+      'auth.user-registered',
+      new UserRegisteredEvent(dto.email!, hash),
+    );
 
     return user;
   }
@@ -249,13 +250,10 @@ export class AuthService {
       },
     );
 
-    await this.mailService.forgotPassword({
-      to: email,
-      data: {
-        hash,
-        tokenExpires,
-      },
-    });
+    this.eventEmitter.emit(
+      'auth.forgot-password',
+      new ForgotPasswordEvent(email, hash, tokenExpires),
+    );
   }
 
   async resetPassword(hash: string, password: string): Promise<void> {
@@ -385,12 +383,10 @@ export class AuthService {
         },
       );
 
-      await this.mailService.confirmNewEmail({
-        to: userDto.email,
-        data: {
-          hash,
-        },
-      });
+      this.eventEmitter.emit(
+        'auth.confirm-new-email',
+        new ConfirmNewEmailEvent(userDto.email!, hash),
+      );
     }
 
     delete userDto.email;
