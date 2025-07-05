@@ -12,6 +12,7 @@ import { PostService } from '../../domain/post.service';
 import { UserNotFoundException } from '../../../users/domain/exceptions/user-not-found.error';
 import { PostNotFoundException } from '../../domain/exceptions/post-not-found.error';
 import { UpdatePostDto } from '../dtos/update-post.dto';
+import { ChangeLogsService } from '../../../change-logs/change-logs.service';
 
 @Injectable()
 export class ValidatePostUseCase {
@@ -19,6 +20,7 @@ export class ValidatePostUseCase {
     private readonly postRepository: PostRepository,
     private readonly userService: UsersService,
     private readonly postService: PostService,
+    private readonly changeLogsService: ChangeLogsService,
   ) {}
 
   async execute(
@@ -52,6 +54,14 @@ export class ValidatePostUseCase {
       }
 
       await this.postRepository.update(id, updatedPost);
+
+      await this.changeLogsService.create({
+        tableName: 'post',
+        action: 'update',
+        oldValue: post,
+        newValue: updatedPost,
+        changedBy: validator,
+      });
     } catch (error) {
       if (error instanceof UserNotFoundException) {
         throw new ForbiddenException(error.message);

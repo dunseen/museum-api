@@ -131,7 +131,7 @@ export class DashboardSpeciesController {
     type: Number,
     required: true,
   })
-  remove(@Param('id') id: number) {
-    return this.speciesService.remove(id);
+  remove(@Param('id') id: number, @JwtPayload() payload: JwtPayloadType) {
+    return this.speciesService.remove(id, payload);
   }
 }

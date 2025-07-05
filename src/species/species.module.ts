@@ -6,6 +6,8 @@ import { RelationalTaxonPersistenceModule } from '../taxons/infrastructure/persi
 import { RelationalFilePersistenceModule } from '../files/infrastructure/persistence/relational/relational-persistence.module';
 import { FileMinioModule } from '../files/infrastructure/uploader/minio/files.module';
 import { PostsModule } from '../posts/posts.module';
+import { ChangeLogsModule } from '../change-logs/change-logs.module';
+import { UsersModule } from '../users/users.module';
 import { RelationalCityPersistenceModule } from '../cities/infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalStatePersistenceModule } from '../states/infrastructure/persistence/relational/relational-persistence.module';
 import { RelationalSpecialistPersistenceModule } from '../specialists/infrastructure/persistence/relational/relational-persistence.module';
@@ -21,6 +23,8 @@ import { RelationalSpecialistPersistenceModule } from '../specialists/infrastruc
     RelationalSpecialistPersistenceModule,
     FileMinioModule,
     forwardRef(() => PostsModule),
+    ChangeLogsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [SpeciesService],

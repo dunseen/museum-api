@@ -11,7 +11,6 @@ export class ChangeLogMapper {
     domain.oldValue = raw.oldValue;
     domain.newValue = raw.newValue;
     domain.changedBy = UserMapper.toDomain(raw.changedBy);
-    domain.approvedBy = UserMapper.toDomain(raw.approvedBy);
     domain.createdAt = raw.createdAt;
 
     return domain;
@@ -28,9 +27,6 @@ export class ChangeLogMapper {
 
     if (domain.changedBy)
       entity.changedBy = UserMapper.toPersistence(domain.changedBy);
-
-    if (domain.approvedBy)
-      entity.approvedBy = UserMapper.toPersistence(domain.approvedBy);
 
     if (domain.createdAt) entity.createdAt = domain.createdAt;
     return entity;

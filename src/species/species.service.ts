@@ -21,6 +21,8 @@ import { generateFileName } from '../utils/string';
 import { CityRepository } from '../cities/infrastructure/persistence/city.repository';
 import { StateRepository } from '../states/infrastructure/persistence/state.repository';
 import { SpecialistRepository } from '../specialists/infrastructure/persistence/specialist.repository';
+import { ChangeLogsService } from '../change-logs/change-logs.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class SpeciesService {
@@ -34,6 +36,8 @@ export class SpeciesService {
     private readonly stateRepository: StateRepository,
     private readonly filesMinioService: FilesMinioService,
     private readonly createPostUseCase: CreatePostUseCase,
+    private readonly usersService: UsersService,
+    private readonly changeLogsService: ChangeLogsService,
   ) {}
 
   private async _validateCharacteristic(
@@ -195,6 +199,15 @@ export class SpeciesService {
       payload,
     );
 
+    const changer = await this.usersService.ensureUserExists(payload.id);
+    await this.changeLogsService.create({
+      tableName: 'specie',
+      action: 'create',
+      oldValue: null,
+      newValue: createdSpecie,
+      changedBy: changer,
+    });
+
     return SpecieFactory.toDto(createdSpecie);
   }
 
@@ -318,6 +331,15 @@ export class SpeciesService {
 
     await this.specieRepository.update(id, specieToUpdate);
 
+    const changer = await this.usersService.ensureUserExists(payload.id);
+    await this.changeLogsService.create({
+      tableName: 'specie',
+      action: 'update',
+      oldValue: specie,
+      newValue: specieToUpdate,
+      changedBy: changer,
+    });
+
     await this.createPostUseCase.execute(
       {
         specieId: id,
@@ -326,7 +348,19 @@ export class SpeciesService {
     );
   }
 
-  remove(id: Specie['id']) {
-    return this.specieRepository.remove(id);
+  async remove(id: Specie['id'], payload: JwtPayloadType) {
+    const specie = await this.specieRepository.findById(id);
+    await this.specieRepository.remove(id);
+
+    if (specie) {
+      const changer = await this.usersService.ensureUserExists(payload.id);
+      await this.changeLogsService.create({
+        tableName: 'specie',
+        action: 'delete',
+        oldValue: specie,
+        newValue: null,
+        changedBy: changer,
+      });
+    }
   }
 }

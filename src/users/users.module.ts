@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ChangeLogsModule } from '../change-logs/change-logs.module';
 
 import { UsersService } from './users.service';
 import { RelationalUserPersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
@@ -6,7 +7,7 @@ import { RelationalUserPersistenceModule } from './infrastructure/persistence/re
 const infrastructurePersistenceModule = RelationalUserPersistenceModule;
 
 @Module({
-  imports: [infrastructurePersistenceModule],
+  imports: [infrastructurePersistenceModule, ChangeLogsModule],
   controllers: [],
   providers: [UsersService],
   exports: [UsersService, infrastructurePersistenceModule],

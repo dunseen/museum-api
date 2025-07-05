@@ -10,6 +10,7 @@ import { DeletePostUseCase } from './application/use-cases/delete-post.use-case'
 import { UsersModule } from '../users/users.module';
 import { ValidatePostUseCase } from './application/use-cases/validate-post.use-case';
 import { PostsController } from './posts.controller';
+import { ChangeLogsModule } from '../change-logs/change-logs.module';
 import { ListHomePagePostsUseCase } from './application/use-cases/list-home-page-posts.use-case';
 import { FindHomePostDetailsByNameUseCase } from './application/use-cases/find-home-post-details-by-name.use-case';
 
@@ -29,6 +30,7 @@ const providers = [
     RelationalUserPersistenceModule,
     UsersModule,
     forwardRef(() => SpeciesModule),
+    ChangeLogsModule,
   ],
   controllers: [PostsController],
   providers,

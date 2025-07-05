@@ -7,6 +7,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { FilterUserDto, SortUserDto } from './dto/query-user.dto';
 import { UserRepository } from './infrastructure/persistence/user.repository';
+import { ChangeLogsService } from '../change-logs/change-logs.service';
+import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { User } from './domain/user';
 import bcrypt from 'bcryptjs';
 import { AuthProvidersEnum } from '../auth/auth-providers.enum';
@@ -21,9 +23,15 @@ import { UserNotFoundException } from './domain/exceptions/user-not-found.error'
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UserRepository) {}
+  constructor(
+    private readonly usersRepository: UserRepository,
+    private readonly changeLogsService: ChangeLogsService,
+  ) {}
 
-  async create(createProfileDto: CreateUserDto): Promise<User> {
+  async create(
+    createProfileDto: CreateUserDto,
+    payload?: JwtPayloadType,
+  ): Promise<User> {
     const clonedPayload = {
       provider: AuthProvidersEnum.email,
       ...createProfileDto,
@@ -76,7 +84,22 @@ export class UsersService {
       }
     }
 
-    return this.usersRepository.create(clonedPayload);
+    const createdUser = await this.usersRepository.create(clonedPayload);
+
+    if (payload) {
+      const changer = await this.usersRepository.findById(payload.id);
+      if (changer) {
+        await this.changeLogsService.create({
+          tableName: 'user',
+          action: 'create',
+          oldValue: null,
+          newValue: createdUser,
+          changedBy: changer,
+        });
+      }
+    }
+
+    return createdUser;
   }
 
   findManyWithPagination({
@@ -116,6 +139,7 @@ export class UsersService {
   async update(
     id: User['id'],
     payload: DeepPartial<User>,
+    jwtPayload?: JwtPayloadType,
   ): Promise<User | null> {
     const clonedPayload = { ...payload };
 
@@ -170,10 +194,40 @@ export class UsersService {
       }
     }
 
-    return this.usersRepository.update(id, clonedPayload);
+    const oldUser = await this.usersRepository.findById(id);
+    const updatedUser = await this.usersRepository.update(id, clonedPayload);
+
+    if (jwtPayload) {
+      const changer = await this.usersRepository.findById(jwtPayload.id);
+      if (changer) {
+        await this.changeLogsService.create({
+          tableName: 'user',
+          action: 'update',
+          oldValue: oldUser,
+          newValue: updatedUser,
+          changedBy: changer,
+        });
+      }
+    }
+
+    return updatedUser;
   }
 
-  async remove(id: User['id']): Promise<void> {
+  async remove(id: User['id'], jwtPayload?: JwtPayloadType): Promise<void> {
+    const user = await this.usersRepository.findById(id);
     await this.usersRepository.remove(id);
+
+    if (jwtPayload && user) {
+      const changer = await this.usersRepository.findById(jwtPayload.id);
+      if (changer) {
+        await this.changeLogsService.create({
+          tableName: 'user',
+          action: 'delete',
+          oldValue: user,
+          newValue: null,
+          changedBy: changer,
+        });
+      }
+    }
   }
 }
