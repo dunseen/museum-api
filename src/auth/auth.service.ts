@@ -105,7 +105,7 @@ export class AuthService {
         role: dto.role ?? {
           id: RoleEnum.operator,
         },
-        status: dto.status ?? {
+        status: {
           id: StatusEnum.inactive,
         },
       },
