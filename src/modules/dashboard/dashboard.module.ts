@@ -19,6 +19,7 @@ import { DashboardUsersController } from './dashboard-users.controller';
 import { UsersModule } from '../../users/users.module';
 import { DashboardSpecialistsController } from './dashboard-specialists.controller';
 import { SpecialistsModule } from '../../specialists/specialists.module';
+import { AuthModule } from '../../auth/auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SpecialistsModule } from '../../specialists/specialists.module';
     SpeciesModule,
     FileMinioModule,
     UsersModule,
+    AuthModule,
     SpecialistsModule,
   ],
   providers: [ListDashboardSummaryUseCase],

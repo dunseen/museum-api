@@ -19,7 +19,6 @@ import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { User } from '../users/domain/user';
@@ -43,12 +42,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public login(@Body() loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     return this.service.validateLogin(loginDto);
-  }
-
-  @Post('email/register')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async register(@Body() createUserDto: AuthRegisterLoginDto): Promise<void> {
-    return this.service.register(createUserDto);
   }
 
   @Post('email/confirm')

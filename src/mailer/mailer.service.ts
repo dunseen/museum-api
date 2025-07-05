@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import fs from 'node:fs/promises';
 import { ConfigService } from '@nestjs/config';
 import nodemailer from 'nodemailer';
@@ -7,6 +7,7 @@ import { AllConfigType } from '../config/config.type';
 
 @Injectable()
 export class MailerService {
+  private readonly logger = new Logger(MailerService.name);
   private readonly transporter: nodemailer.Transporter;
   constructor(private readonly configService: ConfigService<AllConfigType>) {
     this.transporter = nodemailer.createTransport({
@@ -38,16 +39,24 @@ export class MailerService {
       })(context);
     }
 
-    await this.transporter.sendMail({
-      ...mailOptions,
-      from: mailOptions.from
-        ? mailOptions.from
-        : `"${this.configService.get('mail.defaultName', {
-            infer: true,
-          })}" <${this.configService.get('mail.defaultEmail', {
-            infer: true,
-          })}>`,
-      html: mailOptions.html ? mailOptions.html : html,
+    const defaultEmail = this.configService.get('mail.defaultEmail', {
+      infer: true,
     });
+
+    const defaultName = this.configService.get('mail.defaultName', {
+      infer: true,
+    });
+
+    this.logger.debug(
+      `Sending email to: ${mailOptions.to}, subject: ${mailOptions.subject}`,
+    );
+
+    const info = await this.transporter.sendMail({
+      ...mailOptions,
+      from: mailOptions.from ?? `"${defaultName}" <${defaultEmail}>`,
+      html: mailOptions.html ?? html,
+    });
+
+    this.logger.debug(`Email sent: ${info.messageId}`);
   }
 }

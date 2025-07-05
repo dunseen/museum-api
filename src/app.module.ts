@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
@@ -55,6 +56,7 @@ import { ChangeLogsModule } from './change-logs/change-logs.module';
       load: [databaseConfig, authConfig, appConfig, mailConfig, fileConfig],
       envFilePath: ['.env'],
     }),
+    EventEmitterModule.forRoot(),
     I18nModule.forRootAsync({
       useFactory: (configService: ConfigService<AllConfigType>) => ({
         fallbackLanguage: configService.getOrThrow('app.fallbackLanguage', {
