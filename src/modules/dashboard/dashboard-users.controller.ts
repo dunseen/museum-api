@@ -25,6 +25,8 @@ import { Roles } from '../../roles/roles.decorator';
 import { RoleEnum } from '../../roles/roles.enum';
 import { RolesGuard } from '../../roles/roles.guard';
 import { User } from '../../users/domain/user';
+import { JwtPayload } from '../../auth/strategies/jwt.decorator';
+import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { QueryUserDto } from '../../users/dto/query-user.dto';
 import { UpdateUserDto } from '../../users/dto/update-user.dto';
@@ -55,8 +57,11 @@ export class DashboardUsersController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createProfileDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createProfileDto);
+  create(
+    @Body() createProfileDto: CreateUserDto,
+    @JwtPayload() payload: JwtPayloadType,
+  ): Promise<User> {
+    return this.usersService.create(createProfileDto, payload);
   }
 
   @ApiOkResponse({
@@ -119,8 +124,9 @@ export class DashboardUsersController {
   update(
     @Param('id') id: User['id'],
     @Body() updateProfileDto: UpdateUserDto,
+    @JwtPayload() payload: JwtPayloadType,
   ): Promise<User | null> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(id, updateProfileDto, payload);
   }
 
   @Delete(':id')
@@ -130,7 +136,10 @@ export class DashboardUsersController {
     required: true,
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: User['id']): Promise<void> {
-    return this.usersService.remove(id);
+  remove(
+    @Param('id') id: User['id'],
+    @JwtPayload() payload: JwtPayloadType,
+  ): Promise<void> {
+    return this.usersService.remove(id, payload);
   }
 }

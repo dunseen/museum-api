@@ -32,6 +32,8 @@ import {
 } from '../../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../../utils/infinity-pagination';
 import { GetTaxonDto } from '../../taxons/dto/get-taxon.dto';
+import { JwtPayload } from '../../auth/strategies/jwt.decorator';
+import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 
 @ApiTags('Dashboard - Taxons')
 @ApiBearerAuth()
@@ -48,8 +50,11 @@ export class DashboardTaxonsController {
   @ApiCreatedResponse({
     type: Taxon,
   })
-  create(@Body() createTaxonDto: CreateTaxonDto) {
-    return this.taxonsService.create(createTaxonDto);
+  create(
+    @Body() createTaxonDto: CreateTaxonDto,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.taxonsService.create(createTaxonDto, payload);
   }
 
   @Get()
@@ -99,8 +104,12 @@ export class DashboardTaxonsController {
   @ApiOkResponse({
     type: Taxon,
   })
-  update(@Param('id') id: string, @Body() updateTaxonDto: UpdateTaxonDto) {
-    return this.taxonsService.update(Number(id), updateTaxonDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateTaxonDto: UpdateTaxonDto,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.taxonsService.update(Number(id), updateTaxonDto, payload);
   }
 
   @Delete(':id')
@@ -109,7 +118,10 @@ export class DashboardTaxonsController {
     type: String,
     required: true,
   })
-  remove(@Param('id') id: string) {
-    return this.taxonsService.remove(Number(id));
+  remove(
+    @Param('id') id: string,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.taxonsService.remove(Number(id), payload);
   }
 }

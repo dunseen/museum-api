@@ -13,6 +13,9 @@ import { CharacteristicFactory } from '../characteristics/domain/characteristic.
 import { GetTaxonDto } from './dto/get-taxon.dto';
 import { CharacteristicRepository } from '../characteristics/domain/characteristic.repository';
 import { Characteristic } from '../characteristics/domain/characteristic';
+import { ChangeLogsService } from '../change-logs/change-logs.service';
+import { UsersService } from '../users/users.service';
+import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 
 @Injectable()
 export class TaxonsService {
@@ -20,9 +23,11 @@ export class TaxonsService {
     private readonly taxonRepository: TaxonRepository,
     private readonly hierarchyRepository: HierarchyRepository,
     private readonly characteristicRepository: CharacteristicRepository,
+    private readonly usersService: UsersService,
+    private readonly changeLogsService: ChangeLogsService,
   ) {}
 
-  async create(createTaxonDto: CreateTaxonDto) {
+  async create(createTaxonDto: CreateTaxonDto, payload: JwtPayloadType) {
     const newTaxon = new Taxon();
 
     const hiearchy = await this.hierarchyRepository.findById(
@@ -78,7 +83,18 @@ export class TaxonsService {
     newTaxon.name = createTaxonDto.name;
     newTaxon.hierarchy = hiearchy;
 
-    return this.taxonRepository.create(newTaxon);
+    const createdTaxon = await this.taxonRepository.create(newTaxon);
+
+    const changer = await this.usersService.ensureUserExists(payload.id);
+    await this.changeLogsService.create({
+      tableName: 'taxon',
+      action: 'create',
+      oldValue: null,
+      newValue: createdTaxon,
+      changedBy: changer,
+    });
+
+    return createdTaxon;
   }
 
   async findAllWithPagination({
@@ -117,7 +133,11 @@ export class TaxonsService {
     return this.taxonRepository.findById(id);
   }
 
-  async update(id: Taxon['id'], updateTaxonDto: UpdateTaxonDto) {
+  async update(
+    id: Taxon['id'],
+    updateTaxonDto: UpdateTaxonDto,
+    payload: JwtPayloadType,
+  ) {
     const characteristics: Characteristic[] = [];
 
     if (updateTaxonDto.characteristicIds?.length) {
@@ -138,15 +158,39 @@ export class TaxonsService {
       }
     }
 
+    const oldTaxon = await this.taxonRepository.findById(id);
+
     const updatedTaxon = {
       ...updateTaxonDto,
       characteristics,
     };
 
-    return this.taxonRepository.update(id, updatedTaxon);
+    const result = await this.taxonRepository.update(id, updatedTaxon);
+
+    const changer = await this.usersService.ensureUserExists(payload.id);
+    await this.changeLogsService.create({
+      tableName: 'taxon',
+      action: 'update',
+      oldValue: oldTaxon,
+      newValue: result,
+      changedBy: changer,
+    });
+
+    return result;
   }
 
-  remove(id: Taxon['id']) {
-    return this.taxonRepository.remove(id);
+  async remove(id: Taxon['id'], payload: JwtPayloadType) {
+    const taxon = await this.taxonRepository.findById(id);
+    await this.taxonRepository.remove(id);
+    if (taxon) {
+      const changer = await this.usersService.ensureUserExists(payload.id);
+      await this.changeLogsService.create({
+        tableName: 'taxon',
+        action: 'delete',
+        oldValue: taxon,
+        newValue: null,
+        changedBy: changer,
+      });
+    }
   }
 }

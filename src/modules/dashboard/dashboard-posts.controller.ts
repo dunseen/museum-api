@@ -132,7 +132,7 @@ export class DashboardPostsController {
     type: String,
     required: true,
   })
-  remove(@Param('id') id: string) {
-    return this.deletePostUseCase.execute(id);
+  remove(@Param('id') id: string, @JwtPayload() payload: JwtPayloadType) {
+    return this.deletePostUseCase.execute(id, payload);
   }
 }

@@ -2,6 +2,7 @@ import { JwtPayloadType } from '../../../auth/strategies/types/jwt-payload.type'
 import { SpeciesService } from '../../../species/species.service';
 import { UsersService } from '../../../users/users.service';
 import { PostRepository } from '../../domain/post.repository';
+import { ChangeLogsService } from '../../../change-logs/change-logs.service';
 import { Post } from '../../domain/post';
 import { PostStatusEnum } from '../../domain/post-status.enum';
 import { PostFactory } from '../../domain/post.factory';
@@ -22,6 +23,7 @@ export class CreatePostUseCase {
     private readonly userService: UsersService,
     @Inject(forwardRef(() => SpeciesService))
     private readonly speciesService: SpeciesService,
+    private readonly changeLogsService: ChangeLogsService,
   ) {}
 
   async execute(createPostDto: CreatePostDto, payload: JwtPayloadType) {
@@ -51,6 +53,14 @@ export class CreatePostUseCase {
       .build();
 
     const newPost = await this.postRepository.create(post);
+
+    await this.changeLogsService.create({
+      tableName: 'post',
+      action: 'create',
+      oldValue: null,
+      newValue: newPost,
+      changedBy: author,
+    });
 
     return PostFactory.toDto(newPost);
   }

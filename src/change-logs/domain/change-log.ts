@@ -12,16 +12,13 @@ export class ChangeLog {
   action: string;
 
   @ApiProperty({ required: false, type: Object, nullable: true })
-  oldValue: Record<string, unknown> | null;
+  oldValue: unknown | null;
 
   @ApiProperty({ required: false, type: Object, nullable: true })
-  newValue: Record<string, unknown> | null;
+  newValue: unknown | null;
 
   @ApiProperty({ type: User })
   changedBy: User;
-
-  @ApiProperty({ type: User })
-  approvedBy: User;
 
   @ApiProperty()
   createdAt: Date;
