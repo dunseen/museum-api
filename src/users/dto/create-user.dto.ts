@@ -16,7 +16,7 @@ export class CreateUserDto {
   @Transform(lowerCaseTransformer)
   @IsNotEmpty()
   @IsEmail()
-  email: string | null;
+  email: string;
 
   @ApiProperty()
   @MinLength(6)
@@ -24,15 +24,15 @@ export class CreateUserDto {
 
   @ApiProperty({ example: 'John', type: String })
   @IsNotEmpty()
-  firstName: string | null;
+  firstName: string;
 
   @ApiProperty({ example: 'Doe', type: String })
   @IsNotEmpty()
-  lastName: string | null;
+  lastName: string;
 
   @ApiProperty({ example: '+551235', type: String })
   @IsNotEmpty()
-  phone: string | null;
+  phone: string;
 
   @ApiPropertyOptional({ type: RoleDto })
   @IsOptional()
