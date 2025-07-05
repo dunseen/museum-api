@@ -40,6 +40,20 @@ services:
       - ${MINIO_WEB_PORT}:${MINIO_WEB_PORT}
       - ${MINIO_PORT}:${MINIO_PORT}
 
+  maildev:
+    container_name: museum-maildev
+    build:
+      context: .
+      dockerfile: maildev.Dockerfile
+    env_file:
+      - .env
+    networks:
+      - internal
+      - public
+    ports:
+      - ${MAIL_CLIENT_PORT}:${MAIL_CLIENT_PORT}
+      - ${MAIL_PORT}:${MAIL_PORT}
+
   api:
     container_name: museum-api
     build: .
