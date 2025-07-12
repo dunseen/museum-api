@@ -7,5 +7,6 @@ export type MailConfig = {
   defaultName?: string;
   ignoreTLS: boolean;
   secure: boolean;
+  service?: string;
   requireTLS: boolean;
 };

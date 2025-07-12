@@ -49,8 +49,9 @@ jobs:
           MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
           MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
           MAIL_HOST=${{ vars.MAIL_HOST }}
+          MAIL_SERVICE=${{ vars.MAIL_SERVICE }}
           MAIL_PORT=${{ vars.MAIL_PORT }}
-          MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           MAIL_IGNORE_TLS=${{ vars.MAIL_IGNORE_TLS }}
           MAIL_SECURE=${{ vars.MAIL_SECURE }}

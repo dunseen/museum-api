@@ -30,6 +30,10 @@ class EnvironmentVariablesValidator {
   @IsOptional()
   MAIL_PASSWORD: string;
 
+  @IsString()
+  @IsOptional()
+  MAIL_SERVICE: string;
+
   @IsEmail()
   MAIL_DEFAULT_EMAIL: string;
 
@@ -54,6 +58,7 @@ export default registerAs<MailConfig>('mail', () => {
     host: process.env.MAIL_HOST,
     user: process.env.MAIL_USER,
     password: process.env.MAIL_PASSWORD,
+    service: process.env.MAIL_SERVICE,
     defaultEmail: process.env.MAIL_DEFAULT_EMAIL,
     defaultName: process.env.MAIL_DEFAULT_NAME,
     ignoreTLS: process.env.MAIL_IGNORE_TLS === 'true',
