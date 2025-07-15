@@ -36,7 +36,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ vars.VPS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Create `.env` File in GitHub Actions Runner
         run: |
@@ -89,8 +89,8 @@ jobs:
 
       - name: Copy `.env` File to VPS
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ vars.VPS_HOST }} "mkdir -p /home/ubuntu/app"
-          scp -i ~/.ssh/id_rsa .env ubuntu@${{ vars.VPS_HOST }}:/home/ubuntu/app/.env
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.VPS_HOST }} "mkdir -p /home/ubuntu/app"
+          scp -i ~/.ssh/id_rsa .env ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/.env
 
       - name: Enable Docker Access
         run: |
@@ -129,15 +129,15 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ vars.VPS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Copy `docker-compose.yaml` to VPS
         run: |
-          scp -i ~/.ssh/id_rsa docker-compose.yaml ubuntu@${{ vars.VPS_HOST }}:/home/ubuntu/app/docker-compose.yaml
+          scp -i ~/.ssh/id_rsa docker-compose.yaml ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/docker-compose.yaml
 
       - name: Deploy to VPS
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ vars.VPS_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.VPS_HOST }} << 'EOF'
           echo "${{ secrets.DOCKER_HUB_PASSWORD  }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME  }}" --password-stdin
           docker pull ${{ secrets.DOCKER_HUB_USERNAME  }}/museum-api:latest
           cd /home/ubuntu/app
