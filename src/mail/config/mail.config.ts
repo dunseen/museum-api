@@ -56,7 +56,7 @@ export default registerAs<MailConfig>('mail', () => {
   return {
     port: process.env.MAIL_PORT ? parseInt(process.env.MAIL_PORT, 10) : 587,
     host: process.env.MAIL_HOST,
-    user: process.env.MAIL_USER,
+    user: process.env.MAIL_USERNAME,
     password: process.env.MAIL_PASSWORD,
     service: process.env.MAIL_SERVICE,
     defaultEmail: process.env.MAIL_DEFAULT_EMAIL,
