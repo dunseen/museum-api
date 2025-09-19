@@ -18,7 +18,7 @@ services:
 
   redis:
     container_name: museum-cache
-    image: redis:7-alpine
+    image: redis:8-alpine
     networks:
       - internal
       - public

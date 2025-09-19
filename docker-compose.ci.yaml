@@ -18,7 +18,7 @@ services:
 
   # Uncomment to use redis
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     expose:
       - 6379
 
