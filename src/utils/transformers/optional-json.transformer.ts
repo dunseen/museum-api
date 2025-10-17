@@ -17,4 +17,3 @@ export const optionalJsonParse = () =>
     }
     return value;
   });
-

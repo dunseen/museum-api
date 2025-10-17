@@ -11,7 +11,9 @@ export class ChangeRequestFactory {
       status: cr.status,
       entityId: cr.entityId,
       proposedBy: UserFactory.createAuthor(cr.proposedBy),
-      reviewedBy: cr.reviewedBy ? UserFactory.createAuthor(cr.reviewedBy) : null,
+      reviewedBy: cr.reviewedBy
+        ? UserFactory.createAuthor(cr.reviewedBy)
+        : null,
       proposedAt: cr.proposedAt,
       decidedAt: cr.decidedAt,
       summary: cr.summary ?? null,
@@ -19,4 +21,3 @@ export class ChangeRequestFactory {
     };
   }
 }
-
