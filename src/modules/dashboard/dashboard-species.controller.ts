@@ -39,6 +39,9 @@ import { JwtPayload } from '../../auth/strategies/jwt.decorator';
 import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 
 @ApiTags('Dashboard - Species')
+@ApiBearerAuth()
+@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller({
   path: 'dashboard/species',
   version: '1',
@@ -46,9 +49,6 @@ import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 export class DashboardSpeciesController {
   constructor(private readonly speciesService: SpeciesService) {}
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @ApiCreatedResponse({
     type: GetSpecieDto,
@@ -99,9 +99,6 @@ export class DashboardSpeciesController {
     return this.speciesService.findOne(id);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put(':id')
   @ApiParam({
     name: 'id',
@@ -122,9 +119,6 @@ export class DashboardSpeciesController {
     return this.speciesService.update(id, updateSpecieDto, files, payload);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')
   @ApiParam({
     name: 'id',

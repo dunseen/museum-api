@@ -3,6 +3,8 @@ import { PostRepository } from './post.repository';
 import { IPaginationOptions } from '../../utils/types/pagination-options';
 import { Post } from './post';
 import { PostNotFoundException } from './exceptions/post-not-found.error';
+import { Specie } from '../../species/domain/specie';
+import { ChangeRequest } from 'src/change-requests/domain/change-request';
 
 @Injectable()
 export class PostService {
@@ -43,5 +45,20 @@ export class PostService {
 
   remove(id: string[] | string) {
     return this.postRepository.remove(id);
+  }
+
+  async createFromChangeRequest(
+    changeRequest: ChangeRequest,
+    specie: Specie,
+  ): Promise<Post> {
+    const post = Post.builder()
+      .setId()
+      .setSpecie(specie)
+      .setChangeRequest(changeRequest)
+      .build();
+
+    const newPost = await this.postRepository.create(post);
+
+    return newPost;
   }
 }

@@ -7,6 +7,7 @@ import { LocationDto } from './create-specie.dto';
 import { City } from '../../cities/domain/city';
 import { State } from '../../states/domain/state';
 import { Specialist } from '../../specialists/domain/specialist';
+import { ChangeRequestStatus } from '../../change-requests/domain/change-request';
 
 class ListLocationDto extends PartialType(LocationDto) {
   @ApiProperty({
@@ -83,4 +84,15 @@ export class GetSpecieDto {
     type: ListLocationDto,
   })
   location: ListLocationDto;
+
+  @ApiProperty({
+    enum: ChangeRequestStatus,
+  })
+  status: ChangeRequestStatus;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+  })
+  statusReason: NullableType<string>;
 }

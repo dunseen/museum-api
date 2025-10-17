@@ -85,7 +85,7 @@ export class CharacteristicRelationalRepository
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit)
       .innerJoinAndSelect('c.type', 't')
-      .leftJoinAndSelect('c.files', 'f')
+      .leftJoinAndSelect('c.files', 'f', 'f.approved = true')
       .orderBy('c.createdAt', 'DESC')
       .getManyAndCount();
 

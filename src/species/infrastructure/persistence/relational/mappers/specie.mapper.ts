@@ -7,10 +7,16 @@ import { TaxonMapper } from '../../../../../taxons/infrastructure/persistence/re
 import { Specie } from '../../../../domain/specie';
 import { SpecieBuilder } from '../../../../domain/specie-builder';
 import { SpecieEntity } from '../entities/specie.entity';
+import { ChangeRequestStatus } from '../../../../../change-requests/domain/change-request';
+import { NullableType } from '../../../../../utils/types/nullable.type';
 
 export class SpecieMapper {
-  static toDomain(raw: SpecieEntity): Specie {
-    const domainEntity = new SpecieBuilder()
+  static toDomain(
+    raw: SpecieEntity,
+    status?: ChangeRequestStatus,
+    statusReason?: NullableType<string>,
+  ): Specie {
+    const builder = new SpecieBuilder()
       .setId(raw.id)
       .setScientificName(raw.scientificName)
       .setCommonName(raw.commonName)
@@ -25,8 +31,17 @@ export class SpecieMapper {
       .setCollectedAt(raw.collectedAt)
       .setDeterminatedAt(raw.determinatedAt)
       .setUpdatedAt(raw.updatedAt)
-      .setCreatedAt(raw.createdAt)
-      .build();
+      .setCreatedAt(raw.createdAt);
+
+    if (status) {
+      builder.setStatus(status);
+    }
+
+    if (statusReason !== undefined) {
+      builder.setStatusReason(statusReason);
+    }
+
+    const domainEntity = builder.build();
 
     if (raw?.taxons?.length) {
       raw.taxons.forEach((tx) =>

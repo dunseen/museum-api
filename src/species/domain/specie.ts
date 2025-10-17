@@ -6,6 +6,7 @@ import { NullableType } from '../../utils/types/nullable.type';
 import { City } from '../../cities/domain/city';
 import { State } from '../../states/domain/state';
 import { Specialist } from '../../specialists/domain/specialist';
+import { ChangeRequestStatus } from '../../change-requests/domain/change-request';
 
 export class Specie {
   @ApiProperty({ type: Number })
@@ -62,6 +63,12 @@ export class Specie {
   @ApiProperty()
   updatedAt: Date;
 
+  @ApiProperty({ enum: ChangeRequestStatus })
+  private readonly _status: ChangeRequestStatus;
+
+  @ApiProperty({ type: String, nullable: true })
+  private readonly _statusReason: NullableType<string>;
+
   constructor(
     id: number,
     scientificName: string,
@@ -76,6 +83,8 @@ export class Specie {
     determinatedAt: Date,
     createdAt?: Date,
     updatedAt?: Date,
+    status: ChangeRequestStatus = ChangeRequestStatus.APPROVED,
+    statusReason?: NullableType<string>,
   ) {
     this.id = id;
     this.scientificName = scientificName;
@@ -90,6 +99,8 @@ export class Specie {
     this.determinatedAt = determinatedAt;
     this.createdAt = createdAt ?? new Date();
     this.updatedAt = updatedAt ?? new Date();
+    this._status = status;
+    this._statusReason = statusReason ?? null;
   }
 
   get taxons(): ReadonlyArray<Taxon> {
@@ -111,6 +122,15 @@ export class Specie {
   get state(): State {
     return this._state;
   }
+
+  get status(): ChangeRequestStatus {
+    return this._status;
+  }
+
+  get statusReason(): NullableType<string> {
+    return this._statusReason;
+  }
+
   addCity(city: City) {
     this._city = city;
   }

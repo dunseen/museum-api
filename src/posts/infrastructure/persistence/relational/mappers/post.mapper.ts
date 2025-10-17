@@ -1,19 +1,20 @@
 import { SpecieMapper } from '../../../../../species/infrastructure/persistence/relational/mappers/specie.mapper';
-import { UserMapper } from '../../../../../users/infrastructure/persistence/relational/mappers/user.mapper';
 import { Post } from '../../../../domain/post';
 import { PostEntity } from '../entities/post.entity';
+import { ChangeRequestMapper } from 'src/change-requests/infrastructure/persistence/relational/mappers/change-request.mapper';
 
 export class PostMapper {
   static toDomain(raw: PostEntity): Post {
     return Post.builder()
       .setId(raw.id)
-      .setRejectReason(raw.reject_reason)
-      .setStatus(raw.status)
-      .setSpecie(raw.species.map(SpecieMapper.toDomain))
-      .setAuthor(UserMapper.toDomain(raw.author))
-      .setValidator(raw.validator ? UserMapper.toDomain(raw.validator) : null)
+      .setSpecie(SpecieMapper.toDomain(raw.specie))
       .setCreatedAt(raw.createdAt)
       .setUpdatedAt(raw.updatedAt)
+      .setChangeRequest(
+        raw.changeRequest
+          ? ChangeRequestMapper.toDomain(raw.changeRequest)
+          : null,
+      )
       .build();
   }
 
@@ -23,24 +24,15 @@ export class PostMapper {
       persistenceEntity.id = domainEntity.id;
     }
 
-    persistenceEntity.species =
-      domainEntity.species?.map(SpecieMapper.toPersistence) ?? [];
-
-    if (domainEntity?.author) {
-      persistenceEntity.author = UserMapper.toPersistence(domainEntity.author);
-    }
-
-    if (domainEntity.validator) {
-      persistenceEntity.validator = UserMapper.toPersistence(
-        domainEntity.validator,
+    if (domainEntity.specie) {
+      persistenceEntity.specie = SpecieMapper.toPersistence(
+        domainEntity.specie,
       );
     }
 
-    if (domainEntity.status) {
-      persistenceEntity.status = domainEntity.status;
+    if (domainEntity.changeRequest) {
+      persistenceEntity.changeRequestId = domainEntity.changeRequest.id;
     }
-
-    persistenceEntity.reject_reason = domainEntity.rejectReason ?? null;
 
     return persistenceEntity;
   }

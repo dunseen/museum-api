@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from '../../../../config/config.type';
 import { MinioService } from 'nestjs-minio-client';
 import { Readable } from 'stream';
+import { basename } from 'path';
 
 @Injectable()
 export class FilesMinioService {
@@ -52,6 +53,8 @@ export class FilesMinioService {
       characteristicId?: number;
       specieId?: number;
       fileStream: Readable | Buffer | string;
+      approved?: boolean;
+      changeRequestId?: number;
     }[],
   ): Promise<{ file: FileType }[]> {
     const bucket = this.configService.getOrThrow('file.minio.bucket', {
@@ -66,6 +69,8 @@ export class FilesMinioService {
         url: this.generateUrl(f.path, bucket),
         characteristicId: f.characteristicId,
         specieId: f.specieId,
+        approved: f.approved ?? false,
+        changeRequestId: f.changeRequestId,
       };
     });
 
@@ -101,6 +106,44 @@ export class FilesMinioService {
       this.minioService.client.removeObjects(bucket, paths),
       this.fileRepository.delete(uuids),
     ]);
+  }
+
+  async moveCrFilesToSpecies(changeRequestId: number, specieId: number) {
+    const bucket = this.configService.getOrThrow('file.minio.bucket', {
+      infer: true,
+    });
+
+    // fetch files for CR
+    const crFiles =
+      await this.fileRepository.findByChangeRequest(changeRequestId);
+
+    if (!crFiles.length) return;
+
+    // copy + delete in storage (stream-based to avoid CopyConditions mismatch)
+    for (const f of crFiles) {
+      const destPath = `/species/${specieId}/${basename(f.path)}`;
+      const readStream = await this.minioService.client.getObject(
+        bucket,
+        f.path,
+      );
+      await this.minioService.client.putObject(bucket, destPath, readStream);
+      await this.minioService.client.removeObject(bucket, f.path);
+    }
+
+    // update DB paths/urls, assign specie, approve and clear CR link
+    await this.fileRepository.updateMany(
+      crFiles.map((f) => ({
+        id: f.id,
+        path: `/species/${specieId}/${basename(f.path)}`,
+        url: this.generateUrl(
+          `/species/${specieId}/${basename(f.path)}`,
+          bucket,
+        ),
+        specieId,
+        approved: true,
+        clearChangeRequest: true,
+      })),
+    );
   }
 
   private generateUrl(file: string, bucket: string): string {

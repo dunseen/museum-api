@@ -3,16 +3,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
-import { NullableType } from '../../../../../utils/types/nullable.type';
-import { UserEntity } from '../../../../../users/infrastructure/persistence/relational/entities/user.entity';
 import { SpecieEntity } from '../../../../../species/infrastructure/persistence/relational/entities/specie.entity';
+import { ChangeRequestEntity } from '../../../../../change-requests/infrastructure/persistence/relational/entities/change-request.entity';
 
 @Entity({
   name: 'post',
@@ -21,29 +18,14 @@ export class PostEntity extends EntityRelationalHelper {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({
-    type: 'text',
-  })
-  status: string;
+  @ManyToOne(() => SpecieEntity, { nullable: false, eager: true })
+  specie: SpecieEntity;
 
-  @Column({
-    type: 'varchar',
-    nullable: true,
-    length: 255,
-  })
-  reject_reason: NullableType<string>;
+  @ManyToOne(() => ChangeRequestEntity, { nullable: true, eager: true })
+  changeRequest?: ChangeRequestEntity | null;
 
-  @ManyToOne(() => UserEntity, { eager: true })
-  author: UserEntity;
-
-  @ManyToOne(() => UserEntity, { eager: true })
-  validator: NullableType<UserEntity>;
-
-  @ManyToMany(() => SpecieEntity, { eager: true })
-  @JoinTable({
-    name: 'post_specie',
-  })
-  species: SpecieEntity[];
+  @Column({ nullable: true })
+  changeRequestId?: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -32,6 +32,8 @@ export class SpecieFactory {
         },
       })),
       files: data.files.map((f) => f),
+      status: data.status,
+      statusReason: data.statusReason ?? null,
     };
   }
 

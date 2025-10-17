@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { DashboardPostsController } from './dashboard-posts.controller';
 import { PostsModule } from '../../posts/posts.module';
 import { CharacteristicsModule } from '../../characteristics/characteristics.module';
 import { DashboardCharacteristicsController } from './dashboard-characteristics.controller';
@@ -20,6 +19,9 @@ import { UsersModule } from '../../users/users.module';
 import { DashboardSpecialistsController } from './dashboard-specialists.controller';
 import { SpecialistsModule } from '../../specialists/specialists.module';
 import { AuthModule } from '../../auth/auth.module';
+import { DashboardChangeRequestsController } from './dashboard-change-requests.controller';
+import { ChangeRequestsModule } from '../../change-requests/change-requests.module';
+import { DashboardPostsController } from './dashboard-posts.controller';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { AuthModule } from '../../auth/auth.module';
     UsersModule,
     AuthModule,
     SpecialistsModule,
+    ChangeRequestsModule,
   ],
   providers: [ListDashboardSummaryUseCase],
   controllers: [
@@ -45,6 +48,7 @@ import { AuthModule } from '../../auth/auth.module';
     DashboardSpeciesController,
     DashboardSpecialistsController,
     DashboardSummaryController,
+    DashboardChangeRequestsController,
   ],
 })
 export class DashboardModule {}

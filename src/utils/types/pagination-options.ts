@@ -1,4 +1,5 @@
 import { SpecialistType } from '../../specialists/domain/specialist';
+import { ChangeRequestStatus } from '../../change-requests/domain/change-request';
 
 export interface IPaginationOptions {
   page: number;
@@ -16,6 +17,7 @@ export interface IPaginationOptions {
     familyHierarchyId?: number;
     genusName?: string;
     genusHierarchyId?: number;
+    specieStatus?: ChangeRequestStatus;
   };
 }
 

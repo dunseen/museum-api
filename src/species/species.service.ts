@@ -16,7 +16,6 @@ import { SpecieFactory } from './domain/specie.factory';
 import { GetSpecieDto } from './dto/get-all-species.dto';
 import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
-import { CreatePostUseCase } from '../posts/application/use-cases/create-post.use-case';
 import { generateFileName } from '../utils/string';
 import { CityRepository } from '../cities/infrastructure/persistence/city.repository';
 import { StateRepository } from '../states/infrastructure/persistence/state.repository';
@@ -35,7 +34,6 @@ export class SpeciesService {
     private readonly cityRepository: CityRepository,
     private readonly stateRepository: StateRepository,
     private readonly filesMinioService: FilesMinioService,
-    private readonly createPostUseCase: CreatePostUseCase,
     private readonly usersService: UsersService,
     private readonly changeLogsService: ChangeLogsService,
   ) {}
@@ -189,26 +187,23 @@ export class SpeciesService {
         fileStream: f.buffer,
         path: `/species/${createdSpecie.id}/${generateFileName(f.originalname)}`,
         specieId: createdSpecie.id,
+        approved: true,
       })),
     );
 
-    await this.createPostUseCase.execute(
-      {
-        specieId: createdSpecie.id,
-      },
-      payload,
-    );
+    const specieDto = SpecieFactory.toDto(createdSpecie);
 
     const changer = await this.usersService.ensureUserExists(payload.id);
+
     await this.changeLogsService.create({
       tableName: 'specie',
       action: 'create',
       oldValue: null,
-      newValue: createdSpecie,
+      newValue: specieDto,
       changedBy: changer,
     });
 
-    return SpecieFactory.toDto(createdSpecie);
+    return specieDto;
   }
 
   async findAllWithPagination({
@@ -319,6 +314,7 @@ export class SpeciesService {
           fileStream: f.buffer,
           path: `/species/${id}/${generateFileName(f.originalname)}`,
           specieId: id,
+          approved: true,
         })),
       );
     }
@@ -339,13 +335,6 @@ export class SpeciesService {
       newValue: specieToUpdate,
       changedBy: changer,
     });
-
-    await this.createPostUseCase.execute(
-      {
-        specieId: id,
-      },
-      payload,
-    );
   }
 
   async remove(id: Specie['id'], payload: JwtPayloadType) {

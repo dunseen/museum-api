@@ -22,4 +22,9 @@ export class FileType {
 
   specieId?: number;
   characteristicId?: number;
+
+  approved?: boolean;
+
+  // Link to a change request for moderation flows
+  changeRequestId?: number;
 }

@@ -10,13 +10,21 @@ export class PostQueryBuilder {
     this.query = query;
   }
 
-  withAuthor() {
-    this.query = this.query.innerJoinAndSelect('p.author', 'author');
-    return this;
-  }
+  withChangeRequest() {
+    this.query = this.query.leftJoinAndSelect(
+      'p.changeRequest',
+      'changeRequest',
+    );
 
-  withValidator() {
-    this.query = this.query.leftJoinAndSelect('p.validator', 'validator');
+    this.query = this.query.leftJoinAndSelect(
+      'changeRequest.proposedBy',
+      'proposedBy',
+    );
+
+    this.query = this.query.leftJoinAndSelect(
+      'changeRequest.reviewedBy',
+      'reviewedBy',
+    );
     return this;
   }
 
@@ -31,7 +39,7 @@ export class PostQueryBuilder {
   }
 
   withSpecies() {
-    this.query = this.query.innerJoinAndSelect('p.species', 's');
+    this.query = this.query.innerJoinAndSelect('p.specie', 's');
     return this;
   }
 
@@ -52,6 +60,7 @@ export class PostQueryBuilder {
 
   withFiles() {
     this.query = this.query.leftJoinAndSelect('s.files', 'f');
+    this.query.andWhere('f.approved = true');
     return this;
   }
 

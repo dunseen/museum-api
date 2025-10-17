@@ -19,7 +19,6 @@ import { FileEntity } from '../../../../../files/infrastructure/persistence/rela
 import { NullableType } from '../../../../../utils/types/nullable.type';
 import { CityEntity } from '../../../../../cities/infrastructure/persistence/relational/entities/city.entity';
 import { StateEntity } from '../../../../../states/infrastructure/persistence/relational/entities/state.entity';
-import { PostEntity } from '../../../../../posts/infrastructure/persistence/relational/entities/post.entity';
 import { SpecialistEntity } from '../../../../../specialists/infrastructure/persistence/relational/entities/specialist.entity';
 
 @Entity({
@@ -77,9 +76,6 @@ export class SpecieEntity extends EntityRelationalHelper {
     name: 'specie_characteristic',
   })
   characteristics: CharacteristicEntity[];
-
-  @ManyToMany(() => PostEntity, (post) => post.species)
-  posts: PostEntity[];
 
   @OneToMany(() => FileEntity, (file) => file.specie, {
     cascade: true,

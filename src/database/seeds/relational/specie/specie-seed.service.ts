@@ -9,15 +9,13 @@ import { CharacteristicTypeEntity } from '../../../../characteristic-types/infra
 import { HierarchyEntity } from '../../../../hierarchies/infrastructure/persistence/relational/entities/hierarchy.entity';
 import { TaxonEntity } from '../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 
-import { FilesMinioService } from '../../../../files/infrastructure/uploader/minio/files.service';
-import { generateFileName } from '../../../../utils/string';
-import { CityEntity } from '../../../../cities/infrastructure/persistence/relational/entities/city.entity';
-import { StateEntity } from '../../../../states/infrastructure/persistence/relational/entities/state.entity';
-import { PostEntity } from '../../../../posts/infrastructure/persistence/relational/entities/post.entity';
 import { UserEntity } from '../../../../users/infrastructure/persistence/relational/entities/user.entity';
-import { PostStatusEnum } from '../../../../posts/domain/post-status.enum';
 import { SpecialistEntity } from '../../../../specialists/infrastructure/persistence/relational/entities/specialist.entity';
 import { SpecialistType } from '../../../../specialists/domain/specialist';
+import { ChangeRequestsService } from '../../../../change-requests/change-requests.service';
+import { ChangeRequestStatus } from '../../../../change-requests/domain/change-request';
+import { ChangeRequestEntity } from '../../../../change-requests/infrastructure/persistence/relational/entities/change-request.entity';
+import { CreateSpecieDto } from 'src/species/dto/create-specie.dto';
 
 const speciesData = [
   {
@@ -321,13 +319,13 @@ export class SpecieSeedService {
     private readonly hierarchyRepository: Repository<HierarchyEntity>,
     @InjectRepository(TaxonEntity)
     private readonly taxonRepository: Repository<TaxonEntity>,
-    private readonly fileService: FilesMinioService,
-    @InjectRepository(PostEntity)
-    private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(SpecialistEntity)
     private readonly specialistRepository: Repository<SpecialistEntity>,
+    private readonly changeRequestsService: ChangeRequestsService,
+    @InjectRepository(ChangeRequestEntity)
+    private readonly changeRequestRepository: Repository<ChangeRequestEntity>,
   ) {}
 
   async run() {
@@ -337,6 +335,12 @@ export class SpecieSeedService {
       },
     });
 
+    if (!user) {
+      console.error('❌ Admin user not found, cannot seed species');
+      return;
+    }
+
+    // Create or find specialists
     let determinator = await this.specialistRepository.findOne({
       where: { name: speciesData[0].determinator },
     });
@@ -356,168 +360,191 @@ export class SpecieSeedService {
     });
 
     for (const specieData of speciesData) {
-      // Verificar e inserir tipos de características
-      const characteristics: CharacteristicEntity[] = [];
-
-      for (const characteristic of specieData.characteristics) {
-        let characteristicType =
-          await this.characteristicTypeRepository.findOne({
-            where: { name: characteristic.type.toLowerCase() },
-          });
-
-        if (!characteristicType) {
-          characteristicType = await this.characteristicTypeRepository.save({
-            name: characteristic.type.toLowerCase(),
-          });
-        }
-
-        let characteristicEntity = await this.characteristicRepository.findOne({
-          where: { name: characteristic.value, type: characteristicType },
+      try {
+        // Check if species already exists
+        const existingSpecie = await this.specieRepository.findOne({
+          where: { scientificName: specieData.scientificName },
         });
 
-        if (!characteristicEntity) {
-          characteristicEntity = await this.characteristicRepository.save({
-            name: characteristic.value.toLowerCase(),
-            type: characteristicType,
-            description: 'default',
-          });
+        if (existingSpecie) {
+          console.log(
+            `⚠️ Specie ${specieData.scientificName} already exists, skipping`,
+          );
+          continue;
         }
 
-        characteristics.push(characteristicEntity);
-      }
-
-      // Verificar e inserir hierarquia e taxons
-      const taxons: TaxonEntity[] = [];
-      for (const taxon of specieData.taxons) {
-        let hierarchy = await this.hierarchyRepository.findOne({
-          where: { name: taxon.type.toLowerCase() },
-        });
-
-        if (!hierarchy) {
-          hierarchy = await this.hierarchyRepository.save({
-            name: taxon.type.toLowerCase(),
-          });
-        }
-
-        let taxonEntity = await this.taxonRepository.findOne({
-          where: { name: taxon.value.toLowerCase(), hierarchy: hierarchy },
-        });
-
-        if (!taxonEntity) {
-          const newTaxon = this.taxonRepository.create({
-            name: taxon.value.toLowerCase(),
-            hierarchy: {
-              id: hierarchy.id,
-            },
-          });
-
-          if (taxon.parent) {
-            const parentTaxon = await this.taxonRepository.findOne({
-              where: { name: taxon.parent.toLowerCase() },
+        // Process characteristics
+        const characteristicIds: number[] = [];
+        for (const characteristic of specieData.characteristics) {
+          let characteristicType =
+            await this.characteristicTypeRepository.findOne({
+              where: { name: characteristic.type.toLowerCase() },
             });
 
-            if (parentTaxon) {
-              newTaxon.parent = parentTaxon;
-            }
+          if (!characteristicType) {
+            characteristicType = await this.characteristicTypeRepository.save({
+              name: characteristic.type.toLowerCase(),
+            });
           }
 
-          taxonEntity = await this.taxonRepository.save(newTaxon);
+          let characteristicEntity =
+            await this.characteristicRepository.findOne({
+              where: { name: characteristic.value, type: characteristicType },
+            });
+
+          if (!characteristicEntity) {
+            characteristicEntity = await this.characteristicRepository.save({
+              name: characteristic.value.toLowerCase(),
+              type: characteristicType,
+              description: 'default',
+            });
+          }
+
+          characteristicIds.push(characteristicEntity.id);
         }
 
-        taxons.push(taxonEntity);
-      }
+        // Process taxons
+        const taxonIds: number[] = [];
+        for (const taxon of specieData.taxons) {
+          let hierarchy = await this.hierarchyRepository.findOne({
+            where: { name: taxon.type.toLowerCase() },
+          });
 
-      let specie = await this.specieRepository.findOne({
-        where: { scientificName: specieData.scientificName },
-      });
+          if (!hierarchy) {
+            hierarchy = await this.hierarchyRepository.save({
+              name: taxon.type.toLowerCase(),
+            });
+          }
 
-      const city = new CityEntity();
-      city.id = specieData.city;
+          let taxonEntity = await this.taxonRepository.findOne({
+            where: { name: taxon.value.toLowerCase(), hierarchy: hierarchy },
+          });
 
-      const state = new StateEntity();
-      state.id = specieData.state;
+          if (!taxonEntity) {
+            const newTaxon = this.taxonRepository.create({
+              name: taxon.value.toLowerCase(),
+              hierarchy: {
+                id: hierarchy.id,
+              },
+            });
 
-      if (!specie) {
-        specie = await this.specieRepository.save({
+            if (taxon.parent) {
+              const parentTaxon = await this.taxonRepository.findOne({
+                where: { name: taxon.parent.toLowerCase() },
+              });
+
+              if (parentTaxon) {
+                newTaxon.parent = parentTaxon;
+              }
+            }
+
+            taxonEntity = await this.taxonRepository.save(newTaxon);
+          }
+
+          taxonIds.push(taxonEntity.id);
+        }
+
+        // Create the creation request DTO with appropriate types for the change request service
+        const createSpecieDto: CreateSpecieDto = {
           scientificName: specieData.scientificName,
           commonName: specieData.commonName,
           description: specieData.description,
-          determinator,
-          collector,
+          collectorId: collector.id,
+          determinatorId: determinator.id,
           collectedAt: specieData.collectedAt,
           determinatedAt: specieData.determinatedAt,
-          city,
-          state,
-          geoLocation: {
-            type: 'Point',
-            coordinates: [specieData.long, specieData.lat],
+          location: {
+            address: specieData.location,
+            lat: specieData.lat,
+            long: specieData.long,
+            cityId: specieData.city,
+            stateId: specieData.state,
           },
-          collectLocation: specieData.location,
-          characteristics,
-          taxons,
-        });
+          characteristicIds,
+          taxonIds,
+          file: [],
+        };
 
+        // Prepare the files for upload if they exist
+        const filesToUpload: Express.Multer.File[] = [];
         if (specieData.images) {
           const imageDir = path.resolve(__dirname, specieData.images);
-
           if (fs.existsSync(imageDir)) {
             const files = fs.readdirSync(imageDir);
-
             for (const file of files) {
               const filePath = path.join(imageDir, file);
-              const fileName = generateFileName(file);
-              const specieObjectName = `species/${specie.id}/${fileName}`;
+              if (fs.existsSync(filePath)) {
+                const fileBuffer = fs.readFileSync(filePath);
+                const mimetype =
+                  file.endsWith('.jpg') || file.endsWith('.jpeg')
+                    ? 'image/jpeg'
+                    : file.endsWith('.png')
+                      ? 'image/png'
+                      : file.endsWith('.gif')
+                        ? 'image/gif'
+                        : 'application/octet-stream';
 
-              try {
-                // Upload specie image
-                const specieFileStream = fs.createReadStream(filePath);
-                await this.fileService.save([
-                  {
-                    fileStream: specieFileStream,
-                    path: specieObjectName,
-                    specieId: specie.id,
-                  },
-                ]);
-
-                console.log(
-                  `✅ Uploaded ${file} to Minio as ${specieObjectName}`,
-                );
-
-                // Upload characteristic images
-                for (const characteristic of characteristics) {
-                  const characteristicObjectName = `characteristics/${characteristic.id}/${fileName}`;
-                  const characteristicFileStream =
-                    fs.createReadStream(filePath);
-
-                  await this.fileService.save([
-                    {
-                      fileStream: characteristicFileStream,
-                      path: characteristicObjectName,
-                      characteristicId: characteristic.id,
-                    },
-                  ]);
-
-                  console.log(
-                    `✅ Uploaded ${file} to Minio as ${characteristicObjectName}`,
-                  );
-                }
-              } catch (error) {
-                console.error(`❌ Failed to upload ${file} to Minio:`, error);
+                // Create a file object with required properties for the Multer interface
+                // We need to cast to any here because the Express.Multer.File expects a Readable stream
+                // but we have a buffer from the file
+                filesToUpload.push({
+                  buffer: fileBuffer,
+                  originalname: file,
+                  mimetype,
+                  fieldname: 'file',
+                  encoding: '7bit',
+                  size: fileBuffer.length,
+                  destination: '',
+                  filename: '',
+                  path: '',
+                } as any);
               }
             }
-          } else {
-            console.warn(`⚠️ Image directory not found: ${imageDir}`);
           }
         }
 
-        if (user) {
-          await this.postRepository.save({
-            author: user,
-            validator: user,
-            species: [specie],
-            status: PostStatusEnum.published,
-          });
+        // Create change request for species creation
+        await this.changeRequestsService.proposeSpecieCreate(
+          createSpecieDto,
+          filesToUpload,
+          user.id,
+        );
+
+        // Find the last created change request for this species
+        const changeRequest = await this.changeRequestRepository.findOne({
+          where: {
+            entityType: 'specie',
+            proposedBy: { id: user.id },
+            status: ChangeRequestStatus.PENDING,
+          },
+          order: { proposedAt: 'DESC' },
+        });
+
+        if (!changeRequest) {
+          console.log(
+            `❌ Failed to find change request for ${specieData.scientificName}`,
+          );
+          continue;
         }
+
+        // Automatically approve the change request - files are already uploaded as part of the proposeSpecieCreate
+        // Simulate JWT payload for approval - these values are required by the change-requests service
+        await this.changeRequestsService.approve(changeRequest.id, {
+          id: user.id,
+          role: { id: 1, name: 'admin' },
+          sessionId: 'seed-session',
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        });
+
+        console.log(
+          `✅ Created and approved species: ${specieData.scientificName}`,
+        );
+      } catch (error) {
+        console.error(
+          `❌ Error processing species ${specieData.scientificName}:`,
+          error,
+        );
       }
     }
   }

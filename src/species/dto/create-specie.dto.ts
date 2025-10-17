@@ -103,7 +103,7 @@ export class CreateSpecieDto {
     description: 'The location where the specie was collected',
   })
   @Type(() => LocationDto)
-  @Transform(({ value }) => JSON.parse(value))
+  @Transform(({ value }) => (value ? JSON.parse(value) : value))
   @IsNotEmpty()
   location: LocationDto;
 
