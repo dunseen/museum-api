@@ -824,6 +824,8 @@ export class ChangeRequestsService {
             ? UserFactory.createAuthor(UserMapper.toDomain(cr.reviewedBy))
             : null,
           reviewerNote: cr.reviewerNote,
+          proposedAt: cr.proposedAt,
+          decidedAt: cr.decidedAt,
         },
         createdAt: draftCreatedAt,
       };

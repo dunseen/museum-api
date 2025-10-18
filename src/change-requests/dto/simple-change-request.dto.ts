@@ -23,4 +23,10 @@ export class SimpleChangeRequestDto {
 
   @ApiPropertyOptional({ type: String, nullable: true })
   reviewerNote?: string | null;
+
+  @ApiProperty({ type: Date })
+  proposedAt: Date;
+
+  @ApiPropertyOptional({ type: Date, nullable: true })
+  decidedAt?: Date | null;
 }
