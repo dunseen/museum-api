@@ -30,6 +30,13 @@ export class FindAllChangeRequestsDto {
   action?: ChangeRequestAction;
 
   @ApiPropertyOptional({
+    description: 'Entity type to filter (e.g., specie, characteristic, taxon)',
+  })
+  @IsString()
+  @IsOptional()
+  entityType?: string;
+
+  @ApiPropertyOptional({
     description: 'Search by scientific name, author or validator',
   })
   @IsString()

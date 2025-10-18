@@ -9,6 +9,7 @@ import {
 import {
   ChangeRequestAction,
   ChangeRequestStatus,
+  EntityType,
 } from './domain/change-request';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -28,7 +29,7 @@ import {
   WithCountList,
 } from '../utils/types/pagination-options';
 import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
-import { SpecieDraftWithChangeReqDto } from './dto/specie-draft-with-cr.dto';
+import { ListChangeRequestDto } from './dto/draft-with-change-request.dto';
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { PostService } from '../posts/domain/post.service';
 import { SpecieMapper } from '../species/infrastructure/persistence/relational/mappers/specie.mapper';
@@ -251,7 +252,7 @@ export class ChangeRequestsService {
     const cr = await this.crRepo.findOne({
       where: {
         entityId: specieId,
-        entityType: 'specie',
+        entityType: EntityType.SPECIE,
         action: ChangeRequestAction.DELETE,
         status: ChangeRequestStatus.PENDING,
       },
@@ -283,7 +284,7 @@ export class ChangeRequestsService {
 
     await this.crRepo.save(
       this.crRepo.create({
-        entityType: 'specie',
+        entityType: EntityType.SPECIE,
         action: ChangeRequestAction.DELETE,
         status: ChangeRequestStatus.PENDING,
         entityId: specieId,
@@ -330,7 +331,7 @@ export class ChangeRequestsService {
     // Step 2: Create CR with reference to the draft
     const cr = await this.crRepo.save(
       this.crRepo.create({
-        entityType: 'specie',
+        entityType: EntityType.SPECIE,
         action: ChangeRequestAction.CREATE,
         status: ChangeRequestStatus.PENDING,
         proposedBy,
@@ -516,7 +517,7 @@ export class ChangeRequestsService {
     // Step 2: Create CR with reference to draft
     const cr = await this.crRepo.save(
       this.crRepo.create({
-        entityType: 'specie',
+        entityType: EntityType.SPECIE,
         action: ChangeRequestAction.UPDATE,
         status: ChangeRequestStatus.PENDING,
         entityId: specieId, // Points to the specie being updated
@@ -727,29 +728,28 @@ export class ChangeRequestsService {
     }
   }
 
-  async listSpecieDraftsWithPagination({
+  async listPaginatedChangeRequests({
     paginationOptions,
     status,
     action,
+    entityType,
     search,
   }: {
     paginationOptions: IPaginationOptions;
     status?: ChangeRequestStatus;
     action?: ChangeRequestAction;
+    entityType?: string;
     search?: string;
-  }): Promise<WithCountList<SpecieDraftWithChangeReqDto>> {
+  }): Promise<WithCountList<ListChangeRequestDto>> {
     const qb = this.crRepo
       .createQueryBuilder('cr')
       .leftJoinAndSelect('cr.proposedBy', 'proposedBy')
-      .leftJoinAndSelect('cr.reviewedBy', 'reviewedBy')
-      .leftJoin(
-        SpecieDraftEntity,
-        'draft',
-        'draft.id = cr.draftId AND cr.entityType = :entityType',
-        { entityType: 'specie' },
-      )
-      .addSelect(['draft.id', 'draft.scientificName', 'draft.createdAt'])
-      .where('cr.entityType = :entityType', { entityType: 'specie' });
+      .leftJoinAndSelect('cr.reviewedBy', 'reviewedBy');
+
+    // If entityType is provided, filter by it, otherwise return all
+    if (entityType) {
+      qb.where('cr.entityType = :entityType', { entityType });
+    }
 
     if (status) {
       qb.andWhere('cr.status = :status', { status });
@@ -759,17 +759,32 @@ export class ChangeRequestsService {
       qb.andWhere('cr.action = :action', { action });
     }
 
+    // For now, we only support specie draft joins
+    // This will need to be expanded when we add other entity types
+    if (!entityType || entityType === EntityType.SPECIE) {
+      qb.leftJoin(
+        SpecieDraftEntity,
+        'draft',
+        'draft.id = cr.draftId AND cr.entityType = :specieType',
+        { specieType: EntityType.SPECIE },
+      ).addSelect(['draft.id', 'draft.scientificName', 'draft.createdAt']);
+    }
+
     if (search && search.trim().length) {
       const s = `%${search.trim()}%`;
-      const searchClause = [
-        'draft.scientificName ILIKE :s',
+      const searchClauses = [
         'proposedBy.firstName ILIKE :s',
         'proposedBy.lastName ILIKE :s',
         'reviewedBy.firstName ILIKE :s',
         'reviewedBy.lastName ILIKE :s',
-      ].join(' OR ');
+      ];
 
-      qb.andWhere(`(${searchClause})`, { s });
+      // Add entity-specific search fields
+      if (!entityType || entityType === EntityType.SPECIE) {
+        searchClauses.push('draft.scientificName ILIKE :s');
+      }
+
+      qb.andWhere(`(${searchClauses.join(' OR ')})`, { s });
     }
 
     const total = await qb.getCount();
@@ -780,23 +795,24 @@ export class ChangeRequestsService {
       .take(paginationOptions.limit)
       .getRawAndEntities();
 
-    const draftMap = new Map(
-      raw.map((d) => [
-        d.draft_id,
-        {
-          id: d.draft_id,
-          scientificName: d.draft_scientificName,
-          createdAt: d.draft_createdAt,
-        },
-      ]),
-    );
+    const dto: ListChangeRequestDto[] = entities.map((cr) => {
+      let entityName = 'Unknown';
+      let draftCreatedAt = cr.proposedAt;
 
-    const dto: SpecieDraftWithChangeReqDto[] = entities.map((cr) => {
-      const draft = draftMap.get(cr.draftId);
+      // Extract entity name based on type
+      if (cr.entityType === EntityType.SPECIE) {
+        const draftData = raw.find((r) => r.draft_id === cr.draftId);
+        entityName = draftData?.draft_scientificName ?? 'Unknown';
+        draftCreatedAt = draftData?.draft_createdAt ?? cr.proposedAt;
+      }
+      // Add other entity types here as they are implemented
+      // else if (cr.entityType === EntityType.CHARACTERISTIC) { ... }
+      // else if (cr.entityType === EntityType.TAXON) { ... }
 
       return {
         id: Number(cr.draftId),
-        scientificName: draft?.scientificName,
+        entityType: cr.entityType,
+        entityName,
         changeRequest: {
           id: cr.id,
           status: cr.status,
@@ -809,7 +825,7 @@ export class ChangeRequestsService {
             : null,
           reviewerNote: cr.reviewerNote,
         },
-        createdAt: draft?.createdAt ?? cr.proposedAt,
+        createdAt: draftCreatedAt,
       };
     });
 
@@ -835,7 +851,7 @@ export class ChangeRequestsService {
 
     // Find the change request that references this draft
     const changeRequest = await this.crRepo.findOne({
-      where: { draftId: id, entityType: 'specie' },
+      where: { draftId: id, entityType: EntityType.SPECIE },
     });
 
     if (!changeRequest) throw new NotFoundException('change request not found');
@@ -894,5 +910,29 @@ export class ChangeRequestsService {
     };
 
     return dto;
+  }
+
+  async getDraftDetail(draftId: number, entityType: string): Promise<any> {
+    // Find the change request to determine the entity type
+    const changeRequest = await this.crRepo.findOne({
+      where: { draftId, entityType },
+    });
+
+    if (!changeRequest) throw new NotFoundException('change request not found');
+
+    // Route to the appropriate handler based on entity type
+    switch (entityType) {
+      case EntityType.SPECIE:
+        return this.getSpecieDraftDetail(draftId);
+      // Add other entity types here as they are implemented
+      // case EntityType.CHARACTERISTIC:
+      //   return this.getCharacteristicDraftDetail(draftId);
+      // case EntityType.TAXON:
+      //   return this.getTaxonDraftDetail(draftId);
+      default:
+        throw new UnprocessableEntityException(
+          `Draft details for entity type '${entityType}' not implemented yet`,
+        );
+    }
   }
 }

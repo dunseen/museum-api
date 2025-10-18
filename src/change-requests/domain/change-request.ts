@@ -14,12 +14,19 @@ export enum ChangeRequestStatus {
   WITHDRAWN = 'withdrawn',
 }
 
+export enum EntityType {
+  SPECIE = 'specie',
+  CHARACTERISTIC = 'characteristic',
+  TAXON = 'taxon',
+  // Add new entity types here as they are implemented
+}
+
 export class ChangeRequest {
   @ApiProperty()
   id: number;
 
-  @ApiProperty()
-  entityType: string; // e.g., 'specie', 'characteristic', 'taxon'
+  @ApiProperty({ enum: EntityType })
+  entityType: string; // Use EntityType enum values
 
   @ApiProperty({ enum: ChangeRequestAction })
   action: ChangeRequestAction;

@@ -29,7 +29,7 @@ import { UpdateSpecieDto } from '../../species/dto/update-specie.dto';
 import { JwtPayload } from '../../auth/strategies/jwt.decorator';
 import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 import { ChangeRequest } from '../../change-requests/domain/change-request';
-import { SpecieDraftWithChangeReqDto } from '../../change-requests/dto/specie-draft-with-cr.dto';
+import { ListChangeRequestDto } from '../../change-requests/dto/draft-with-change-request.dto';
 import { FindAllChangeRequestsDto } from '../../change-requests/dto/find-all-change-requests.dto';
 import {
   InfinityPaginationResponse,
@@ -37,7 +37,6 @@ import {
 } from '../../utils/dto/infinity-pagination-response.dto';
 import { infinityPagination } from '../../utils/infinity-pagination';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { GetSpecieDto } from '../../species/dto/get-all-species.dto';
 
 @ApiTags('Dashboard - Change Requests')
 @Controller({
@@ -95,19 +94,20 @@ export class DashboardChangeRequestsController {
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.editor)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Get('species/drafts')
+  @Get()
   @ApiOkResponse({
-    type: InfinityPaginationResponse(SpecieDraftWithChangeReqDto),
+    type: InfinityPaginationResponse(ListChangeRequestDto),
   })
-  async listSpecieDrafts(
+  async listChangeRequests(
     @Query() query: FindAllChangeRequestsDto,
-  ): Promise<InfinityPaginationResponseDto<SpecieDraftWithChangeReqDto>> {
+  ): Promise<InfinityPaginationResponseDto<ListChangeRequestDto>> {
     const page = query?.page;
     const limit = query?.limit;
-    const result = await this.service.listSpecieDraftsWithPagination({
+    const result = await this.service.listPaginatedChangeRequests({
       paginationOptions: { page, limit },
       status: query.status,
       action: query.action,
+      entityType: query.entityType,
       search: query.search,
     });
     return infinityPagination(result, { page, limit });
@@ -116,11 +116,14 @@ export class DashboardChangeRequestsController {
   @ApiBearerAuth()
   @Roles(RoleEnum.admin, RoleEnum.editor)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Get('species/drafts/:id')
+  @Get('/:entityType/:id')
+  @ApiParam({ name: 'entityType', type: String })
   @ApiParam({ name: 'id', type: Number })
-  @ApiOkResponse({ type: GetSpecieDto })
-  async getSpecieDraftDetail(@Param('id') id: number) {
-    return this.service.getSpecieDraftDetail(Number(id));
+  async getDraftDetail(
+    @Param('entityType') entityType: string,
+    @Param('id') id: number,
+  ) {
+    return this.service.getDraftDetail(Number(id), entityType);
   }
 
   @ApiBearerAuth()
