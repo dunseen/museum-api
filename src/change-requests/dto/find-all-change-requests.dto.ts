@@ -1,7 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ChangeRequestStatus } from '../domain/change-request';
+import {
+  ChangeRequestAction,
+  ChangeRequestStatus,
+} from '../domain/change-request';
 
 export class FindAllChangeRequestsDto {
   @ApiPropertyOptional()
@@ -20,6 +23,11 @@ export class FindAllChangeRequestsDto {
   @IsEnum(ChangeRequestStatus)
   @IsOptional()
   status?: ChangeRequestStatus;
+
+  @ApiPropertyOptional({ enum: ChangeRequestAction })
+  @IsEnum(ChangeRequestAction)
+  @IsOptional()
+  action?: ChangeRequestAction;
 
   @ApiPropertyOptional({
     description: 'Search by scientific name, author or validator',

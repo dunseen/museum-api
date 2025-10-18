@@ -107,6 +107,7 @@ export class DashboardChangeRequestsController {
     const result = await this.service.listSpecieDraftsWithPagination({
       paginationOptions: { page, limit },
       status: query.status,
+      action: query.action,
       search: query.search,
     });
     return infinityPagination(result, { page, limit });

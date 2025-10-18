@@ -262,7 +262,6 @@ export class ChangeRequestsService {
     }
 
     const draft = new SpecieDraftEntity();
-    draft.specie = specie;
     draft.scientificName = specie.scientificName;
     draft.commonName = specie.commonName;
     draft.description = specie.description;
@@ -446,7 +445,6 @@ export class ChangeRequestsService {
 
     // Seed draft from current specie, then override with dto
     const draft = new SpecieDraftEntity();
-    draft.specie = specie;
     draft.scientificName = dto.scientificName ?? specie.scientificName;
     draft.commonName = dto.commonName ?? specie.commonName ?? null;
     draft.description = dto.description ?? specie.description ?? null;
@@ -521,7 +519,7 @@ export class ChangeRequestsService {
         entityType: 'specie',
         action: ChangeRequestAction.UPDATE,
         status: ChangeRequestStatus.PENDING,
-        entityId: null, // Not used for UPDATE - draft.specie.id provides this
+        entityId: specieId, // Points to the specie being updated
         proposedBy,
         draftId: savedDraft.id, // Polymorphic reference
         diff: dto.filesToDelete?.length
@@ -564,7 +562,7 @@ export class ChangeRequestsService {
 
       const draft = await this.specieDraftRepo.findOne({
         where: { id: cr.draftId },
-        relations: ['specie', 'taxons', 'characteristics', 'state', 'city'],
+        relations: ['taxons', 'characteristics', 'state', 'city'],
       });
 
       if (!draft) throw new NotFoundException('draft not found');
@@ -590,8 +588,6 @@ export class ChangeRequestsService {
           await this.specieRepository.save(newSpecie),
         );
 
-        draft.specie = sp;
-        await this.specieDraftRepo.save(draft);
         // Move CR files to specie path and approve
         await this.filesMinioService.moveCrFilesToSpecies(cr.id, sp.id);
 
@@ -612,10 +608,15 @@ export class ChangeRequestsService {
           SpecieMapper.toDomain(sp),
         );
       } else if (cr.action === ChangeRequestAction.UPDATE) {
-        if (!draft.specie) throw new NotFoundException('specie not linked');
+        // For UPDATE, entityId must be set to the specie being updated
+        if (!cr.entityId) {
+          throw new UnprocessableEntityException(
+            'Change request malformed: entityId is null for UPDATE action',
+          );
+        }
 
         const specie = await this.specieRepository.findOne({
-          where: { id: draft.specie.id },
+          where: { id: cr.entityId },
           relations: ['taxons', 'characteristics'],
         });
 
@@ -657,10 +658,10 @@ export class ChangeRequestsService {
         | undefined;
 
       if (filesToDelete?.length) {
-        if (cr.action === ChangeRequestAction.UPDATE && draft.specie?.id) {
+        if (cr.action === ChangeRequestAction.UPDATE && cr.entityId) {
           // Safety: ensure all file IDs belong to this specie before deleting
           const owned = await this.fileRepository.findIdsBySpecie(
-            draft.specie.id,
+            cr.entityId,
             filesToDelete,
           );
 
@@ -693,7 +694,7 @@ export class ChangeRequestsService {
       }
 
       await Promise.all([
-        this.specieRepository.remove(specie),
+        this.specieRepository.softDelete(specie.id),
         this.postService.invalidatePublishedPostsBySpecieId(specie.id),
       ]);
     }
@@ -729,10 +730,12 @@ export class ChangeRequestsService {
   async listSpecieDraftsWithPagination({
     paginationOptions,
     status,
+    action,
     search,
   }: {
     paginationOptions: IPaginationOptions;
     status?: ChangeRequestStatus;
+    action?: ChangeRequestAction;
     search?: string;
   }): Promise<WithCountList<SpecieDraftWithChangeReqDto>> {
     const qb = this.crRepo
@@ -750,6 +753,10 @@ export class ChangeRequestsService {
 
     if (status) {
       qb.andWhere('cr.status = :status', { status });
+    }
+
+    if (action) {
+      qb.andWhere('cr.action = :action', { action });
     }
 
     if (search && search.trim().length) {
@@ -822,7 +829,6 @@ export class ChangeRequestsService {
         'determinator',
         'city',
         'state',
-        'specie',
       ],
     });
     if (!draft) throw new NotFoundException('draft not found');
@@ -834,9 +840,21 @@ export class ChangeRequestsService {
 
     if (!changeRequest) throw new NotFoundException('change request not found');
 
-    const files = draft.specie?.files.length
-      ? draft.specie.files
-      : await this.fileRepository.findByChangeRequest(changeRequest.id);
+    // Determine which files to show:
+    // For UPDATE/DELETE: show existing specie files
+    // For CREATE: show files uploaded with the change request
+    let files: any[] = [];
+    if (changeRequest.entityId) {
+      // UPDATE or DELETE - load existing specie's files
+      const specie = await this.specieRepository.findOne({
+        where: { id: changeRequest.entityId },
+        relations: ['files'],
+      });
+      files = specie?.files ?? [];
+    } else {
+      // CREATE - load files from change request
+      files = await this.fileRepository.findByChangeRequest(changeRequest.id);
+    }
 
     const taxons = (draft.taxons ?? []).map((tx) => ({
       id: tx.id,
@@ -853,7 +871,7 @@ export class ChangeRequestsService {
     }
 
     const dto: GetSpecieDto = {
-      id: draft.specie?.id ?? 0, // For CREATE action, specie may not exist yet
+      id: changeRequest.entityId ?? draft.id,
       scientificName: draft.scientificName,
       commonName: draft.commonName,
       description: draft.description,

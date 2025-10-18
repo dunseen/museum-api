@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -47,4 +48,7 @@ export class FileEntity extends EntityRelationalHelper {
   @ManyToOne(() => ChangeRequestEntity, { nullable: true })
   @JoinColumn({ name: 'changeRequestId', referencedColumnName: 'id' })
   changeRequest?: ChangeRequestEntity | null;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null;
 }

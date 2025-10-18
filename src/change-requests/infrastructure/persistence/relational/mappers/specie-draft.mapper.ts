@@ -11,7 +11,6 @@ export class SpecieDraftMapper {
   static toDto(raw: SpecieDraftEntity): GetSpecieDraftDto {
     return {
       id: raw.id,
-      specieId: raw.specie?.id ?? null,
       scientificName: raw.scientificName,
       commonName: raw.commonName ?? null,
       description: raw.description ?? null,
