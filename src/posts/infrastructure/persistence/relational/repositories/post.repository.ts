@@ -30,7 +30,9 @@ export class PostRelationalRepository implements PostRepository {
       .withSpecies()
       .build();
 
-    queryBuilder.where('s.id = :specieId', { specieId });
+    queryBuilder
+      .where('s.id = :specieId', { specieId })
+      .andWhere('p.deletedAt IS NULL');
 
     const post = await queryBuilder.getMany();
 

@@ -230,6 +230,43 @@ export class ChangeRequestsService {
     specieEntity.collector = collectorEntity;
   }
 
+  async proposeSpecieDelete(
+    specieId: number,
+    proposedById: string,
+  ): Promise<void> {
+    const proposedBy = new UserEntity();
+    proposedBy.id = proposedById;
+
+    const specie = await this.specieRepository.findOne({
+      where: { id: specieId },
+    });
+
+    if (!specie) throw new NotFoundException('Specie not found');
+
+    const cr = await this.crRepo.findOne({
+      where: {
+        entityId: specieId,
+        entityType: 'specie',
+        action: ChangeRequestAction.DELETE,
+        status: ChangeRequestStatus.PENDING,
+      },
+    });
+
+    if (cr) {
+      throw new ConflictException('There is already a pending delete request');
+    }
+
+    await this.crRepo.save(
+      this.crRepo.create({
+        entityType: 'specie',
+        action: ChangeRequestAction.DELETE,
+        status: ChangeRequestStatus.PENDING,
+        entityId: specieId,
+        proposedBy,
+      }),
+    );
+  }
+
   async proposeSpecieCreate(
     dto: CreateSpecieDto,
     files: Express.Multer.File[],
@@ -238,27 +275,7 @@ export class ChangeRequestsService {
     const proposedBy = new UserEntity();
     proposedBy.id = proposedById;
 
-    // Create CR
-    const cr = await this.crRepo.save(
-      this.crRepo.create({
-        entityType: 'specie',
-        action: ChangeRequestAction.CREATE,
-        status: ChangeRequestStatus.PENDING,
-        proposedBy,
-      }),
-    );
-
-    // Build draft
     const draft = new SpecieDraftEntity();
-    draft.changeRequest = cr;
-    draft.scientificName = dto.scientificName;
-    draft.commonName = dto.commonName ?? null;
-    draft.description = dto.description ?? null;
-    draft.collectLocation = dto.location.address ?? null;
-    draft.geoLocation = {
-      type: 'Point',
-      coordinates: [dto.location.long, dto.location.lat],
-    };
 
     await Promise.all([
       this._validateState(dto.location.stateId, draft),
@@ -270,6 +287,25 @@ export class ChangeRequestsService {
       this._validateCharacteristic(dto.characteristicIds ?? [], draft),
     ]);
 
+    // Create CR
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: 'specie',
+        action: ChangeRequestAction.CREATE,
+        status: ChangeRequestStatus.PENDING,
+        proposedBy,
+      }),
+    );
+
+    draft.scientificName = dto.scientificName;
+    draft.commonName = dto.commonName ?? null;
+    draft.description = dto.description ?? null;
+    draft.collectLocation = dto.location.address ?? null;
+    draft.geoLocation = {
+      type: 'Point',
+      coordinates: [dto.location.long, dto.location.lat],
+    };
+    draft.changeRequest = cr;
     draft.collectedAt = dto.collectedAt;
     draft.determinatedAt = dto.determinatedAt;
 
@@ -552,15 +588,32 @@ export class ChangeRequestsService {
       await this.specieRepository.save(specie);
       await this.filesMinioService.moveCrFilesToSpecies(cr.id, specie.id);
 
-      // Approve any pending characteristic files related to the draft characteristics
       const characteristicIds = (draft.characteristics ?? []).map((c) => c.id);
       await this.fileRepository.approveByCharacteristicIds(characteristicIds);
 
-      // Create a post for the updated specie
       await this.postService.createFromChangeRequest(
         ChangeRequestMapper.toDomain(cr),
         SpecieMapper.toDomain(specie),
       );
+    } else if (cr.action === ChangeRequestAction.DELETE) {
+      if (!cr.entityId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: entityId is null',
+        );
+      }
+
+      const specie = await this.specieRepository.findOne({
+        where: { id: cr.entityId },
+      });
+
+      if (!specie) {
+        throw new NotFoundException('specie not found');
+      }
+
+      await Promise.all([
+        this.specieRepository.softDelete(specie.id),
+        this.postService.invalidatePublishedPostsBySpecieId(specie.id),
+      ]);
     }
 
     // Handle files deletion if requested via diff

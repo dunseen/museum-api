@@ -14,6 +14,7 @@ import {
 import {
   ApiBearerAuth,
   ApiConsumes,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiParam,
   ApiTags,
@@ -76,6 +77,19 @@ export class DashboardChangeRequestsController {
     @JwtPayload() payload: JwtPayloadType,
   ) {
     return this.service.proposeSpecieUpdate(Number(id), dto, files, payload.id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(RoleEnum.admin, RoleEnum.editor)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Patch('species/remove/:id')
+  @ApiParam({ name: 'id', type: Number })
+  @ApiNoContentResponse()
+  proposeSpecieRemove(
+    @Param('id') id: number,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.service.proposeSpecieDelete(Number(id), payload.id);
   }
 
   @ApiBearerAuth()

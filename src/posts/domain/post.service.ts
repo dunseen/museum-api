@@ -40,11 +40,7 @@ export class PostService {
 
     if (ids.length === 0) return;
 
-    await this.remove(ids);
-  }
-
-  remove(id: string[] | string) {
-    return this.postRepository.remove(id);
+    await this.postRepository.remove(ids);
   }
 
   async createFromChangeRequest(
@@ -56,6 +52,8 @@ export class PostService {
       .setSpecie(specie)
       .setChangeRequest(changeRequest)
       .build();
+
+    await this.invalidatePublishedPostsBySpecieId(specie.id);
 
     const newPost = await this.postRepository.create(post);
 
