@@ -19,7 +19,7 @@ export class ChangeRequest {
   id: number;
 
   @ApiProperty()
-  entityType: string; // e.g., 'specie'
+  entityType: string; // e.g., 'specie', 'characteristic', 'taxon'
 
   @ApiProperty({ enum: ChangeRequestAction })
   action: ChangeRequestAction;
@@ -28,7 +28,10 @@ export class ChangeRequest {
   status: ChangeRequestStatus;
 
   @ApiProperty({ required: false, nullable: true })
-  entityId: number | null;
+  entityId: number | null; // Entity being modified/deleted (null for CREATE until approved)
+
+  @ApiProperty({ required: false, nullable: true })
+  draftId: number | null; // Polymorphic reference to draft table (used for all actions)
 
   @ApiProperty({ type: User })
   proposedBy: User;

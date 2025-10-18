@@ -10,7 +10,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
-import { ChangeRequestEntity } from './change-request.entity';
 import { SpecieEntity } from '../../../../../species/infrastructure/persistence/relational/entities/specie.entity';
 import { TaxonEntity } from '../../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { CharacteristicEntity } from '../../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
@@ -23,10 +22,11 @@ export class SpecieDraftEntity extends EntityRelationalHelper {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ChangeRequestEntity, { eager: true, cascade: true })
-  changeRequest: ChangeRequestEntity;
+  // NOTE: No direct relation to ChangeRequestEntity
+  // The relationship is managed through change_request.draftId pointing to this entity
+  // This allows the same polymorphic pattern for other draft tables
 
-  // Null for create; points to live specie on update
+  // Null for create; points to live specie on update/delete
   @ManyToOne(() => SpecieEntity, { nullable: true })
   specie: SpecieEntity | null;
 

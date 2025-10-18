@@ -21,7 +21,7 @@ export class ChangeRequestEntity extends EntityRelationalHelper {
 
   @Index()
   @Column({ type: 'varchar', length: 50 })
-  entityType: string; // e.g., 'specie'
+  entityType: string; // e.g., 'specie', 'characteristic', 'taxon'
 
   @Column({
     type: 'enum',
@@ -38,9 +38,21 @@ export class ChangeRequestEntity extends EntityRelationalHelper {
   })
   status: ChangeRequestStatus;
 
+  // EntityId: Stores the ID of the entity being modified/deleted
+  // For CREATE: null initially, set on approval
+  // For UPDATE/DELETE: set to the existing entity ID
   @Index()
   @Column({ type: 'int', nullable: true })
   entityId: number | null;
+
+  // Polymorphic reference to draft table (determined by entityType)
+  // For 'specie' -> references specie_draft.id
+  // For 'characteristic' -> references characteristic_draft.id (future)
+  // For 'taxon' -> references taxon_draft.id (future)
+  // Used for all actions (CREATE, UPDATE, DELETE) to keep a snapshot
+  @Index()
+  @Column({ type: 'int', nullable: true })
+  draftId: number | null;
 
   @ManyToOne(() => UserEntity, { eager: true })
   proposedBy: UserEntity;

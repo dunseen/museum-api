@@ -234,11 +234,16 @@ export class ChangeRequestsService {
     specieId: number,
     proposedById: string,
   ): Promise<void> {
-    const proposedBy = new UserEntity();
-    proposedBy.id = proposedById;
-
     const specie = await this.specieRepository.findOne({
       where: { id: specieId },
+      relations: [
+        'taxons',
+        'characteristics',
+        'state',
+        'city',
+        'collector',
+        'determinator',
+      ],
     });
 
     if (!specie) throw new NotFoundException('Specie not found');
@@ -256,6 +261,27 @@ export class ChangeRequestsService {
       throw new ConflictException('There is already a pending delete request');
     }
 
+    const draft = new SpecieDraftEntity();
+    draft.specie = specie;
+    draft.scientificName = specie.scientificName;
+    draft.commonName = specie.commonName;
+    draft.description = specie.description;
+    draft.collectLocation = specie.collectLocation;
+    draft.geoLocation = specie.geoLocation;
+    draft.state = specie.state;
+    draft.city = specie.city;
+    draft.collector = specie.collector;
+    draft.determinator = specie.determinator;
+    draft.collectedAt = specie.collectedAt;
+    draft.determinatedAt = specie.determinatedAt;
+    draft.taxons = specie.taxons ?? [];
+    draft.characteristics = specie.characteristics ?? [];
+
+    const savedDraft = await this.specieDraftRepo.save(draft);
+
+    const proposedBy = new UserEntity();
+    proposedBy.id = proposedById;
+
     await this.crRepo.save(
       this.crRepo.create({
         entityType: 'specie',
@@ -263,6 +289,7 @@ export class ChangeRequestsService {
         status: ChangeRequestStatus.PENDING,
         entityId: specieId,
         proposedBy,
+        draftId: savedDraft.id,
       }),
     );
   }
@@ -287,16 +314,6 @@ export class ChangeRequestsService {
       this._validateCharacteristic(dto.characteristicIds ?? [], draft),
     ]);
 
-    // Create CR
-    const cr = await this.crRepo.save(
-      this.crRepo.create({
-        entityType: 'specie',
-        action: ChangeRequestAction.CREATE,
-        status: ChangeRequestStatus.PENDING,
-        proposedBy,
-      }),
-    );
-
     draft.scientificName = dto.scientificName;
     draft.commonName = dto.commonName ?? null;
     draft.description = dto.description ?? null;
@@ -305,11 +322,23 @@ export class ChangeRequestsService {
       type: 'Point',
       coordinates: [dto.location.long, dto.location.lat],
     };
-    draft.changeRequest = cr;
     draft.collectedAt = dto.collectedAt;
     draft.determinatedAt = dto.determinatedAt;
 
-    await this.specieDraftRepo.save(draft);
+    // Step 1: Save the draft first to get its ID
+    const savedDraft = await this.specieDraftRepo.save(draft);
+
+    // Step 2: Create CR with reference to the draft
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: 'specie',
+        action: ChangeRequestAction.CREATE,
+        status: ChangeRequestStatus.PENDING,
+        proposedBy,
+        draftId: savedDraft.id, // Polymorphic reference
+        entityId: null, // Not used for CREATE - will be set on approval
+      }),
+    );
 
     // Persist uploaded files as pending and linked to this change request
     if (files?.length) {
@@ -338,19 +367,6 @@ export class ChangeRequestsService {
     });
 
     if (!specie) throw new NotFoundException('specie not found');
-
-    const cr = await this.crRepo.save(
-      this.crRepo.create({
-        entityType: 'specie',
-        action: ChangeRequestAction.UPDATE,
-        status: ChangeRequestStatus.PENDING,
-        entityId: specieId,
-        proposedBy,
-        diff: dto.filesToDelete?.length
-          ? { filesToDelete: dto.filesToDelete }
-          : null,
-      }),
-    );
 
     // Validations mirroring SpeciesService.update for provided fields
     if (dto?.taxonIds?.length) {
@@ -430,7 +446,6 @@ export class ChangeRequestsService {
 
     // Seed draft from current specie, then override with dto
     const draft = new SpecieDraftEntity();
-    draft.changeRequest = cr;
     draft.specie = specie;
     draft.scientificName = dto.scientificName ?? specie.scientificName;
     draft.commonName = dto.commonName ?? specie.commonName ?? null;
@@ -495,7 +510,25 @@ export class ChangeRequestsService {
       return c;
     });
 
-    await this.specieDraftRepo.save(this.specieDraftRepo.create(draft));
+    // Step 1: Save draft first
+    const savedDraft = await this.specieDraftRepo.save(
+      this.specieDraftRepo.create(draft),
+    );
+
+    // Step 2: Create CR with reference to draft
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: 'specie',
+        action: ChangeRequestAction.UPDATE,
+        status: ChangeRequestStatus.PENDING,
+        entityId: null, // Not used for UPDATE - draft.specie.id provides this
+        proposedBy,
+        draftId: savedDraft.id, // Polymorphic reference
+        diff: dto.filesToDelete?.length
+          ? { filesToDelete: dto.filesToDelete }
+          : null,
+      }),
+    );
 
     // Persist uploaded files as pending and linked to this change request
     if (files?.length) {
@@ -515,86 +548,135 @@ export class ChangeRequestsService {
 
     if (!cr) throw new NotFoundException('change request not found');
 
-    const draft = await this.specieDraftRepo.findOne({
-      where: { changeRequest: { id: cr.id } },
-      relations: ['specie', 'taxons', 'characteristics', 'state', 'city'],
-    });
-
-    if (!draft) throw new NotFoundException('draft not found');
-
     const reviewer = new UserEntity();
     reviewer.id = payload.id;
 
-    if (cr.action === ChangeRequestAction.CREATE) {
-      // create specie
-      const newSpecie = new SpecieEntity();
-      newSpecie.scientificName = draft.scientificName;
-      newSpecie.commonName = draft.commonName ?? null;
-      newSpecie.description = draft.description ?? null;
-      newSpecie.collectLocation = draft.collectLocation ?? null;
-      newSpecie.geoLocation = draft.geoLocation as any;
-      newSpecie.state = draft.state;
-      newSpecie.city = draft.city;
-      newSpecie.collector = draft.collector;
-      newSpecie.determinator = draft.determinator;
-      newSpecie.collectedAt = draft.collectedAt;
-      newSpecie.determinatedAt = draft.determinatedAt;
-      newSpecie.taxons = draft.taxons ?? [];
-      newSpecie.characteristics = draft.characteristics ?? [];
-
-      const sp = this.specieRepository.create(
-        await this.specieRepository.save(newSpecie),
-      );
-
-      draft.specie = sp;
-      await this.specieDraftRepo.save(draft);
-      // Move CR files to specie path and approve
-      await this.filesMinioService.moveCrFilesToSpecies(cr.id, sp.id);
-
-      // Approve any pending characteristic files related to the draft characteristics
-      const characteristicIds = (draft.characteristics ?? []).map((c) => c.id);
-      if (characteristicIds.length) {
-        await this.fileRepository.approveByCharacteristicIds(characteristicIds);
+    if (
+      cr.action === ChangeRequestAction.CREATE ||
+      cr.action === ChangeRequestAction.UPDATE
+    ) {
+      // For CREATE and UPDATE, we need the draft
+      if (!cr.draftId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: draftId is null',
+        );
       }
 
-      await this.postService.createFromChangeRequest(
-        ChangeRequestMapper.toDomain(cr),
-        SpecieMapper.toDomain(sp),
-      );
-    } else if (cr.action === ChangeRequestAction.UPDATE) {
-      if (!draft.specie) throw new NotFoundException('specie not linked');
-
-      const specie = await this.specieRepository.findOne({
-        where: { id: draft.specie.id },
-        relations: ['taxons', 'characteristics'],
+      const draft = await this.specieDraftRepo.findOne({
+        where: { id: cr.draftId },
+        relations: ['specie', 'taxons', 'characteristics', 'state', 'city'],
       });
 
-      if (!specie) throw new NotFoundException('specie not found');
+      if (!draft) throw new NotFoundException('draft not found');
 
-      specie.scientificName = draft.scientificName;
-      specie.commonName = draft.commonName ?? null;
-      specie.description = draft.description ?? null;
-      specie.collectLocation = draft.collectLocation ?? null;
-      specie.geoLocation = draft.geoLocation as any;
-      specie.state = draft.state;
-      specie.city = draft.city;
-      specie.collector = draft.collector;
-      specie.determinator = draft.determinator;
-      specie.collectedAt = draft.collectedAt;
-      specie.determinatedAt = draft.determinatedAt;
-      specie.taxons = draft.taxons ?? [];
-      specie.characteristics = draft.characteristics ?? [];
+      if (cr.action === ChangeRequestAction.CREATE) {
+        // create specie
+        const newSpecie = new SpecieEntity();
+        newSpecie.scientificName = draft.scientificName;
+        newSpecie.commonName = draft.commonName ?? null;
+        newSpecie.description = draft.description ?? null;
+        newSpecie.collectLocation = draft.collectLocation ?? null;
+        newSpecie.geoLocation = draft.geoLocation as any;
+        newSpecie.state = draft.state;
+        newSpecie.city = draft.city;
+        newSpecie.collector = draft.collector;
+        newSpecie.determinator = draft.determinator;
+        newSpecie.collectedAt = draft.collectedAt;
+        newSpecie.determinatedAt = draft.determinatedAt;
+        newSpecie.taxons = draft.taxons ?? [];
+        newSpecie.characteristics = draft.characteristics ?? [];
 
-      await this.specieRepository.save(specie);
-      await this.filesMinioService.moveCrFilesToSpecies(cr.id, specie.id);
+        const sp = this.specieRepository.create(
+          await this.specieRepository.save(newSpecie),
+        );
 
-      const characteristicIds = (draft.characteristics ?? []).map((c) => c.id);
-      await this.fileRepository.approveByCharacteristicIds(characteristicIds);
+        draft.specie = sp;
+        await this.specieDraftRepo.save(draft);
+        // Move CR files to specie path and approve
+        await this.filesMinioService.moveCrFilesToSpecies(cr.id, sp.id);
 
-      await this.postService.createFromChangeRequest(
-        ChangeRequestMapper.toDomain(cr),
-        SpecieMapper.toDomain(specie),
-      );
+        // Approve any pending characteristic files related to the draft characteristics
+        const characteristicIds = (draft.characteristics ?? []).map(
+          (c) => c.id,
+        );
+        if (characteristicIds.length) {
+          await this.fileRepository.approveByCharacteristicIds(
+            characteristicIds,
+          );
+        }
+
+        cr.entityId = sp.id; // Set entityId after creating the entity for tracking
+
+        await this.postService.createFromChangeRequest(
+          ChangeRequestMapper.toDomain(cr),
+          SpecieMapper.toDomain(sp),
+        );
+      } else if (cr.action === ChangeRequestAction.UPDATE) {
+        if (!draft.specie) throw new NotFoundException('specie not linked');
+
+        const specie = await this.specieRepository.findOne({
+          where: { id: draft.specie.id },
+          relations: ['taxons', 'characteristics'],
+        });
+
+        if (!specie) throw new NotFoundException('specie not found');
+
+        specie.scientificName = draft.scientificName;
+        specie.commonName = draft.commonName ?? null;
+        specie.description = draft.description ?? null;
+        specie.collectLocation = draft.collectLocation ?? null;
+        specie.geoLocation = draft.geoLocation as any;
+        specie.state = draft.state;
+        specie.city = draft.city;
+        specie.collector = draft.collector;
+        specie.determinator = draft.determinator;
+        specie.collectedAt = draft.collectedAt;
+        specie.determinatedAt = draft.determinatedAt;
+        specie.taxons = draft.taxons ?? [];
+        specie.characteristics = draft.characteristics ?? [];
+
+        await this.specieRepository.save(specie);
+        await this.filesMinioService.moveCrFilesToSpecies(cr.id, specie.id);
+
+        const characteristicIds = (draft.characteristics ?? []).map(
+          (c) => c.id,
+        );
+        await this.fileRepository.approveByCharacteristicIds(characteristicIds);
+
+        cr.entityId = specie.id; // Set entityId for tracking
+
+        await this.postService.createFromChangeRequest(
+          ChangeRequestMapper.toDomain(cr),
+          SpecieMapper.toDomain(specie),
+        );
+      }
+
+      // Handle files deletion if requested via diff
+      const filesToDelete = (cr.diff as any)?.filesToDelete as
+        | string[]
+        | undefined;
+
+      if (filesToDelete?.length) {
+        if (cr.action === ChangeRequestAction.UPDATE && draft.specie?.id) {
+          // Safety: ensure all file IDs belong to this specie before deleting
+          const owned = await this.fileRepository.findIdsBySpecie(
+            draft.specie.id,
+            filesToDelete,
+          );
+
+          if (owned.length !== filesToDelete.length) {
+            throw new BadRequestException({
+              status: HttpStatus.BAD_REQUEST,
+              errors: {
+                filesToDelete:
+                  'one or more files do not belong to the target specie',
+              },
+            });
+          }
+        }
+
+        await this.filesMinioService.delete(filesToDelete);
+      }
     } else if (cr.action === ChangeRequestAction.DELETE) {
       if (!cr.entityId) {
         throw new UnprocessableEntityException(
@@ -611,42 +693,14 @@ export class ChangeRequestsService {
       }
 
       await Promise.all([
-        this.specieRepository.softDelete(specie.id),
+        this.specieRepository.remove(specie),
         this.postService.invalidatePublishedPostsBySpecieId(specie.id),
       ]);
-    }
-
-    // Handle files deletion if requested via diff
-    const filesToDelete = (cr.diff as any)?.filesToDelete as
-      | string[]
-      | undefined;
-
-    if (filesToDelete?.length) {
-      if (cr.action === ChangeRequestAction.UPDATE && draft.specie?.id) {
-        // Safety: ensure all file IDs belong to this specie before deleting
-        const owned = await this.fileRepository.findIdsBySpecie(
-          draft.specie.id,
-          filesToDelete,
-        );
-
-        if (owned.length !== filesToDelete.length) {
-          throw new BadRequestException({
-            status: HttpStatus.BAD_REQUEST,
-            errors: {
-              filesToDelete:
-                'one or more files do not belong to the target specie',
-            },
-          });
-        }
-      }
-
-      await this.filesMinioService.delete(filesToDelete);
     }
 
     cr.status = ChangeRequestStatus.APPROVED;
     cr.decidedAt = new Date();
     cr.reviewedBy = reviewer;
-    cr.entityId = cr.entityId ?? (draft.specie ? draft.specie.id : null);
 
     await this.crRepo.save(cr);
   }
@@ -681,14 +735,21 @@ export class ChangeRequestsService {
     status?: ChangeRequestStatus;
     search?: string;
   }): Promise<WithCountList<SpecieDraftWithChangeReqDto>> {
-    const qb = this.specieDraftRepo
-      .createQueryBuilder('draft')
-      .leftJoinAndSelect('draft.changeRequest', 'cr')
+    const qb = this.crRepo
+      .createQueryBuilder('cr')
       .leftJoinAndSelect('cr.proposedBy', 'proposedBy')
-      .leftJoinAndSelect('cr.reviewedBy', 'reviewedBy');
+      .leftJoinAndSelect('cr.reviewedBy', 'reviewedBy')
+      .leftJoin(
+        SpecieDraftEntity,
+        'draft',
+        'draft.id = cr.draftId AND cr.entityType = :entityType',
+        { entityType: 'specie' },
+      )
+      .addSelect(['draft.id', 'draft.scientificName', 'draft.createdAt'])
+      .where('cr.entityType = :entityType', { entityType: 'specie' });
 
     if (status) {
-      qb.where('cr.status = :status', { status });
+      qb.andWhere('cr.status = :status', { status });
     }
 
     if (search && search.trim().length) {
@@ -701,43 +762,55 @@ export class ChangeRequestsService {
         'reviewedBy.lastName ILIKE :s',
       ].join(' OR ');
 
-      if (status) {
-        qb.andWhere(`(${searchClause})`, { s });
-      } else {
-        qb.where(`(${searchClause})`, { s });
-      }
+      qb.andWhere(`(${searchClause})`, { s });
     }
 
-    const [drafts, total] = await qb
+    const total = await qb.getCount();
+
+    const { entities, raw } = await qb
       .orderBy('cr.proposedAt', 'DESC')
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit)
-      .getManyAndCount();
+      .getRawAndEntities();
 
-    const dto: SpecieDraftWithChangeReqDto[] = drafts.map((d) => ({
-      id: d.id,
-      scientificName: d.scientificName,
-      changeRequest: {
-        id: d.changeRequest.id,
-        status: d.changeRequest.status,
-        action: d.changeRequest.action,
-        proposedBy: UserFactory.createAuthor(
-          UserMapper.toDomain(d.changeRequest.proposedBy),
-        ),
-        reviewedBy: d.changeRequest.reviewedBy
-          ? UserFactory.createAuthor(
-              UserMapper.toDomain(d.changeRequest.reviewedBy),
-            )
-          : null,
-        reviewerNote: d.changeRequest.reviewerNote,
-      },
-      createdAt: d.createdAt,
-    }));
+    const draftMap = new Map(
+      raw.map((d) => [
+        d.draft_id,
+        {
+          id: d.draft_id,
+          scientificName: d.draft_scientificName,
+          createdAt: d.draft_createdAt,
+        },
+      ]),
+    );
+
+    const dto: SpecieDraftWithChangeReqDto[] = entities.map((cr) => {
+      const draft = draftMap.get(cr.draftId);
+
+      return {
+        id: Number(cr.draftId),
+        scientificName: draft?.scientificName,
+        changeRequest: {
+          id: cr.id,
+          status: cr.status,
+          action: cr.action,
+          proposedBy: UserFactory.createAuthor(
+            UserMapper.toDomain(cr.proposedBy),
+          ),
+          reviewedBy: cr.reviewedBy
+            ? UserFactory.createAuthor(UserMapper.toDomain(cr.reviewedBy))
+            : null,
+          reviewerNote: cr.reviewerNote,
+        },
+        createdAt: draft?.createdAt ?? cr.proposedAt,
+      };
+    });
 
     return [dto, total];
   }
 
   async getSpecieDraftDetail(id: number): Promise<GetSpecieDto> {
+    // id here is the draftId
     const draft = await this.specieDraftRepo.findOne({
       where: { id },
       relations: [
@@ -750,16 +823,20 @@ export class ChangeRequestsService {
         'city',
         'state',
         'specie',
-        'changeRequest',
       ],
     });
     if (!draft) throw new NotFoundException('draft not found');
 
+    // Find the change request that references this draft
+    const changeRequest = await this.crRepo.findOne({
+      where: { draftId: id, entityType: 'specie' },
+    });
+
+    if (!changeRequest) throw new NotFoundException('change request not found');
+
     const files = draft.specie?.files.length
       ? draft.specie.files
-      : draft.changeRequest
-        ? await this.fileRepository.findByChangeRequest(draft.changeRequest.id)
-        : [];
+      : await this.fileRepository.findByChangeRequest(changeRequest.id);
 
     const taxons = (draft.taxons ?? []).map((tx) => ({
       id: tx.id,
@@ -771,12 +848,12 @@ export class ChangeRequestsService {
       CharacteristicFactory.toDto(CharacteristicMapper.toDomain(c)),
     );
 
-    if (!draft.specie || !draft.collectLocation) {
+    if (!draft.collectLocation) {
       throw new UnprocessableEntityException('draft malformed');
     }
 
     const dto: GetSpecieDto = {
-      id: draft.specie.id,
+      id: draft.specie?.id ?? 0, // For CREATE action, specie may not exist yet
       scientificName: draft.scientificName,
       commonName: draft.commonName,
       description: draft.description,
@@ -784,8 +861,8 @@ export class ChangeRequestsService {
       determinator: draft.determinator,
       collectedAt: draft.collectedAt,
       determinatedAt: draft.determinatedAt,
-      status: draft.changeRequest.status,
-      statusReason: draft.changeRequest.reviewerNote ?? null,
+      status: changeRequest.status,
+      statusReason: changeRequest.reviewerNote ?? null,
       taxons,
       characteristics,
       files,

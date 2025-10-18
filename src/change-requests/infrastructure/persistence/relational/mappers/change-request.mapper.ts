@@ -14,6 +14,7 @@ export class ChangeRequestMapper {
     domain.action = raw.action;
     domain.status = raw.status;
     domain.entityId = raw.entityId ?? null;
+    domain.draftId = raw.draftId ?? null;
     domain.proposedBy = UserMapper.toDomain(raw.proposedBy);
     domain.reviewedBy = raw.reviewedBy
       ? UserMapper.toDomain(raw.reviewedBy)
@@ -37,6 +38,8 @@ export class ChangeRequestMapper {
       entity.status = domain.status as ChangeRequestStatus;
     if (domain.entityId !== undefined)
       entity.entityId = (domain.entityId as number) ?? null;
+    if (domain.draftId !== undefined)
+      entity.draftId = (domain.draftId as number) ?? null;
     if (domain.proposedBy !== undefined)
       entity.proposedBy = UserMapper.toPersistence(domain.proposedBy);
     if (domain.reviewedBy !== undefined)
