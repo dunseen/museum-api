@@ -651,15 +651,12 @@ export class ChangeRequestsService {
           ChangeRequestMapper.toDomain(cr),
           SpecieMapper.toDomain(specie),
         );
-      }
+        // Handle files deletion if requested via diff
+        const filesToDelete = (cr.diff as any)?.filesToDelete as
+          | string[]
+          | undefined;
 
-      // Handle files deletion if requested via diff
-      const filesToDelete = (cr.diff as any)?.filesToDelete as
-        | string[]
-        | undefined;
-
-      if (filesToDelete?.length) {
-        if (cr.action === ChangeRequestAction.UPDATE && cr.entityId) {
+        if (filesToDelete?.length) {
           // Safety: ensure all file IDs belong to this specie before deleting
           const owned = await this.fileRepository.findIdsBySpecie(
             cr.entityId,
@@ -675,9 +672,9 @@ export class ChangeRequestsService {
               },
             });
           }
-        }
 
-        await this.filesMinioService.delete(filesToDelete);
+          await this.filesMinioService.delete(filesToDelete);
+        }
       }
     } else if (cr.action === ChangeRequestAction.DELETE) {
       if (!cr.entityId) {

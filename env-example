@@ -7,6 +7,9 @@ APP_HEADER_LANGUAGE=x-custom-lang
 FRONTEND_DOMAIN=http://localhost:3333
 BACKEND_DOMAIN=http://localhost:3333
 
+# Request Logging - Set to 'true' to enable detailed HTTP request logging
+ENABLE_REQUEST_LOGGING=true
+
 DATABASE_TYPE=postgres
 # This is the name of the service in docker-compose
 DATABASE_HOST=postgres 
