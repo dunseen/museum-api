@@ -10,6 +10,7 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -26,6 +27,8 @@ import { RoleEnum } from '../../roles/roles.enum';
 import { ChangeRequestsService } from '../../change-requests/change-requests.service';
 import { CreateSpecieDto } from '../../species/dto/create-specie.dto';
 import { UpdateSpecieDto } from '../../species/dto/update-specie.dto';
+import { ProposeCharacteristicUpdateDto } from '../../change-requests/dto/propose-characteristic-update.dto';
+import { CharacteristicOperationResultDto } from '../../change-requests/dto/characteristic-operation-result.dto';
 import { JwtPayload } from '../../auth/strategies/jwt.decorator';
 import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 import { ChangeRequest } from '../../change-requests/domain/change-request';
@@ -43,12 +46,12 @@ import { FilesInterceptor } from '@nestjs/platform-express';
   path: 'dashboard/change-requests',
   version: '1',
 })
+@ApiBearerAuth()
+@Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class DashboardChangeRequestsController {
   constructor(private readonly service: ChangeRequestsService) {}
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('species')
   @ApiOkResponse({ type: ChangeRequest })
   @ApiConsumes('multipart/form-data')
@@ -61,9 +64,6 @@ export class DashboardChangeRequestsController {
     return this.service.proposeSpecieCreate(dto, files, payload.id);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('species/:id')
   @ApiParam({ name: 'id', type: Number })
   @ApiOkResponse({ type: ChangeRequest })
@@ -78,9 +78,6 @@ export class DashboardChangeRequestsController {
     return this.service.proposeSpecieUpdate(Number(id), dto, files, payload.id);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch('species/remove/:id')
   @ApiParam({ name: 'id', type: Number })
   @ApiNoContentResponse()
@@ -91,9 +88,47 @@ export class DashboardChangeRequestsController {
     return this.service.proposeSpecieDelete(Number(id), payload.id);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // ==================== Characteristics ====================
+
+  @Put('characteristics/:id')
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({
+    type: CharacteristicOperationResultDto,
+    description:
+      'Update characteristic. If used by species, creates change request. Otherwise updates directly.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('file'))
+  updateCharacteristic(
+    @Param('id') id: number,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() dto: ProposeCharacteristicUpdateDto,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.service.updateCharacteristic(
+      Number(id),
+      dto,
+      files,
+      payload.id,
+    );
+  }
+
+  @Delete('characteristics/:id')
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({
+    type: CharacteristicOperationResultDto,
+    description:
+      'Delete characteristic. If used by species, creates change request. Otherwise deletes directly.',
+  })
+  deleteCharacteristic(
+    @Param('id') id: number,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.service.deleteCharacteristic(Number(id), payload.id);
+  }
+
+  // ==================== General ====================
+
   @Get()
   @ApiOkResponse({
     type: InfinityPaginationResponse(ListChangeRequestDto),
@@ -113,9 +148,6 @@ export class DashboardChangeRequestsController {
     return infinityPagination(result, { page, limit });
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/:entityType/:id')
   @ApiParam({ name: 'entityType', type: String })
   @ApiParam({ name: 'id', type: Number })
@@ -126,18 +158,12 @@ export class DashboardChangeRequestsController {
     return this.service.getDraftDetail(Number(id), entityType);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch(':id/approve')
   @ApiParam({ name: 'id', type: Number })
   approve(@Param('id') id: number, @JwtPayload() payload: JwtPayloadType) {
     return this.service.approve(Number(id), payload);
   }
 
-  @ApiBearerAuth()
-  @Roles(RoleEnum.admin, RoleEnum.editor)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch(':id/reject')
   @ApiParam({ name: 'id', type: Number })
   reject(

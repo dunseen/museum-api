@@ -4,6 +4,7 @@ import { ChangeRequestEntity } from './entities/change-request.entity';
 import { ChangeRequestRepository } from '../../../domain/change-request.repository';
 import { ChangeRequestRelationalRepository } from './repositories/change-request.repository';
 import { SpecieDraftEntity } from './entities/specie-draft.entity';
+import { CharacteristicDraftEntity } from './entities/characteristic-draft.entity';
 import { SpecieEntity } from '../../../../species/infrastructure/persistence/relational/entities/specie.entity';
 import { TaxonEntity } from '../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { CharacteristicEntity } from '../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
@@ -16,6 +17,7 @@ import { SpecialistEntity } from '../../../../specialists/infrastructure/persist
     TypeOrmModule.forFeature([
       ChangeRequestEntity,
       SpecieDraftEntity,
+      CharacteristicDraftEntity,
       SpecieEntity,
       TaxonEntity,
       CharacteristicEntity,

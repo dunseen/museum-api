@@ -15,12 +15,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SpecieDraftEntity } from './infrastructure/persistence/relational/entities/specie-draft.entity';
 import { ChangeRequestEntity } from './infrastructure/persistence/relational/entities/change-request.entity';
+import { CharacteristicDraftEntity } from './infrastructure/persistence/relational/entities/characteristic-draft.entity';
 import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
 import { CreateSpecieDto } from '../species/dto/create-specie.dto';
 import { UpdateSpecieDto } from '../species/dto/update-specie.dto';
+import { ProposeCharacteristicUpdateDto } from './dto/propose-characteristic-update.dto';
+import {
+  CharacteristicOperationResultDto,
+  OperationStatus,
+} from './dto/characteristic-operation-result.dto';
 import { SpecieEntity } from '../species/infrastructure/persistence/relational/entities/specie.entity';
 import { TaxonEntity } from '../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { CharacteristicEntity } from '../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
+import { CharacteristicTypeEntity } from '../characteristic-types/infrastructure/persistence/relational/entities/characteristic-type.entity';
 import { CityEntity } from '../cities/infrastructure/persistence/relational/entities/city.entity';
 import { StateEntity } from '../states/infrastructure/persistence/relational/entities/state.entity';
 import { SpecialistEntity } from '../specialists/infrastructure/persistence/relational/entities/specialist.entity';
@@ -30,12 +37,14 @@ import {
 } from '../utils/types/pagination-options';
 import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
 import { ListChangeRequestDto } from './dto/draft-with-change-request.dto';
+import { GetCharacteristicDraftDto } from './dto/get-characteristic-draft.dto';
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { PostService } from '../posts/domain/post.service';
 import { SpecieMapper } from '../species/infrastructure/persistence/relational/mappers/specie.mapper';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { TaxonRepository } from '../taxons/infrastructure/persistence/taxon.repository';
 import { CharacteristicRepository } from '../characteristics/domain/characteristic.repository';
+import { CharacteristicTypeRepository } from '../characteristic-types/infrastructure/persistence/characteristic-type.repository';
 import { CityRepository } from '../cities/infrastructure/persistence/city.repository';
 import { StateRepository } from '../states/infrastructure/persistence/state.repository';
 import { SpecialistRepository } from '../specialists/infrastructure/persistence/specialist.repository';
@@ -54,16 +63,21 @@ export class ChangeRequestsService {
   constructor(
     @InjectRepository(SpecieDraftEntity)
     private readonly specieDraftRepo: Repository<SpecieDraftEntity>,
+    @InjectRepository(CharacteristicDraftEntity)
+    private readonly characteristicDraftRepo: Repository<CharacteristicDraftEntity>,
     @InjectRepository(ChangeRequestEntity)
     private readonly crRepo: Repository<ChangeRequestEntity>,
     private readonly taxonRepository: TaxonRepository,
     private readonly characteristicRepository: CharacteristicRepository,
+    private readonly characteristicTypeRepository: CharacteristicTypeRepository,
     private readonly cityRepository: CityRepository,
     private readonly stateRepository: StateRepository,
     private readonly specialistRepository: SpecialistRepository,
     private readonly fileRepository: FileRepository,
     @InjectRepository(SpecieEntity)
     private readonly specieRepository: Repository<SpecieEntity>,
+    @InjectRepository(CharacteristicEntity)
+    private readonly characteristicEntityRepo: Repository<CharacteristicEntity>,
     private readonly filesMinioService: FilesMinioService,
     private readonly postService: PostService,
   ) {}
@@ -229,6 +243,26 @@ export class ChangeRequestsService {
     const collectorEntity = new SpecialistEntity();
     collectorEntity.id = collectorId;
     specieEntity.collector = collectorEntity;
+  }
+
+  /**
+   * Check if a characteristic is currently used by any species.
+   * Used to determine if changes require approval workflow.
+   */
+  private async _isCharacteristicUsedBySpecies(
+    characteristicId: number,
+  ): Promise<boolean> {
+    const count = await this.specieRepository
+      .createQueryBuilder('specie')
+      .innerJoin(
+        'specie.characteristics',
+        'char',
+        'char.id = :characteristicId',
+        { characteristicId },
+      )
+      .getCount();
+
+    return count > 0;
   }
 
   async proposeSpecieDelete(
@@ -542,6 +576,267 @@ export class ChangeRequestsService {
     }
   }
 
+  // ==================== Characteristic Change Requests ====================
+
+  /**
+   * Update a characteristic with conditional draft flow.
+   * - If characteristic is used by any specie: create draft and require approval
+   * - If characteristic is not used: update directly without approval
+   */
+  async updateCharacteristic(
+    characteristicId: number,
+    dto: ProposeCharacteristicUpdateDto,
+    files: Express.Multer.File[],
+    proposedById: string,
+  ): Promise<CharacteristicOperationResultDto> {
+    // Check if characteristic exists
+    const characteristic =
+      await this.characteristicRepository.findById(characteristicId);
+    if (!characteristic) {
+      throw new NotFoundException('characteristic not found');
+    }
+
+    // Validate type if provided
+    if (dto.typeId) {
+      const type = await this.characteristicTypeRepository.findById(dto.typeId);
+      if (!type) {
+        throw new UnprocessableEntityException({
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          errors: {
+            typeId: 'characteristic type not found',
+          },
+        });
+      }
+    }
+
+    // Check if characteristic is used by any species
+    const isUsed = await this._isCharacteristicUsedBySpecies(characteristicId);
+
+    if (isUsed) {
+      // DRAFT FLOW: Characteristic is used by species, require approval
+      // Check for existing pending update
+      const existingPendingUpdate = await this.crRepo.findOne({
+        where: {
+          entityId: characteristicId,
+          entityType: EntityType.CHARACTERISTIC,
+          action: ChangeRequestAction.UPDATE,
+          status: ChangeRequestStatus.PENDING,
+        },
+      });
+
+      if (existingPendingUpdate) {
+        throw new ConflictException(
+          'There is already a pending update request for this characteristic',
+        );
+      }
+
+      // Create draft with current data + changes
+      const draft = new CharacteristicDraftEntity();
+      draft.name = dto.name ?? characteristic.name;
+      const typeEntity = new CharacteristicTypeEntity();
+      typeEntity.id = (dto.typeId ?? characteristic.type.id)!;
+      draft.type = typeEntity;
+      draft.filePaths = [];
+      draft.filesToDelete = dto.filesToDelete ?? [];
+
+      const savedDraft = await this.characteristicDraftRepo.save(draft);
+
+      // Create change request
+      const proposedBy = new UserEntity();
+      proposedBy.id = proposedById;
+
+      const cr = await this.crRepo.save(
+        this.crRepo.create({
+          entityType: EntityType.CHARACTERISTIC,
+          action: ChangeRequestAction.UPDATE,
+          status: ChangeRequestStatus.PENDING,
+          entityId: characteristicId,
+          proposedBy,
+          draftId: savedDraft.id,
+        }),
+      );
+
+      // Save new files if provided
+      if (files?.length) {
+        const filePaths = await Promise.all(
+          files.map(async (f) => {
+            const path = `/change-requests/${cr.id}/${generateFileName(f.originalname)}`;
+            await this.filesMinioService.save([
+              {
+                fileStream: f.buffer,
+                path,
+                changeRequestId: cr.id,
+                approved: false,
+              },
+            ]);
+            return path;
+          }),
+        );
+
+        savedDraft.filePaths = filePaths;
+        await this.characteristicDraftRepo.save(savedDraft);
+      }
+
+      // Count how many species use this characteristic
+      const speciesCount = await this.specieRepository
+        .createQueryBuilder('specie')
+        .innerJoin(
+          'specie.characteristics',
+          'char',
+          'char.id = :characteristicId',
+          { characteristicId },
+        )
+        .getCount();
+
+      return {
+        status: OperationStatus.PENDING_APPROVAL,
+        message: 'Update request created and awaiting approval',
+        changeRequestId: cr.id,
+        affectedSpeciesCount: speciesCount,
+      };
+    } else {
+      // DIRECT FLOW: Characteristic is not used, update directly
+      const charEntity = await this.characteristicEntityRepo.findOne({
+        where: { id: characteristicId },
+      });
+
+      if (!charEntity) {
+        throw new NotFoundException('characteristic not found');
+      }
+
+      // Update fields
+      if (dto.name !== undefined) {
+        charEntity.name = dto.name;
+      }
+      if (dto.typeId !== undefined) {
+        const typeEntity = new CharacteristicTypeEntity();
+        typeEntity.id = dto.typeId;
+        charEntity.type = typeEntity;
+      }
+
+      await this.characteristicEntityRepo.save(charEntity);
+
+      // Handle new files
+      if (files?.length) {
+        await Promise.all(
+          files.map(async (f) => {
+            const path = `/characteristics/${characteristicId}/${generateFileName(f.originalname)}`;
+            await this.filesMinioService.save([
+              {
+                fileStream: f.buffer,
+                path,
+                characteristicId: characteristicId,
+                approved: true, // Direct update, no approval needed
+              },
+            ]);
+          }),
+        );
+      }
+
+      // Handle file deletion if requested
+      if (dto.filesToDelete && dto.filesToDelete.length > 0) {
+        await this.filesMinioService.delete(dto.filesToDelete);
+      }
+
+      return {
+        status: OperationStatus.COMPLETED,
+        message: 'Characteristic updated successfully',
+        changeRequestId: null,
+      };
+    }
+  }
+
+  /**
+   * Delete a characteristic with conditional draft flow.
+   * - If characteristic is used by any specie: create draft and require approval
+   * - If characteristic is not used: delete directly without approval
+   */
+  async deleteCharacteristic(
+    characteristicId: number,
+    proposedById: string,
+  ): Promise<CharacteristicOperationResultDto> {
+    const characteristic =
+      await this.characteristicRepository.findById(characteristicId);
+    if (!characteristic) {
+      throw new NotFoundException('characteristic not found');
+    }
+
+    // Check if characteristic is used by any species
+    const isUsed = await this._isCharacteristicUsedBySpecies(characteristicId);
+
+    if (isUsed) {
+      // DRAFT FLOW: Characteristic is used by species, require approval
+      // Check for existing pending delete
+      const existingPendingDelete = await this.crRepo.findOne({
+        where: {
+          entityId: characteristicId,
+          entityType: EntityType.CHARACTERISTIC,
+          action: ChangeRequestAction.DELETE,
+          status: ChangeRequestStatus.PENDING,
+        },
+      });
+
+      if (existingPendingDelete) {
+        throw new ConflictException(
+          'There is already a pending delete request for this characteristic',
+        );
+      }
+
+      // Create draft with current data for record
+      const draft = new CharacteristicDraftEntity();
+      draft.name = characteristic.name;
+      const typeEntity = new CharacteristicTypeEntity();
+      typeEntity.id = characteristic.type.id!;
+      draft.type = typeEntity;
+      draft.filePaths = [];
+      draft.filesToDelete = [];
+
+      const savedDraft = await this.characteristicDraftRepo.save(draft);
+
+      // Create change request
+      const proposedBy = new UserEntity();
+      proposedBy.id = proposedById;
+
+      const cr = await this.crRepo.save(
+        this.crRepo.create({
+          entityType: EntityType.CHARACTERISTIC,
+          action: ChangeRequestAction.DELETE,
+          status: ChangeRequestStatus.PENDING,
+          entityId: characteristicId,
+          proposedBy,
+          draftId: savedDraft.id,
+        }),
+      );
+
+      // Count how many species use this characteristic
+      const speciesCount = await this.specieRepository
+        .createQueryBuilder('specie')
+        .innerJoin(
+          'specie.characteristics',
+          'char',
+          'char.id = :characteristicId',
+          { characteristicId },
+        )
+        .getCount();
+
+      return {
+        status: OperationStatus.PENDING_APPROVAL,
+        message: 'Delete request created and awaiting approval',
+        changeRequestId: cr.id,
+        affectedSpeciesCount: speciesCount,
+      };
+    } else {
+      // DIRECT FLOW: Characteristic is not used, delete directly
+      await this.characteristicEntityRepo.softDelete(characteristicId);
+
+      return {
+        status: OperationStatus.COMPLETED,
+        message: 'Characteristic deleted successfully',
+        changeRequestId: null,
+      };
+    }
+  }
+
   async approve(id: number, payload: JwtPayloadType): Promise<void> {
     const cr = await this.crRepo.findOne({ where: { id } });
 
@@ -550,6 +845,32 @@ export class ChangeRequestsService {
     const reviewer = new UserEntity();
     reviewer.id = payload.id;
 
+    // Handle approval based on entity type
+    switch (cr.entityType) {
+      case EntityType.SPECIE:
+        await this.approveSpecieChangeRequest(cr);
+        break;
+
+      case EntityType.CHARACTERISTIC:
+        await this.approveCharacteristicChangeRequest(cr);
+        break;
+
+      default:
+        throw new UnprocessableEntityException(
+          `Entity type ${cr.entityType} not supported for approval`,
+        );
+    }
+
+    cr.status = ChangeRequestStatus.APPROVED;
+    cr.decidedAt = new Date();
+    cr.reviewedBy = reviewer;
+
+    await this.crRepo.save(cr);
+  }
+
+  private async approveSpecieChangeRequest(
+    cr: ChangeRequestEntity,
+  ): Promise<void> {
     if (
       cr.action === ChangeRequestAction.CREATE ||
       cr.action === ChangeRequestAction.UPDATE
@@ -696,12 +1017,83 @@ export class ChangeRequestsService {
         this.postService.invalidatePublishedPostsBySpecieId(specie.id),
       ]);
     }
+  }
 
-    cr.status = ChangeRequestStatus.APPROVED;
-    cr.decidedAt = new Date();
-    cr.reviewedBy = reviewer;
+  private async approveCharacteristicChangeRequest(
+    cr: ChangeRequestEntity,
+  ): Promise<void> {
+    // Note: CREATE action no longer uses draft flow, so only UPDATE and DELETE are handled here
+    if (cr.action === ChangeRequestAction.UPDATE) {
+      // For UPDATE, we need the draft
+      if (!cr.draftId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: draftId is null',
+        );
+      }
 
-    await this.crRepo.save(cr);
+      const draft = await this.characteristicDraftRepo.findOne({
+        where: { id: cr.draftId },
+        relations: ['type'],
+      });
+
+      if (!draft) throw new NotFoundException('draft not found');
+
+      // For UPDATE, entityId must be set to the characteristic being updated
+      if (!cr.entityId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: entityId is null for UPDATE action',
+        );
+      }
+
+      const characteristic = await this.characteristicEntityRepo.findOne({
+        where: { id: cr.entityId },
+      });
+
+      if (!characteristic) {
+        throw new NotFoundException('characteristic not found');
+      }
+
+      // Update characteristic fields
+      characteristic.name = draft.name;
+      characteristic.type = draft.type;
+
+      await this.characteristicEntityRepo.save(characteristic);
+
+      // Approve new files if any exist
+      if (draft.filePaths && draft.filePaths.length > 0) {
+        await this.fileRepository.approveByCharacteristicIds([
+          characteristic.id,
+        ]);
+      }
+
+      // Handle file deletion if requested
+      const filesToDelete = draft.filesToDelete;
+      if (filesToDelete && filesToDelete.length > 0) {
+        await this.filesMinioService.delete(filesToDelete);
+      }
+
+      cr.entityId = characteristic.id; // Set entityId for tracking
+    } else if (cr.action === ChangeRequestAction.DELETE) {
+      if (!cr.entityId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: entityId is null',
+        );
+      }
+
+      const characteristic = await this.characteristicEntityRepo.findOne({
+        where: { id: cr.entityId },
+      });
+
+      if (!characteristic) {
+        throw new NotFoundException('characteristic not found');
+      }
+
+      await this.characteristicEntityRepo.softDelete(characteristic.id);
+    } else {
+      throw new UnprocessableEntityException(
+        `Action ${cr.action} not supported for characteristic change requests. Only UPDATE and DELETE require approval.`,
+      );
+    }
   }
 
   async reject(id: number, reviewerId: string, reviewerNote?: string) {
@@ -743,7 +1135,25 @@ export class ChangeRequestsService {
       .leftJoinAndSelect('cr.proposedBy', 'proposedBy')
       .leftJoinAndSelect('cr.reviewedBy', 'reviewedBy');
 
-    // If entityType is provided, filter by it, otherwise return all
+    qb.leftJoin(
+      SpecieDraftEntity,
+      'specieDraft',
+      'specieDraft.id = cr.draftId AND cr.entityType = :specieType',
+      { specieType: EntityType.SPECIE },
+    ).addSelect([
+      'specieDraft.id',
+      'specieDraft.scientificName',
+      'specieDraft.createdAt',
+    ]);
+
+    qb.leftJoinAndMapMany(
+      'cr.charDraft',
+      CharacteristicDraftEntity,
+      'charDraft',
+      'charDraft.id = cr.draftId AND cr.entityType = :charType',
+      { charType: EntityType.CHARACTERISTIC },
+    );
+
     if (entityType) {
       qb.where('cr.entityType = :entityType', { entityType });
     }
@@ -756,17 +1166,6 @@ export class ChangeRequestsService {
       qb.andWhere('cr.action = :action', { action });
     }
 
-    // For now, we only support specie draft joins
-    // This will need to be expanded when we add other entity types
-    if (!entityType || entityType === EntityType.SPECIE) {
-      qb.leftJoin(
-        SpecieDraftEntity,
-        'draft',
-        'draft.id = cr.draftId AND cr.entityType = :specieType',
-        { specieType: EntityType.SPECIE },
-      ).addSelect(['draft.id', 'draft.scientificName', 'draft.createdAt']);
-    }
-
     if (search && search.trim().length) {
       const s = `%${search.trim()}%`;
       const searchClauses = [
@@ -776,9 +1175,12 @@ export class ChangeRequestsService {
         'reviewedBy.lastName ILIKE :s',
       ];
 
-      // Add entity-specific search fields
       if (!entityType || entityType === EntityType.SPECIE) {
-        searchClauses.push('draft.scientificName ILIKE :s');
+        searchClauses.push('specieDraft.scientificName ILIKE :s');
+      }
+
+      if (!entityType || entityType === EntityType.CHARACTERISTIC) {
+        searchClauses.push('charDraft.name ILIKE :s');
       }
 
       qb.andWhere(`(${searchClauses.join(' OR ')})`, { s });
@@ -798,12 +1200,15 @@ export class ChangeRequestsService {
 
       // Extract entity name based on type
       if (cr.entityType === EntityType.SPECIE) {
-        const draftData = raw.find((r) => r.draft_id === cr.draftId);
-        entityName = draftData?.draft_scientificName ?? 'Unknown';
-        draftCreatedAt = draftData?.draft_createdAt ?? cr.proposedAt;
+        const draftData = raw.find((r) => r.specieDraft_id === cr.draftId);
+        entityName = draftData?.specieDraft_scientificName ?? 'Unknown';
+        draftCreatedAt = draftData?.specieDraft_createdAt ?? cr.proposedAt;
+      } else if (cr.entityType === EntityType.CHARACTERISTIC) {
+        const draftData = raw.find((r) => r.charDraft_id === cr.draftId);
+        entityName = draftData?.charDraft_name ?? 'Unknown';
+        draftCreatedAt = draftData?.charDraft_createdAt ?? cr.proposedAt;
       }
       // Add other entity types here as they are implemented
-      // else if (cr.entityType === EntityType.CHARACTERISTIC) { ... }
       // else if (cr.entityType === EntityType.TAXON) { ... }
 
       return {
@@ -911,6 +1316,35 @@ export class ChangeRequestsService {
     return dto;
   }
 
+  async getCharacteristicDraftDetail(
+    id: number,
+  ): Promise<GetCharacteristicDraftDto> {
+    const draft = await this.characteristicDraftRepo.findOne({
+      where: { id },
+      relations: ['type'],
+    });
+    if (!draft) throw new NotFoundException('characteristic draft not found');
+
+    const changeRequest = await this.crRepo.findOne({
+      where: { draftId: id, entityType: EntityType.CHARACTERISTIC },
+    });
+
+    if (!changeRequest) throw new NotFoundException('change request not found');
+
+    return {
+      id: draft.id,
+      name: draft.name,
+      type: {
+        id: draft.type.id!,
+        name: draft.type.name,
+        createdAt: draft.type.createdAt,
+        updatedAt: draft.type.updatedAt,
+      },
+      filePaths: draft.filePaths ?? [],
+      filesToDelete: draft.filesToDelete ?? [],
+    };
+  }
+
   async getDraftDetail(draftId: number, entityType: string): Promise<any> {
     // Find the change request to determine the entity type
     const changeRequest = await this.crRepo.findOne({
@@ -923,9 +1357,9 @@ export class ChangeRequestsService {
     switch (entityType) {
       case EntityType.SPECIE:
         return this.getSpecieDraftDetail(draftId);
+      case EntityType.CHARACTERISTIC:
+        return this.getCharacteristicDraftDetail(draftId);
       // Add other entity types here as they are implemented
-      // case EntityType.CHARACTERISTIC:
-      //   return this.getCharacteristicDraftDetail(draftId);
       // case EntityType.TAXON:
       //   return this.getTaxonDraftDetail(draftId);
       default:
