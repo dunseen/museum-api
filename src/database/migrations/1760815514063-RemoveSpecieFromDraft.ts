@@ -7,9 +7,7 @@ export class RemoveSpecieFromDraft1760815514063 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "specie_draft" DROP CONSTRAINT "FK_a9ea7513edf6bc1e47ebaefbf59"`,
     );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_change_request_draft_id"`,
-    );
+
     await queryRunner.query(
       `ALTER TABLE "specie_draft" DROP COLUMN "specieId"`,
     );
@@ -43,15 +41,9 @@ export class RemoveSpecieFromDraft1760815514063 implements MigrationInterface {
     await queryRunner.query(
       `DROP TYPE "public"."change_request_status_enum_old"`,
     );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_4e5189db42b948311a24bce388" ON "change_request" ("draftId") `,
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_4e5189db42b948311a24bce388"`,
-    );
     await queryRunner.query(
       `CREATE TYPE "public"."change_request_status_enum_old" AS ENUM('pending', 'approved', 'rejected', 'withdrawn')`,
     );
@@ -81,9 +73,7 @@ export class RemoveSpecieFromDraft1760815514063 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "specie_draft" ADD "specieId" integer`,
     );
-    await queryRunner.query(
-      `CREATE INDEX "IDX_change_request_draft_id" ON "change_request" ("draftId") `,
-    );
+
     await queryRunner.query(
       `ALTER TABLE "specie_draft" ADD CONSTRAINT "FK_a9ea7513edf6bc1e47ebaefbf59" FOREIGN KEY ("specieId") REFERENCES "specie"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
