@@ -64,6 +64,7 @@ import { TaxonMapper } from 'src/taxons/infrastructure/persistence/relational/ma
 import { formatLatLong } from 'src/utils/number';
 import { createDiff } from 'src/utils/diff';
 import { FileType } from 'src/files/domain/file';
+import { FileMapper } from '../files/infrastructure/persistence/relational/mappers/file.mapper';
 
 @Injectable()
 export class ChangeRequestsService {
@@ -1381,6 +1382,20 @@ export class ChangeRequestsService {
 
     if (!changeRequest) throw new NotFoundException('change request not found');
 
+    let files: FileType[] = [];
+
+    if (changeRequest.entityId) {
+      const characteristic = await this.characteristicEntityRepo.findOne({
+        where: { id: changeRequest.entityId },
+        relations: ['files'],
+      });
+
+      files =
+        characteristic?.files?.map((file) => FileMapper.toDomain(file)) ?? [];
+    } else {
+      files = await this.fileRepository.findByChangeRequest(changeRequest.id);
+    }
+
     return {
       id: draft.id,
       name: draft.name,
@@ -1390,6 +1405,8 @@ export class ChangeRequestsService {
         createdAt: draft.type.createdAt,
         updatedAt: draft.type.updatedAt,
       },
+      files,
+      diff: (changeRequest.diff as Record<string, any> | null) ?? null,
     };
   }
 
