@@ -84,6 +84,7 @@ export class TaxonRelationalRepository implements TaxonRepository {
   async findById(id: Taxon['id']): Promise<NullableType<Taxon>> {
     const entity = await this.taxonRepository.findOne({
       where: { id: Number(id) },
+      relations: ['hierarchy'],
     });
 
     return entity ? TaxonMapper.toDomain(entity) : null;

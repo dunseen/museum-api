@@ -1,7 +1,7 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { LocationDto } from './create-specie.dto';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { NullableType } from '../../utils/types/nullable.type';
 import {
   optionalCsvToNumberArray,
@@ -68,13 +68,13 @@ export class UpdateSpecieDto {
   determinatorId?: string;
 
   @ApiPropertyOptional({ type: Date })
-  @IsDateString()
   @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : value))
   collectedAt?: Date;
 
   @ApiPropertyOptional({ type: Date })
-  @IsDateString()
   @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : value))
   determinatedAt?: Date;
 
   @ApiPropertyOptional({

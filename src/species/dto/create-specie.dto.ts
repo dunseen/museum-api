@@ -31,14 +31,14 @@ export class LocationDto {
   @ApiProperty({
     type: Number,
     description: 'The latitude of the location',
-    example: 40.73061,
+    example: 40.7306,
   })
   @IsNumber()
   lat: number;
   @ApiProperty({
     type: Number,
     description: 'The longitude of the location',
-    example: -73.935242,
+    example: -73.9352,
   })
   @IsNumber()
   long: number;
