@@ -1360,6 +1360,7 @@ export class ChangeRequestsService {
         city: CityMapper.toDomain(draft.city),
         state: StateMapper.toDomain(draft.state),
       },
+      diff: changeRequest.diff ?? null,
     };
 
     return dto;

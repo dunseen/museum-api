@@ -1,4 +1,4 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { FileType } from '../../files/domain/file';
 import { ListTaxonDto } from '../../taxons/dto/list-taxonomy.dto';
 import { GetSimpleCharacteristicDto } from '../../characteristics/application/dto/get-simple-characteristic.dto';
@@ -95,4 +95,7 @@ export class GetSpecieDto {
     nullable: true,
   })
   statusReason: NullableType<string>;
+
+  @ApiPropertyOptional({ type: Object, nullable: true })
+  diff?: Record<string, any> | null;
 }
