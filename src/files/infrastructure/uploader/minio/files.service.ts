@@ -11,6 +11,10 @@ import { MinioService } from 'nestjs-minio-client';
 import { Readable } from 'stream';
 import { basename } from 'path';
 
+export type FileDiffResult = {
+  added: Array<{ id: string; url: string; path: string }>;
+  removed: Array<{ id: string; url: string; path: string }>;
+};
 @Injectable()
 export class FilesMinioService {
   constructor(
@@ -18,34 +22,6 @@ export class FilesMinioService {
     private readonly configService: ConfigService<AllConfigType>,
     private readonly minioService: MinioService,
   ) {}
-
-  async create(
-    file: Express.MulterS3.File[],
-    {
-      characteristicId,
-      specieId,
-    }: { characteristicId?: number; specieId?: number },
-  ): Promise<{ file: FileType }[]> {
-    if (!file) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errors: {
-          file: 'selectFile',
-        },
-      });
-    }
-
-    const mappedFilesKey: Omit<FileType, 'id'>[] = file.map((f) => ({
-      path: f.path,
-      url: this.generateUrl(f.filename, f.bucket),
-      characteristicId,
-      specieId,
-    }));
-
-    const response = await this.fileRepository.create(mappedFilesKey);
-
-    return response.map((file) => ({ file }));
-  }
 
   async save(
     data: {
@@ -80,12 +56,12 @@ export class FilesMinioService {
     return response.map((file) => ({ file }));
   }
 
-  async delete(uuids: string[]): Promise<void> {
+  async softDelete(uuids: string[]): Promise<void> {
     const bucket = this.configService.getOrThrow('file.minio.bucket', {
       infer: true,
     });
 
-    const pathsPromise = uuids.map(async (uuid) => {
+    const filesPromise = uuids.map(async (uuid) => {
       const file = await this.fileRepository.findById(uuid);
 
       if (!file) {
@@ -97,53 +73,125 @@ export class FilesMinioService {
         });
       }
 
-      return file.path;
+      return file;
     });
 
-    const paths = await Promise.all(pathsPromise);
+    const files = await Promise.all(filesPromise);
 
-    await Promise.all([
-      this.minioService.client.removeObjects(bucket, paths),
-      this.fileRepository.delete(uuids),
-    ]);
+    // Soft delete: move files to /removed/ subpath instead of deleting from bucket
+    const moveOperations = files.map(async (file) => {
+      const removedPath = file.path.replace(/\/([^\/]+)$/, '/removed/$1');
+
+      try {
+        // Copy to removed location
+        const readStream = await this.minioService.client.getObject(
+          bucket,
+          file.path,
+        );
+        await this.minioService.client.putObject(
+          bucket,
+          removedPath,
+          readStream,
+        );
+
+        // Delete from original location
+        await this.minioService.client.removeObject(bucket, file.path);
+
+        return {
+          ...file,
+          newPath: removedPath,
+          newUrl: this.generateUrl(removedPath, bucket),
+        };
+      } catch (error) {
+        // If move fails, log but continue with soft delete in DB
+        console.error(`Failed to move file ${file.path} to removed:`, error);
+        return {
+          ...file,
+          newPath: file.path,
+          newUrl: file.url,
+        };
+      }
+    });
+
+    const movedFiles = await Promise.all(moveOperations);
+
+    // Update file records with new paths using save (updates if exists)
+    await this.fileRepository.create(movedFiles);
+
+    // Soft delete the files
+    await this.fileRepository.delete(uuids);
   }
 
-  async moveCrFilesToSpecies(changeRequestId: number, specieId: number) {
+  async copyFilesToSpecie(
+    filePaths: string[],
+    specieId: number,
+  ): Promise<{ path: string; url: string }[]> {
     const bucket = this.configService.getOrThrow('file.minio.bucket', {
       infer: true,
     });
 
-    // fetch files for CR
+    const copyPromises = filePaths.map(async (filePath) => {
+      const destPath = `/species/${specieId}/${basename(filePath)}`;
+      const readStream = await this.minioService.client.getObject(
+        bucket,
+        filePath,
+      );
+      const payload = [
+        {
+          path: destPath,
+          url: this.generateUrl(destPath, bucket),
+          specieId: specieId,
+          approved: true,
+        },
+      ];
+
+      await this.minioService.client.putObject(bucket, destPath, readStream);
+      await this.fileRepository.create(payload);
+
+      return { path: destPath, url: this.generateUrl(destPath, bucket) };
+    });
+
+    return Promise.all(copyPromises);
+  }
+
+  async moveCrFilesToSpecies(changeRequestId: number, specieId: number) {
     const crFiles =
       await this.fileRepository.findByChangeRequest(changeRequestId);
 
     if (!crFiles.length) return;
 
-    // copy + delete in storage (stream-based to avoid CopyConditions mismatch)
-    for (const f of crFiles) {
-      const destPath = `/species/${specieId}/${basename(f.path)}`;
-      const readStream = await this.minioService.client.getObject(
-        bucket,
-        f.path,
-      );
-      await this.minioService.client.putObject(bucket, destPath, readStream);
-      await this.minioService.client.removeObject(bucket, f.path);
-    }
+    const crFilePaths = crFiles.map((f) => f.path);
 
-    // update DB paths/urls, assign specie, approve and clear CR link
-    await this.fileRepository.updateMany(
-      crFiles.map((f) => ({
+    await this.copyFilesToSpecie(crFilePaths, specieId);
+  }
+
+  computeFileDiff(
+    existingFiles: FileType[],
+    newFiles: FileType[],
+    filesToDeleteIds?: string[],
+  ): FileDiffResult {
+    const existingFileIds = new Set(existingFiles.map((f) => f.id));
+
+    // Compute added files: files in newFiles that aren't in existingFiles
+    const added = newFiles
+      .filter((f) => !existingFileIds.has(f.id))
+      .map((f) => ({
         id: f.id,
-        path: `/species/${specieId}/${basename(f.path)}`,
-        url: this.generateUrl(
-          `/species/${specieId}/${basename(f.path)}`,
-          bucket,
-        ),
-        specieId,
-        approved: true,
-        clearChangeRequest: true,
-      })),
-    );
+        path: f.path,
+        url: f.url,
+      }));
+
+    const removed = filesToDeleteIds?.length
+      ? existingFiles
+          .filter((f) => filesToDeleteIds.includes(f.id))
+          .map((f) => ({
+            id: f.id,
+            path: f.path,
+            url: f.url,
+          }))
+      : [];
+
+    return { added, removed };
   }
 
   private generateUrl(file: string, bucket: string): string {
@@ -153,15 +201,13 @@ export class FilesMinioService {
     const port = this.configService.getOrThrow('file.minio.port', {
       infer: true,
     });
-
-    const env = this.configService.getOrThrow('app.nodeEnv', {
+    const useSsl = this.configService.get('file.minio.ssl', {
       infer: true,
     });
 
-    if (env === 'production') {
-      return `https://${host}/${bucket}/${file}`;
-    }
+    const protocol = useSsl ? 'https' : 'http';
+    const portSuffix = useSsl || port === 80 || port === 443 ? '' : `:${port}`;
 
-    return `http://${host}:${port}/${bucket}/${file}`;
+    return `${protocol}://${host}${portSuffix}/${bucket}${file}`;
   }
 }
