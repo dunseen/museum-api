@@ -21,12 +21,4 @@ export class CharacteristicDraftEntity extends EntityRelationalHelper {
   @ManyToOne(() => CharacteristicTypeEntity, { eager: true })
   @JoinColumn({ name: 'type_id' })
   type: CharacteristicTypeEntity;
-
-  // Store file paths as JSON array for now
-  @Column({ type: 'jsonb', nullable: true })
-  filePaths: string[];
-
-  // Store files to delete as JSON array
-  @Column({ type: 'jsonb', nullable: true })
-  filesToDelete: string[];
 }

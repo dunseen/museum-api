@@ -142,7 +142,7 @@ export class CharacteristicsService {
     }
 
     if (updateCharacteristicDto?.filesToDelete?.length) {
-      await this.filesMinioService.delete(
+      await this.filesMinioService.softDelete(
         updateCharacteristicDto.filesToDelete,
       );
     }

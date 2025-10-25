@@ -10,10 +10,4 @@ export class GetCharacteristicDraftDto {
 
   @ApiProperty({ type: GetCharacteristicTypeDto })
   type: GetCharacteristicTypeDto;
-
-  @ApiProperty({ type: [String] })
-  filePaths: string[];
-
-  @ApiProperty({ type: [String] })
-  filesToDelete: string[];
 }

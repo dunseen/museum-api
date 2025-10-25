@@ -116,7 +116,7 @@ export class CharacteristicRelationalRepository
 
     const updatedEntity = await this.characteristicRepository.save(
       this.characteristicRepository.create(
-        CharacteristicMapper.toPersistence(payload),
+        CharacteristicMapper.toPersistence(payload as Characteristic),
       ),
     );
 
