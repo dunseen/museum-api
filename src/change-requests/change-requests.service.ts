@@ -28,14 +28,16 @@ import { SpecieEntity } from '../species/infrastructure/persistence/relational/e
 import { TaxonEntity } from '../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { CharacteristicEntity } from '../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
 import { CharacteristicTypeEntity } from '../characteristic-types/infrastructure/persistence/relational/entities/characteristic-type.entity';
-import { CityEntity } from '../cities/infrastructure/persistence/relational/entities/city.entity';
 import { StateEntity } from '../states/infrastructure/persistence/relational/entities/state.entity';
 import { SpecialistEntity } from '../specialists/infrastructure/persistence/relational/entities/specialist.entity';
 import {
   IPaginationOptions,
   WithCountList,
 } from '../utils/types/pagination-options';
-import { FilesMinioService } from '../files/infrastructure/uploader/minio/files.service';
+import {
+  FileDiffResult,
+  FilesMinioService,
+} from '../files/infrastructure/uploader/minio/files.service';
 import { ListChangeRequestDto } from './dto/draft-with-change-request.dto';
 import { GetCharacteristicDraftDto } from './dto/get-characteristic-draft.dto';
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
@@ -57,6 +59,11 @@ import { CityMapper } from '../cities/infrastructure/persistence/relational/mapp
 import { StateMapper } from '../states/infrastructure/persistence/relational/mappers/state.mapper';
 import { generateFileName } from '../utils/string';
 import { ChangeRequestMapper } from './infrastructure/persistence/relational/mappers/change-request.mapper';
+import { SpecialistMapper } from 'src/specialists/infrastructure/persistence/relational/mappers/specialist.mapper';
+import { TaxonMapper } from 'src/taxons/infrastructure/persistence/relational/mappers/taxon.mapper';
+import { formatLatLong } from 'src/utils/number';
+import { createDiff } from 'src/utils/diff';
+import { FileType } from 'src/files/domain/file';
 
 @Injectable()
 export class ChangeRequestsService {
@@ -354,7 +361,10 @@ export class ChangeRequestsService {
     draft.collectLocation = dto.location.address ?? null;
     draft.geoLocation = {
       type: 'Point',
-      coordinates: [dto.location.long, dto.location.lat],
+      coordinates: [
+        formatLatLong(dto.location.long),
+        formatLatLong(dto.location.lat),
+      ],
     };
     draft.collectedAt = dto.collectedAt;
     draft.determinatedAt = dto.determinatedAt;
@@ -398,11 +408,20 @@ export class ChangeRequestsService {
 
     const specie = await this.specieRepository.findOne({
       where: { id: specieId },
+      relations: ['files'],
     });
 
     if (!specie) throw new NotFoundException('specie not found');
 
-    // Validations mirroring SpeciesService.update for provided fields
+    // Seed draft from current specie, then override with dto
+    const draft = new SpecieDraftEntity();
+    draft.city = specie.city;
+    draft.state = specie.state;
+    draft.collector = specie.collector;
+    draft.determinator = specie.determinator;
+    draft.taxons = specie.taxons;
+    draft.characteristics = specie.characteristics;
+
     if (dto?.taxonIds?.length) {
       const results = await Promise.all(
         dto.taxonIds.map((id) => this.taxonRepository.findById(id)),
@@ -416,6 +435,8 @@ export class ChangeRequestsService {
           },
         });
       }
+
+      draft.taxons = results.map(TaxonMapper.toPersistence);
     }
 
     if (dto?.characteristicIds?.length) {
@@ -432,6 +453,8 @@ export class ChangeRequestsService {
           },
         });
       }
+
+      draft.characteristics = results.map(CharacteristicMapper.toPersistence);
     }
 
     if (dto?.location?.cityId) {
@@ -442,6 +465,8 @@ export class ChangeRequestsService {
           errors: { cityId: 'city not found' },
         });
       }
+
+      draft.city = CityMapper.toPersistence(city);
     }
 
     if (dto?.location?.stateId) {
@@ -452,6 +477,8 @@ export class ChangeRequestsService {
           errors: { stateId: 'state not found' },
         });
       }
+
+      draft.state = StateMapper.toPersistence(state);
     }
 
     if (dto?.collectorId) {
@@ -464,6 +491,8 @@ export class ChangeRequestsService {
           errors: { collectorId: 'collector not found' },
         });
       }
+
+      draft.collector = SpecialistMapper.toPersistence(collector);
     }
 
     if (dto?.determinatorId) {
@@ -476,10 +505,10 @@ export class ChangeRequestsService {
           errors: { determinatorId: 'determinator not found' },
         });
       }
+
+      draft.determinator = SpecialistMapper.toPersistence(determinator);
     }
 
-    // Seed draft from current specie, then override with dto
-    const draft = new SpecieDraftEntity();
     draft.scientificName = dto.scientificName ?? specie.scientificName;
     draft.commonName = dto.commonName ?? specie.commonName ?? null;
     draft.description = dto.description ?? specie.description ?? null;
@@ -487,63 +516,27 @@ export class ChangeRequestsService {
       dto.location?.address ?? specie.collectLocation ?? null;
     const lat = dto.location?.lat ?? specie.geoLocation.coordinates[1];
     const long = dto.location?.long ?? specie.geoLocation.coordinates[0];
+
     draft.geoLocation = {
       type: 'Point',
-      coordinates: [long, lat],
+      coordinates: [formatLatLong(long), formatLatLong(lat)],
     };
-
-    const stateId = dto.location?.stateId ?? specie.state?.id;
-
-    if (stateId) {
-      const state = new StateEntity();
-      state.id = stateId;
-      draft.state = state;
-    }
-
-    const cityId = dto.location?.cityId ?? specie.city?.id;
-
-    if (cityId) {
-      const city = new CityEntity();
-      city.id = cityId;
-      draft.city = city;
-    }
-
-    const collectorId = dto.collectorId ?? specie.collector?.id;
-    if (collectorId) {
-      const collector = new SpecialistEntity();
-      collector.id = collectorId;
-      draft.collector = collector;
-    }
-
-    const determinatorId = dto.determinatorId ?? specie.determinator?.id;
-    if (determinatorId) {
-      const determinator = new SpecialistEntity();
-      determinator.id = determinatorId;
-      draft.determinator = determinator;
-    }
-
     draft.collectedAt = dto.collectedAt ?? specie.collectedAt;
     draft.determinatedAt = dto.determinatedAt ?? specie.determinatedAt;
 
-    draft.taxons = (dto.taxonIds ?? specie.taxons?.map((t) => t.id) ?? []).map(
-      (id) => {
-        const t = new TaxonEntity();
-        t.id = id;
-        return t;
-      },
-    );
+    const diff = createDiff(specie, draft);
 
-    draft.characteristics = (
-      dto.characteristicIds ??
-      specie.characteristics?.map((c) => Number(c.id)) ??
-      []
-    ).map((id) => {
-      const c = new CharacteristicEntity();
-      c.id = Number(id);
-      return c;
-    });
+    if (
+      !Object.keys(diff).length &&
+      !dto.filesToDelete?.length &&
+      !files?.length
+    ) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { update: 'no changes detected' },
+      });
+    }
 
-    // Step 1: Save draft first
     const savedDraft = await this.specieDraftRepo.save(
       this.specieDraftRepo.create(draft),
     );
@@ -557,21 +550,63 @@ export class ChangeRequestsService {
         entityId: specieId, // Points to the specie being updated
         proposedBy,
         draftId: savedDraft.id, // Polymorphic reference
-        diff: dto.filesToDelete?.length
-          ? { filesToDelete: dto.filesToDelete }
-          : null,
+        diff,
       }),
     );
 
-    // Persist uploaded files as pending and linked to this change request
-    if (files?.length) {
-      await this.filesMinioService.save(
-        files.map((f) => ({
+    // Handle file diff
+    await this._handleFileDiffForChangeRequest(
+      cr.id,
+      specie.files,
+      files,
+      dto.filesToDelete,
+      diff,
+    );
+  }
+
+  /**
+   * Private method to handle file diff for change requests.
+   * Can be reused across different entity types (specie, characteristic, taxon, etc.)
+   */
+  private async _handleFileDiffForChangeRequest(
+    changeRequestId: number,
+    existingFiles: FileType[],
+    newFiles: Express.Multer.File[] | undefined,
+    filesToDeleteIds: string[] | undefined,
+    existingDiff: Record<string, any>,
+  ): Promise<void> {
+    let savedFiles: FileType[] = [];
+
+    if (newFiles?.length) {
+      const uploadedFiles = await this.filesMinioService.save(
+        newFiles.map((f) => ({
           fileStream: f.buffer,
-          path: `/change-requests/${cr.id}/${generateFileName(f.originalname)}`,
-          changeRequestId: cr.id,
+          path: `/change-requests/${changeRequestId}/${generateFileName(f.originalname)}`,
+          changeRequestId,
           approved: false,
         })),
+      );
+
+      savedFiles = uploadedFiles.map((f) => f.file);
+    }
+
+    const filesDiff = this.filesMinioService.computeFileDiff(
+      existingFiles,
+      savedFiles,
+      filesToDeleteIds,
+    );
+
+    const hasFileChanges = filesDiff.added.length || filesDiff.removed.length;
+
+    if (hasFileChanges) {
+      await this.crRepo.update(
+        { id: changeRequestId },
+        {
+          diff: {
+            ...existingDiff,
+            files: filesDiff,
+          },
+        },
       );
     }
   }
@@ -609,92 +644,10 @@ export class ChangeRequestsService {
       }
     }
 
-    // Check if characteristic is used by any species
-    const isUsed = await this._isCharacteristicUsedBySpecies(characteristicId);
+    const isUsedBySpecies =
+      await this._isCharacteristicUsedBySpecies(characteristicId);
 
-    if (isUsed) {
-      // DRAFT FLOW: Characteristic is used by species, require approval
-      // Check for existing pending update
-      const existingPendingUpdate = await this.crRepo.findOne({
-        where: {
-          entityId: characteristicId,
-          entityType: EntityType.CHARACTERISTIC,
-          action: ChangeRequestAction.UPDATE,
-          status: ChangeRequestStatus.PENDING,
-        },
-      });
-
-      if (existingPendingUpdate) {
-        throw new ConflictException(
-          'There is already a pending update request for this characteristic',
-        );
-      }
-
-      // Create draft with current data + changes
-      const draft = new CharacteristicDraftEntity();
-      draft.name = dto.name ?? characteristic.name;
-      const typeEntity = new CharacteristicTypeEntity();
-      typeEntity.id = (dto.typeId ?? characteristic.type.id)!;
-      draft.type = typeEntity;
-      draft.filePaths = [];
-      draft.filesToDelete = dto.filesToDelete ?? [];
-
-      const savedDraft = await this.characteristicDraftRepo.save(draft);
-
-      // Create change request
-      const proposedBy = new UserEntity();
-      proposedBy.id = proposedById;
-
-      const cr = await this.crRepo.save(
-        this.crRepo.create({
-          entityType: EntityType.CHARACTERISTIC,
-          action: ChangeRequestAction.UPDATE,
-          status: ChangeRequestStatus.PENDING,
-          entityId: characteristicId,
-          proposedBy,
-          draftId: savedDraft.id,
-        }),
-      );
-
-      // Save new files if provided
-      if (files?.length) {
-        const filePaths = await Promise.all(
-          files.map(async (f) => {
-            const path = `/change-requests/${cr.id}/${generateFileName(f.originalname)}`;
-            await this.filesMinioService.save([
-              {
-                fileStream: f.buffer,
-                path,
-                changeRequestId: cr.id,
-                approved: false,
-              },
-            ]);
-            return path;
-          }),
-        );
-
-        savedDraft.filePaths = filePaths;
-        await this.characteristicDraftRepo.save(savedDraft);
-      }
-
-      // Count how many species use this characteristic
-      const speciesCount = await this.specieRepository
-        .createQueryBuilder('specie')
-        .innerJoin(
-          'specie.characteristics',
-          'char',
-          'char.id = :characteristicId',
-          { characteristicId },
-        )
-        .getCount();
-
-      return {
-        status: OperationStatus.PENDING_APPROVAL,
-        message: 'Update request created and awaiting approval',
-        changeRequestId: cr.id,
-        affectedSpeciesCount: speciesCount,
-      };
-    } else {
+    if (!isUsedBySpecies) {
       // DIRECT FLOW: Characteristic is not used, update directly
       const charEntity = await this.characteristicEntityRepo.findOne({
         where: { id: characteristicId },
@@ -735,7 +688,7 @@ export class ChangeRequestsService {
 
       // Handle file deletion if requested
       if (dto.filesToDelete && dto.filesToDelete.length > 0) {
-        await this.filesMinioService.delete(dto.filesToDelete);
+        await this.filesMinioService.softDelete(dto.filesToDelete);
       }
 
       return {
@@ -744,6 +697,87 @@ export class ChangeRequestsService {
         changeRequestId: null,
       };
     }
+
+    // DRAFT FLOW: Characteristic is used by species, require approval
+    // Check for existing pending update
+    const existingPendingUpdate = await this.crRepo.findOne({
+      where: {
+        entityId: characteristicId,
+        entityType: EntityType.CHARACTERISTIC,
+        action: ChangeRequestAction.UPDATE,
+        status: ChangeRequestStatus.PENDING,
+      },
+    });
+
+    if (existingPendingUpdate) {
+      throw new ConflictException(
+        'There is already a pending update request for this characteristic',
+      );
+    }
+
+    // Create draft with current data + changes
+    const draft = new CharacteristicDraftEntity();
+    draft.name = dto.name ?? characteristic.name;
+    const typeEntity = new CharacteristicTypeEntity();
+    typeEntity.id = (dto.typeId ?? characteristic.type.id)!;
+    draft.type = typeEntity;
+
+    const diff = createDiff(characteristic, draft);
+
+    if (
+      !Object.keys(diff).length &&
+      !dto.filesToDelete?.length &&
+      !files?.length
+    ) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { update: 'no changes detected' },
+      });
+    }
+
+    const savedDraft = await this.characteristicDraftRepo.save(draft);
+
+    const proposedBy = new UserEntity();
+    proposedBy.id = proposedById;
+
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: EntityType.CHARACTERISTIC,
+        action: ChangeRequestAction.UPDATE,
+        status: ChangeRequestStatus.PENDING,
+        entityId: characteristicId,
+        proposedBy,
+        draftId: savedDraft.id,
+      }),
+    );
+
+    const currentFiles = [...characteristic.files];
+
+    await this._handleFileDiffForChangeRequest(
+      cr.id,
+      currentFiles,
+      files,
+      dto.filesToDelete,
+      diff,
+    );
+
+    // Count how many species use this characteristic
+    const speciesCount = await this.specieRepository
+      .createQueryBuilder('specie')
+      .innerJoin(
+        'specie.characteristics',
+        'char',
+        'char.id = :characteristicId',
+        { characteristicId },
+      )
+      .getCount();
+
+    return {
+      status: OperationStatus.PENDING_APPROVAL,
+      message: 'Update request created and awaiting approval',
+      changeRequestId: cr.id,
+      affectedSpeciesCount: speciesCount,
+    };
   }
 
   /**
@@ -757,75 +791,15 @@ export class ChangeRequestsService {
   ): Promise<CharacteristicOperationResultDto> {
     const characteristic =
       await this.characteristicRepository.findById(characteristicId);
+
     if (!characteristic) {
       throw new NotFoundException('characteristic not found');
     }
 
-    // Check if characteristic is used by any species
-    const isUsed = await this._isCharacteristicUsedBySpecies(characteristicId);
+    const isUsedBySpecies =
+      await this._isCharacteristicUsedBySpecies(characteristicId);
 
-    if (isUsed) {
-      // DRAFT FLOW: Characteristic is used by species, require approval
-      // Check for existing pending delete
-      const existingPendingDelete = await this.crRepo.findOne({
-        where: {
-          entityId: characteristicId,
-          entityType: EntityType.CHARACTERISTIC,
-          action: ChangeRequestAction.DELETE,
-          status: ChangeRequestStatus.PENDING,
-        },
-      });
-
-      if (existingPendingDelete) {
-        throw new ConflictException(
-          'There is already a pending delete request for this characteristic',
-        );
-      }
-
-      // Create draft with current data for record
-      const draft = new CharacteristicDraftEntity();
-      draft.name = characteristic.name;
-      const typeEntity = new CharacteristicTypeEntity();
-      typeEntity.id = characteristic.type.id!;
-      draft.type = typeEntity;
-      draft.filePaths = [];
-      draft.filesToDelete = [];
-
-      const savedDraft = await this.characteristicDraftRepo.save(draft);
-
-      // Create change request
-      const proposedBy = new UserEntity();
-      proposedBy.id = proposedById;
-
-      const cr = await this.crRepo.save(
-        this.crRepo.create({
-          entityType: EntityType.CHARACTERISTIC,
-          action: ChangeRequestAction.DELETE,
-          status: ChangeRequestStatus.PENDING,
-          entityId: characteristicId,
-          proposedBy,
-          draftId: savedDraft.id,
-        }),
-      );
-
-      // Count how many species use this characteristic
-      const speciesCount = await this.specieRepository
-        .createQueryBuilder('specie')
-        .innerJoin(
-          'specie.characteristics',
-          'char',
-          'char.id = :characteristicId',
-          { characteristicId },
-        )
-        .getCount();
-
-      return {
-        status: OperationStatus.PENDING_APPROVAL,
-        message: 'Delete request created and awaiting approval',
-        changeRequestId: cr.id,
-        affectedSpeciesCount: speciesCount,
-      };
-    } else {
+    if (!isUsedBySpecies) {
       // DIRECT FLOW: Characteristic is not used, delete directly
       await this.characteristicEntityRepo.softDelete(characteristicId);
 
@@ -835,6 +809,65 @@ export class ChangeRequestsService {
         changeRequestId: null,
       };
     }
+
+    // DRAFT FLOW: Characteristic is used by species, require approval
+    // Check for existing pending delete
+    const existingPendingDelete = await this.crRepo.findOne({
+      where: {
+        entityId: characteristicId,
+        entityType: EntityType.CHARACTERISTIC,
+        action: ChangeRequestAction.DELETE,
+        status: ChangeRequestStatus.PENDING,
+      },
+    });
+
+    if (existingPendingDelete) {
+      throw new ConflictException(
+        'There is already a pending delete request for this characteristic',
+      );
+    }
+
+    // Create draft with current data for record
+    const draft = new CharacteristicDraftEntity();
+    draft.name = characteristic.name;
+    const typeEntity = new CharacteristicTypeEntity();
+    typeEntity.id = characteristic.type.id!;
+    draft.type = typeEntity;
+
+    const savedDraft = await this.characteristicDraftRepo.save(draft);
+
+    // Create change request
+    const proposedBy = new UserEntity();
+    proposedBy.id = proposedById;
+
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: EntityType.CHARACTERISTIC,
+        action: ChangeRequestAction.DELETE,
+        status: ChangeRequestStatus.PENDING,
+        entityId: characteristicId,
+        proposedBy,
+        draftId: savedDraft.id,
+      }),
+    );
+
+    // Count how many species use this characteristic
+    const speciesCount = await this.specieRepository
+      .createQueryBuilder('specie')
+      .innerJoin(
+        'specie.characteristics',
+        'char',
+        'char.id = :characteristicId',
+        { characteristicId },
+      )
+      .getCount();
+
+    return {
+      status: OperationStatus.PENDING_APPROVAL,
+      message: 'Delete request created and awaiting approval',
+      changeRequestId: cr.id,
+      affectedSpeciesCount: speciesCount,
+    };
   }
 
   async approve(id: number, payload: JwtPayloadType): Promise<void> {
@@ -910,7 +943,6 @@ export class ChangeRequestsService {
           await this.specieRepository.save(newSpecie),
         );
 
-        // Move CR files to specie path and approve
         await this.filesMinioService.moveCrFilesToSpecies(cr.id, sp.id);
 
         // Approve any pending characteristic files related to the draft characteristics
@@ -959,34 +991,32 @@ export class ChangeRequestsService {
         specie.characteristics = draft.characteristics ?? [];
 
         await this.specieRepository.save(specie);
-        await this.filesMinioService.moveCrFilesToSpecies(cr.id, specie.id);
-
-        const characteristicIds = (draft.characteristics ?? []).map(
-          (c) => c.id,
-        );
-        await this.fileRepository.approveByCharacteristicIds(characteristicIds);
 
         cr.entityId = specie.id; // Set entityId for tracking
 
-        await this.postService.createFromChangeRequest(
-          ChangeRequestMapper.toDomain(cr),
-          SpecieMapper.toDomain(specie),
-        );
-        // Handle files deletion if requested via diff
-        const filesToDelete = (cr.diff as any)?.filesToDelete as
-          | string[]
-          | undefined;
+        // Handle file changes from diff
+        const filesDiff = (cr.diff as any)?.files as FileDiffResult | undefined;
 
-        if (filesToDelete?.length) {
-          // Safety: ensure all file IDs belong to this specie before deleting
+        // Copy new files from change request to specie
+        if (filesDiff?.added?.length) {
+          await this.filesMinioService.copyFilesToSpecie(
+            filesDiff.added.map((f) => f.path),
+            specie.id,
+          );
+        }
+
+        // Handle file deletions
+        if (filesDiff?.removed?.length) {
+          const filesToDeleteIds = filesDiff.removed.map((f) => f.id);
+
           const owned = await this.fileRepository.findIdsBySpecie(
             cr.entityId,
-            filesToDelete,
+            filesToDeleteIds,
           );
 
-          if (owned.length !== filesToDelete.length) {
-            throw new BadRequestException({
-              status: HttpStatus.BAD_REQUEST,
+          if (owned.length !== filesToDeleteIds.length) {
+            throw new UnprocessableEntityException({
+              status: HttpStatus.UNPROCESSABLE_ENTITY,
               errors: {
                 filesToDelete:
                   'one or more files do not belong to the target specie',
@@ -994,8 +1024,24 @@ export class ChangeRequestsService {
             });
           }
 
-          await this.filesMinioService.delete(filesToDelete);
+          await this.filesMinioService.softDelete(filesToDeleteIds);
         }
+
+        // TODO: check if will need this logic after implementing CR to characteristic relation
+        const characteristicIds = (draft.characteristics ?? []).map(
+          (c) => c.id,
+        );
+
+        if (characteristicIds.length) {
+          await this.fileRepository.approveByCharacteristicIds(
+            characteristicIds,
+          );
+        }
+
+        await this.postService.createFromChangeRequest(
+          ChangeRequestMapper.toDomain(cr),
+          SpecieMapper.toDomain(specie),
+        );
       }
     } else if (cr.action === ChangeRequestAction.DELETE) {
       if (!cr.entityId) {
@@ -1059,17 +1105,20 @@ export class ChangeRequestsService {
 
       await this.characteristicEntityRepo.save(characteristic);
 
+      const filesDiff = (cr.diff as any)?.files as FileDiffResult | undefined;
+
       // Approve new files if any exist
-      if (draft.filePaths && draft.filePaths.length > 0) {
+      if (filesDiff?.added?.length) {
         await this.fileRepository.approveByCharacteristicIds([
           characteristic.id,
         ]);
       }
 
       // Handle file deletion if requested
-      const filesToDelete = draft.filesToDelete;
-      if (filesToDelete && filesToDelete.length > 0) {
-        await this.filesMinioService.delete(filesToDelete);
+      if (filesDiff?.removed?.length) {
+        await this.filesMinioService.softDelete(
+          filesDiff.removed.map((f) => f.id),
+        );
       }
 
       cr.entityId = characteristic.id; // Set entityId for tracking
@@ -1113,7 +1162,7 @@ export class ChangeRequestsService {
     // Cleanup any files uploaded for this change request
     const crFileIds = await this.fileRepository.findIdsByChangeRequest(cr.id);
     if (crFileIds.length) {
-      await this.filesMinioService.delete(crFileIds);
+      await this.filesMinioService.softDelete(crFileIds);
     }
   }
 
@@ -1340,8 +1389,6 @@ export class ChangeRequestsService {
         createdAt: draft.type.createdAt,
         updatedAt: draft.type.updatedAt,
       },
-      filePaths: draft.filePaths ?? [],
-      filesToDelete: draft.filesToDelete ?? [],
     };
   }
 
