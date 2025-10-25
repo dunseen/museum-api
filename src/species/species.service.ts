@@ -320,7 +320,7 @@ export class SpeciesService {
     }
 
     if (updateSpecieDto?.filesToDelete?.length) {
-      await this.filesMinioService.delete(updateSpecieDto.filesToDelete);
+      await this.filesMinioService.softDelete(updateSpecieDto.filesToDelete);
     }
 
     const specieToUpdate = specieBuilder.build();
