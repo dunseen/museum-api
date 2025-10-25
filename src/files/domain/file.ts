@@ -19,12 +19,8 @@ export class FileType {
     example: 'https://example.com/path/to/file.jpg',
   })
   url: string;
-
-  specieId?: number;
-  characteristicId?: number;
-
+  specieId?: number | null;
+  characteristicId?: number | null;
+  changeRequestId?: number | null;
   approved?: boolean;
-
-  // Link to a change request for moderation flows
-  changeRequestId?: number;
 }

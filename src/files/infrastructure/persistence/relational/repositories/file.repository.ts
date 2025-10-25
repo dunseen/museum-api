@@ -7,6 +7,7 @@ import { FileRepository } from '../../file.repository';
 import { FileMapper } from '../mappers/file.mapper';
 import { FileType } from '../../../../domain/file';
 import { NullableType } from '../../../../../utils/types/nullable.type';
+import { SpecieEntity } from 'src/species/infrastructure/persistence/relational/entities/specie.entity';
 
 @Injectable()
 export class FileRelationalRepository implements FileRepository {
@@ -18,9 +19,7 @@ export class FileRelationalRepository implements FileRepository {
   async create(data: FileType[]): Promise<FileType[]> {
     const persistenceModel = data.map(FileMapper.toPersistence);
 
-    return this.fileRepository.save(
-      this.fileRepository.create(persistenceModel),
-    );
+    return this.fileRepository.save(persistenceModel);
   }
 
   async findById(id: FileType['id']): Promise<NullableType<FileType>> {
@@ -34,7 +33,7 @@ export class FileRelationalRepository implements FileRepository {
   }
 
   async delete(ids: FileType['id'][]): Promise<void> {
-    await this.fileRepository.delete(ids);
+    await this.fileRepository.softDelete(ids);
   }
 
   async approveByChangeRequest(
@@ -113,7 +112,12 @@ export class FileRelationalRepository implements FileRepository {
       if (u.path !== undefined) payload.path = u.path;
       if (u.url !== undefined) payload.url = u.url;
       if (u.approved !== undefined) payload.approved = u.approved;
-      if (u.specieId !== undefined) payload.specie = { id: u.specieId };
+      if (u.specieId !== undefined) {
+        const specie = new SpecieEntity();
+        specie.id = u.specieId;
+        payload.specie = specie;
+      }
+
       if (u.clearChangeRequest) payload.changeRequest = null;
       await this.fileRepository.update({ id: u.id }, payload);
     }

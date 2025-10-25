@@ -19,7 +19,6 @@ export abstract class FileRepository {
 
   abstract findIdsByChangeRequest(changeRequestId: number): Promise<string[]>;
 
-  // Returns the subset of file IDs that belong to a given specie
   abstract findIdsBySpecie(specieId: number, ids: string[]): Promise<string[]>;
 
   abstract findByChangeRequest(changeRequestId: number): Promise<FileType[]>;

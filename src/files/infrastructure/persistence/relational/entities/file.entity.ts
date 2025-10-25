@@ -1,7 +1,9 @@
 import {
   Column,
+  CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -33,7 +35,7 @@ export class FileEntity extends EntityRelationalHelper {
     name: 'specieId',
     referencedColumnName: 'id',
   })
-  specie: SpecieEntity;
+  specie?: SpecieEntity | null;
 
   @ManyToOne(
     () => CharacteristicEntity,
@@ -43,11 +45,26 @@ export class FileEntity extends EntityRelationalHelper {
     name: 'characteristicId',
     referencedColumnName: 'id',
   })
-  characteristic: CharacteristicEntity;
+  characteristic?: CharacteristicEntity | null;
 
   @ManyToOne(() => ChangeRequestEntity, { nullable: true })
   @JoinColumn({ name: 'changeRequestId', referencedColumnName: 'id' })
   changeRequest?: ChangeRequestEntity | null;
+
+  @Index()
+  @Column({ nullable: true })
+  specieId: number | null;
+
+  @Index()
+  @Column({ nullable: true })
+  characteristicId: number | null;
+
+  @Index()
+  @Column({ nullable: true })
+  changeRequestId: number | null;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @DeleteDateColumn()
   deletedAt: Date | null;
