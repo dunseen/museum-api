@@ -1610,12 +1610,13 @@ export class ChangeRequestsService {
       { charType: EntityType.CHARACTERISTIC },
     );
 
-    qb.leftJoin(
+    qb.leftJoinAndMapMany(
+      'cr.taxonDraft',
       TaxonDraftEntity,
       'taxonDraft',
       'taxonDraft.id = cr.draftId AND cr.entityType = :taxonType',
       { taxonType: EntityType.TAXON },
-    ).addSelect(['taxonDraft.id', 'taxonDraft.name']);
+    );
 
     if (entityType) {
       qb.where('cr.entityType = :entityType', { entityType });
