@@ -65,7 +65,10 @@ export class PostQueryBuilder {
   }
 
   withTaxons() {
-    this.query = this.query.innerJoinAndSelect('s.taxons', 't');
+    this.query = this.query
+      .innerJoinAndSelect('s.taxons', 't')
+      .leftJoinAndSelect('t.characteristics', 'tc')
+      .leftJoinAndSelect('tc.type', 'tct');
     return this;
   }
 
@@ -124,7 +127,10 @@ export class PostQueryBuilder {
   }
 
   withCharacteristicIds(ids: number[]) {
-    this.query = this.query.andWhere('c.id IN (:...ids)', { ids });
+    this.query = this.query.andWhere(
+      'c.id IN (:...ids) OR tc.id IN (:...ids)',
+      { ids },
+    );
     return this;
   }
 
