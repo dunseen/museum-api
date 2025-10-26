@@ -109,14 +109,13 @@ export class PostQueryBuilder {
       .subQuery()
       .select('p.id')
       .from(PostEntity, 'p')
-      .innerJoin('p.species', 's')
+      .innerJoin('p.specie', 's')
       .innerJoin('s.taxons', 't')
       .innerJoin('t.hierarchy', 'h')
       .where('h.id = :hierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)', {
         hierarchyId,
         taxonName: `%${taxonName}%`,
-      })
-      .andWhere('p.status = :status', { status: PostStatusEnum.published });
+      });
 
     this.query = this.query.andWhere(
       `p.id IN (${subQuery.getQuery()})`,
