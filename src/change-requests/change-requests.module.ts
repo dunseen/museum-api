@@ -15,7 +15,10 @@ import { RelationalFilePersistenceModule } from '../files/infrastructure/persist
 import { PostsModule } from '../posts/posts.module';
 import { FileMinioModule } from '../files/infrastructure/uploader/minio/files.module';
 import { CharacteristicDraftEntity } from './infrastructure/persistence/relational/entities/characteristic-draft.entity';
+import { TaxonDraftEntity } from './infrastructure/persistence/relational/entities/taxon-draft.entity';
 import { RelationalCharacteristicTypePersistenceModule } from 'src/characteristic-types/infrastructure/persistence/relational/relational-persistence.module';
+import { RelationalHierarchyPersistenceModule } from '../hierarchies/infrastructure/persistence/relational/relational-persistence.module';
+import { TaxonEntity } from '../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 
 @Module({
   imports: [
@@ -30,6 +33,7 @@ import { RelationalCharacteristicTypePersistenceModule } from 'src/characteristi
     RelationalSpecialistPersistenceModule,
     RelationalFilePersistenceModule,
     RelationalCharacteristicTypePersistenceModule,
+    RelationalHierarchyPersistenceModule,
     PostsModule,
     // Local entities used within approval workflow
     TypeOrmModule.forFeature([
@@ -37,6 +41,8 @@ import { RelationalCharacteristicTypePersistenceModule } from 'src/characteristi
       FileEntity,
       CharacteristicEntity,
       CharacteristicDraftEntity,
+      TaxonEntity,
+      TaxonDraftEntity,
     ]),
   ],
   providers: [ChangeRequestsService],

@@ -29,6 +29,8 @@ import { CreateSpecieDto } from '../../species/dto/create-specie.dto';
 import { UpdateSpecieDto } from '../../species/dto/update-specie.dto';
 import { ProposeCharacteristicUpdateDto } from '../../change-requests/dto/propose-characteristic-update.dto';
 import { CharacteristicOperationResultDto } from '../../change-requests/dto/characteristic-operation-result.dto';
+import { UpdateTaxonDto } from '../../taxons/dto/update-taxon.dto';
+import { TaxonOperationResultDto } from '../../change-requests/dto/taxon-operation-result.dto';
 import { JwtPayload } from '../../auth/strategies/jwt.decorator';
 import { JwtPayloadType } from '../../auth/strategies/types/jwt-payload.type';
 import { ChangeRequest } from '../../change-requests/domain/change-request';
@@ -125,6 +127,34 @@ export class DashboardChangeRequestsController {
     @JwtPayload() payload: JwtPayloadType,
   ) {
     return this.service.deleteCharacteristic(Number(id), payload.id);
+  }
+
+  // ==================== Taxons ====================
+
+  @Put('taxons/:id')
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({
+    type: TaxonOperationResultDto,
+    description:
+      'Update taxon. If linked to species, creates change request. Otherwise updates directly.',
+  })
+  updateTaxon(
+    @Param('id') id: number,
+    @Body() dto: UpdateTaxonDto,
+    @JwtPayload() payload: JwtPayloadType,
+  ) {
+    return this.service.updateTaxon(Number(id), dto, payload.id);
+  }
+
+  @Delete('taxons/:id')
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({
+    type: TaxonOperationResultDto,
+    description:
+      'Delete taxon. If linked to species, creates change request. Otherwise deletes directly.',
+  })
+  deleteTaxon(@Param('id') id: number, @JwtPayload() payload: JwtPayloadType) {
+    return this.service.deleteTaxon(Number(id), payload.id);
   }
 
   // ==================== General ====================

@@ -16,6 +16,7 @@ import { Repository } from 'typeorm';
 import { SpecieDraftEntity } from './infrastructure/persistence/relational/entities/specie-draft.entity';
 import { ChangeRequestEntity } from './infrastructure/persistence/relational/entities/change-request.entity';
 import { CharacteristicDraftEntity } from './infrastructure/persistence/relational/entities/characteristic-draft.entity';
+import { TaxonDraftEntity } from './infrastructure/persistence/relational/entities/taxon-draft.entity';
 import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
 import { CreateSpecieDto } from '../species/dto/create-specie.dto';
 import { UpdateSpecieDto } from '../species/dto/update-specie.dto';
@@ -40,11 +41,13 @@ import {
 } from '../files/infrastructure/uploader/minio/files.service';
 import { ListChangeRequestDto } from './dto/draft-with-change-request.dto';
 import { GetCharacteristicDraftDto } from './dto/get-characteristic-draft.dto';
+import { GetTaxonDraftDto } from './dto/get-taxon-draft.dto';
 import { FileRepository } from '../files/infrastructure/persistence/file.repository';
 import { PostService } from '../posts/domain/post.service';
 import { SpecieMapper } from '../species/infrastructure/persistence/relational/mappers/specie.mapper';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { TaxonRepository } from '../taxons/infrastructure/persistence/taxon.repository';
+import { HierarchyRepository } from '../hierarchies/infrastructure/persistence/hierarchy.repository';
 import { CharacteristicRepository } from '../characteristics/domain/characteristic.repository';
 import { CharacteristicTypeRepository } from '../characteristic-types/infrastructure/persistence/characteristic-type.repository';
 import { CityRepository } from '../cities/infrastructure/persistence/city.repository';
@@ -55,6 +58,8 @@ import { UserFactory } from '../users/domain/user.factory';
 import { GetSpecieDto } from '../species/dto/get-all-species.dto';
 import { CharacteristicFactory } from '../characteristics/domain/characteristic.factory';
 import { CharacteristicMapper } from '../characteristics/infrastructure/persistence/relational/mappers/characteristic.mapper';
+import { HierarchyMapper } from '../hierarchies/infrastructure/persistence/relational/mappers/hierarchy.mapper';
+import { HierarchyEntity } from '../hierarchies/infrastructure/persistence/relational/entities/hierarchy.entity';
 import { CityMapper } from '../cities/infrastructure/persistence/relational/mappers/city.mapper';
 import { StateMapper } from '../states/infrastructure/persistence/relational/mappers/state.mapper';
 import { generateFileName } from '../utils/string';
@@ -65,6 +70,8 @@ import { formatLatLong } from 'src/utils/number';
 import { createDiff } from 'src/utils/diff';
 import { FileType } from 'src/files/domain/file';
 import { FileMapper } from '../files/infrastructure/persistence/relational/mappers/file.mapper';
+import { UpdateTaxonDto } from '../taxons/dto/update-taxon.dto';
+import { TaxonOperationResultDto } from './dto/taxon-operation-result.dto';
 
 @Injectable()
 export class ChangeRequestsService {
@@ -73,9 +80,12 @@ export class ChangeRequestsService {
     private readonly specieDraftRepo: Repository<SpecieDraftEntity>,
     @InjectRepository(CharacteristicDraftEntity)
     private readonly characteristicDraftRepo: Repository<CharacteristicDraftEntity>,
+    @InjectRepository(TaxonDraftEntity)
+    private readonly taxonDraftRepo: Repository<TaxonDraftEntity>,
     @InjectRepository(ChangeRequestEntity)
     private readonly crRepo: Repository<ChangeRequestEntity>,
     private readonly taxonRepository: TaxonRepository,
+    private readonly hierarchyRepository: HierarchyRepository,
     private readonly characteristicRepository: CharacteristicRepository,
     private readonly characteristicTypeRepository: CharacteristicTypeRepository,
     private readonly cityRepository: CityRepository,
@@ -86,6 +96,8 @@ export class ChangeRequestsService {
     private readonly specieRepository: Repository<SpecieEntity>,
     @InjectRepository(CharacteristicEntity)
     private readonly characteristicEntityRepo: Repository<CharacteristicEntity>,
+    @InjectRepository(TaxonEntity)
+    private readonly taxonEntityRepo: Repository<TaxonEntity>,
     private readonly filesMinioService: FilesMinioService,
     private readonly postService: PostService,
   ) {}
@@ -170,6 +182,136 @@ export class ChangeRequestsService {
       : [];
 
     taxonIdSet.clear();
+  }
+
+  private async _ensureHierarchyExists(
+    hierarchyId?: number,
+  ): Promise<HierarchyEntity> {
+    if (hierarchyId === undefined || hierarchyId === null) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { hierarchyId: 'hierarchy id is required' },
+      });
+    }
+
+    const hierarchy = await this.hierarchyRepository.findById(
+      Number(hierarchyId),
+    );
+
+    if (!hierarchy) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { hierarchyId: 'hierarchy not found' },
+      });
+    }
+
+    return HierarchyMapper.toPersistence(hierarchy);
+  }
+
+  private async _ensureParentTaxon(
+    parentId: number | null | undefined,
+    currentTaxonId?: number,
+  ): Promise<TaxonEntity | null> {
+    if (parentId === undefined) {
+      return null;
+    }
+
+    if (parentId === null) {
+      return null;
+    }
+
+    const numericId = Number(parentId);
+
+    if (currentTaxonId && numericId === Number(currentTaxonId)) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { parentId: 'parent taxon cannot be the same as the taxon' },
+      });
+    }
+
+    const parent = await this.taxonEntityRepo.findOne({
+      where: { id: numericId },
+      relations: ['hierarchy'],
+    });
+
+    if (!parent) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { parentId: 'parent taxon not found' },
+      });
+    }
+
+    return parent;
+  }
+
+  private async _resolveCharacteristicEntities(
+    characteristicIds?: number[],
+  ): Promise<CharacteristicEntity[]> {
+    if (!characteristicIds?.length) {
+      return [];
+    }
+
+    const uniqueIds = new Set<number>();
+
+    const entities = await Promise.all(
+      characteristicIds.map(async (id) => {
+        const numericId = Number(id);
+
+        if (uniqueIds.has(numericId)) {
+          throw new BadRequestException({
+            status: HttpStatus.BAD_REQUEST,
+            errors: {
+              characteristicIds: `characteristic with id: ${numericId} is duplicated`,
+            },
+          });
+        }
+
+        uniqueIds.add(numericId);
+
+        const characteristic =
+          await this.characteristicRepository.findById(numericId);
+
+        if (!characteristic) {
+          throw new BadRequestException({
+            status: HttpStatus.BAD_REQUEST,
+            errors: {
+              characteristicIds: `characteristic with id: ${numericId} not found`,
+            },
+          });
+        }
+
+        return CharacteristicMapper.toPersistence(characteristic);
+      }),
+    );
+
+    uniqueIds.clear();
+    return entities;
+  }
+
+  private async _countSpeciesUsingTaxon(taxonId: number): Promise<number> {
+    return this.specieRepository
+      .createQueryBuilder('specie')
+      .innerJoin('specie.taxons', 'taxon', 'taxon.id = :taxonId', {
+        taxonId,
+      })
+      .getCount();
+  }
+
+  private async _isTaxonUsedBySpecies(taxonId: number): Promise<boolean> {
+    const count = await this._countSpeciesUsingTaxon(taxonId);
+    return count > 0;
+  }
+
+  private async _applyDraftToTaxonEntity(
+    taxon: TaxonEntity,
+    draft: TaxonDraftEntity,
+  ): Promise<void> {
+    taxon.name = draft.name;
+    taxon.hierarchy = draft.hierarchy;
+    taxon.parent = draft.parent;
+    taxon.characteristics = draft.characteristics ?? [];
+
+    await this.taxonEntityRepo.save(taxon);
   }
 
   private async _validateIfSpecieExists(scientificName: string) {
@@ -871,6 +1013,190 @@ export class ChangeRequestsService {
     };
   }
 
+  async updateTaxon(
+    taxonId: number,
+    dto: UpdateTaxonDto,
+    proposedById: string,
+  ): Promise<TaxonOperationResultDto> {
+    const taxon = await this.taxonEntityRepo.findOne({
+      where: { id: taxonId },
+      relations: [
+        'parent',
+        'parent.hierarchy',
+        'characteristics',
+        'characteristics.type',
+      ],
+    });
+
+    if (!taxon) {
+      throw new NotFoundException('taxon not found');
+    }
+
+    const hierarchyProvided = Object.prototype.hasOwnProperty.call(
+      dto,
+      'hierarchyId',
+    );
+    const parentProvided = Object.prototype.hasOwnProperty.call(
+      dto,
+      'parentId',
+    );
+    const characteristicsProvided = Object.prototype.hasOwnProperty.call(
+      dto,
+      'characteristicIds',
+    );
+
+    const draft = new TaxonDraftEntity();
+    draft.name = dto.name ?? taxon.name;
+    draft.hierarchy = hierarchyProvided
+      ? await this._ensureHierarchyExists(dto.hierarchyId as number)
+      : taxon.hierarchy;
+    draft.parent = parentProvided
+      ? await this._ensureParentTaxon(dto.parentId ?? null, taxonId)
+      : taxon.parent;
+    draft.characteristics = characteristicsProvided
+      ? await this._resolveCharacteristicEntities(dto.characteristicIds ?? [])
+      : (taxon.characteristics ?? []);
+
+    const diff = createDiff(taxon, draft);
+
+    if (!Object.keys(diff).length) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        errors: { update: 'no changes detected' },
+      });
+    }
+
+    const isUsedBySpecies = await this._isTaxonUsedBySpecies(taxonId);
+
+    if (!isUsedBySpecies) {
+      await this._applyDraftToTaxonEntity(taxon, draft);
+
+      return {
+        status: OperationStatus.COMPLETED,
+        message: 'Taxon updated successfully',
+        changeRequestId: null,
+      };
+    }
+
+    const existingPendingUpdate = await this.crRepo.findOne({
+      where: {
+        entityId: taxonId,
+        entityType: EntityType.TAXON,
+        action: ChangeRequestAction.UPDATE,
+        status: ChangeRequestStatus.PENDING,
+      },
+    });
+
+    if (existingPendingUpdate) {
+      throw new ConflictException(
+        'There is already a pending update request for this taxon',
+      );
+    }
+
+    const savedDraft = await this.taxonDraftRepo.save(draft);
+
+    const proposedBy = new UserEntity();
+    proposedBy.id = proposedById;
+
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: EntityType.TAXON,
+        action: ChangeRequestAction.UPDATE,
+        status: ChangeRequestStatus.PENDING,
+        entityId: taxonId,
+        proposedBy,
+        draftId: savedDraft.id,
+        diff,
+      }),
+    );
+
+    const speciesCount = await this._countSpeciesUsingTaxon(taxonId);
+
+    return {
+      status: OperationStatus.PENDING_APPROVAL,
+      message: 'Update request created and awaiting approval',
+      changeRequestId: cr.id,
+      affectedSpeciesCount: speciesCount,
+    };
+  }
+
+  async deleteTaxon(
+    taxonId: number,
+    proposedById: string,
+  ): Promise<TaxonOperationResultDto> {
+    const taxon = await this.taxonEntityRepo.findOne({
+      where: { id: taxonId },
+      relations: [
+        'parent',
+        'parent.hierarchy',
+        'characteristics',
+        'characteristics.type',
+      ],
+    });
+
+    if (!taxon) {
+      throw new NotFoundException('taxon not found');
+    }
+
+    const isUsedBySpecies = await this._isTaxonUsedBySpecies(taxonId);
+
+    if (!isUsedBySpecies) {
+      await this.taxonEntityRepo.softDelete(taxonId);
+
+      return {
+        status: OperationStatus.COMPLETED,
+        message: 'Taxon deleted successfully',
+        changeRequestId: null,
+      };
+    }
+
+    const existingPendingDelete = await this.crRepo.findOne({
+      where: {
+        entityId: taxonId,
+        entityType: EntityType.TAXON,
+        action: ChangeRequestAction.DELETE,
+        status: ChangeRequestStatus.PENDING,
+      },
+    });
+
+    if (existingPendingDelete) {
+      throw new ConflictException(
+        'There is already a pending delete request for this taxon',
+      );
+    }
+
+    const draft = new TaxonDraftEntity();
+    draft.name = taxon.name;
+    draft.hierarchy = taxon.hierarchy;
+    draft.parent = taxon.parent;
+    draft.characteristics = taxon.characteristics ?? [];
+
+    const savedDraft = await this.taxonDraftRepo.save(draft);
+
+    const proposedBy = new UserEntity();
+    proposedBy.id = proposedById;
+
+    const cr = await this.crRepo.save(
+      this.crRepo.create({
+        entityType: EntityType.TAXON,
+        action: ChangeRequestAction.DELETE,
+        status: ChangeRequestStatus.PENDING,
+        entityId: taxonId,
+        proposedBy,
+        draftId: savedDraft.id,
+      }),
+    );
+
+    const speciesCount = await this._countSpeciesUsingTaxon(taxonId);
+
+    return {
+      status: OperationStatus.PENDING_APPROVAL,
+      message: 'Delete request created and awaiting approval',
+      changeRequestId: cr.id,
+      affectedSpeciesCount: speciesCount,
+    };
+  }
+
   async approve(id: number, payload: JwtPayloadType): Promise<void> {
     const cr = await this.crRepo.findOne({ where: { id } });
 
@@ -887,6 +1213,10 @@ export class ChangeRequestsService {
 
       case EntityType.CHARACTERISTIC:
         await this.approveCharacteristicChangeRequest(cr);
+        break;
+
+      case EntityType.TAXON:
+        await this.approveTaxonChangeRequest(cr);
         break;
 
       default:
@@ -1146,6 +1476,82 @@ export class ChangeRequestsService {
     }
   }
 
+  private async approveTaxonChangeRequest(
+    cr: ChangeRequestEntity,
+  ): Promise<void> {
+    if (
+      cr.action === ChangeRequestAction.CREATE ||
+      cr.action === ChangeRequestAction.UPDATE
+    ) {
+      if (!cr.draftId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: draftId is null',
+        );
+      }
+
+      const draft = await this.taxonDraftRepo.findOne({
+        where: { id: cr.draftId },
+        relations: [
+          'hierarchy',
+          'parent',
+          'parent.hierarchy',
+          'characteristics',
+          'characteristics.type',
+        ],
+      });
+
+      if (!draft) {
+        throw new NotFoundException('draft not found');
+      }
+
+      if (cr.action === ChangeRequestAction.CREATE) {
+        const newTaxon = new TaxonEntity();
+        newTaxon.name = draft.name;
+        newTaxon.hierarchy = draft.hierarchy;
+        newTaxon.parent = draft.parent;
+        newTaxon.characteristics = draft.characteristics ?? [];
+
+        const created = await this.taxonEntityRepo.save(newTaxon);
+        cr.entityId = created.id;
+      } else {
+        if (!cr.entityId) {
+          throw new UnprocessableEntityException(
+            'Change request malformed: entityId is null for UPDATE action',
+          );
+        }
+
+        const taxon = await this.taxonEntityRepo.findOne({
+          where: { id: cr.entityId },
+          relations: ['characteristics'],
+        });
+
+        if (!taxon) {
+          throw new NotFoundException('taxon not found');
+        }
+
+        taxon.name = draft.name;
+        taxon.hierarchy = draft.hierarchy;
+        taxon.parent = draft.parent;
+        taxon.characteristics = draft.characteristics ?? [];
+
+        await this.taxonEntityRepo.save(taxon);
+        cr.entityId = taxon.id;
+      }
+    } else if (cr.action === ChangeRequestAction.DELETE) {
+      if (!cr.entityId) {
+        throw new UnprocessableEntityException(
+          'Change request malformed: entityId is null for DELETE action',
+        );
+      }
+
+      await this.taxonEntityRepo.softDelete(cr.entityId);
+    } else {
+      throw new UnprocessableEntityException(
+        `Action ${cr.action} not supported for taxon change requests.`,
+      );
+    }
+  }
+
   async reject(id: number, reviewerId: string, reviewerNote?: string) {
     const cr = await this.crRepo.findOne({ where: { id } });
 
@@ -1204,6 +1610,13 @@ export class ChangeRequestsService {
       { charType: EntityType.CHARACTERISTIC },
     );
 
+    qb.leftJoin(
+      TaxonDraftEntity,
+      'taxonDraft',
+      'taxonDraft.id = cr.draftId AND cr.entityType = :taxonType',
+      { taxonType: EntityType.TAXON },
+    ).addSelect(['taxonDraft.id', 'taxonDraft.name']);
+
     if (entityType) {
       qb.where('cr.entityType = :entityType', { entityType });
     }
@@ -1233,6 +1646,10 @@ export class ChangeRequestsService {
         searchClauses.push('charDraft.name ILIKE :s');
       }
 
+      if (!entityType || entityType === EntityType.TAXON) {
+        searchClauses.push('taxonDraft.name ILIKE :s');
+      }
+
       qb.andWhere(`(${searchClauses.join(' OR ')})`, { s });
     }
 
@@ -1257,6 +1674,10 @@ export class ChangeRequestsService {
         const draftData = raw.find((r) => r.charDraft_id === cr.draftId);
         entityName = draftData?.charDraft_name ?? 'Unknown';
         draftCreatedAt = draftData?.charDraft_createdAt ?? cr.proposedAt;
+      } else if (cr.entityType === EntityType.TAXON) {
+        const draftData = raw.find((r) => r.taxonDraft_id === cr.draftId);
+        entityName = draftData?.taxonDraft_name ?? 'Unknown';
+        draftCreatedAt = cr.proposedAt;
       }
       // Add other entity types here as they are implemented
       // else if (cr.entityType === EntityType.TAXON) { ... }
@@ -1410,6 +1831,50 @@ export class ChangeRequestsService {
     };
   }
 
+  async getTaxonDraftDetail(id: number): Promise<GetTaxonDraftDto> {
+    const draft = await this.taxonDraftRepo.findOne({
+      where: { id },
+      relations: [
+        'hierarchy',
+        'parent',
+        'parent.hierarchy',
+        'characteristics',
+        'characteristics.type',
+      ],
+    });
+
+    if (!draft) {
+      throw new NotFoundException('taxon draft not found');
+    }
+
+    const changeRequest = await this.crRepo.findOne({
+      where: { draftId: id, entityType: EntityType.TAXON },
+    });
+
+    if (!changeRequest) {
+      throw new NotFoundException('change request not found');
+    }
+
+    return {
+      id: changeRequest.entityId ?? draft.id,
+      name: draft.name,
+      hierarchy: {
+        id: draft.hierarchy.id,
+        name: draft.hierarchy.name,
+      },
+      parent: draft.parent
+        ? {
+            id: draft.parent.id,
+            name: draft.parent.name,
+          }
+        : null,
+      characteristics: (draft.characteristics ?? []).map((c) =>
+        CharacteristicFactory.toDto(CharacteristicMapper.toDomain(c)),
+      ),
+      diff: (changeRequest.diff as Record<string, any> | null) ?? null,
+    };
+  }
+
   async getDraftDetail(draftId: number, entityType: string): Promise<any> {
     // Find the change request to determine the entity type
     const changeRequest = await this.crRepo.findOne({
@@ -1424,9 +1889,8 @@ export class ChangeRequestsService {
         return this.getSpecieDraftDetail(draftId);
       case EntityType.CHARACTERISTIC:
         return this.getCharacteristicDraftDetail(draftId);
-      // Add other entity types here as they are implemented
-      // case EntityType.TAXON:
-      //   return this.getTaxonDraftDetail(draftId);
+      case EntityType.TAXON:
+        return this.getTaxonDraftDetail(draftId);
       default:
         throw new UnprocessableEntityException(
           `Draft details for entity type '${entityType}' not implemented yet`,

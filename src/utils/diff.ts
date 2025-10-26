@@ -18,6 +18,8 @@ const TRACKED_KEYS = new Set([
   'determinator',
   'taxons',
   'characteristics',
+  'hierarchy',
+  'parent',
 ]);
 
 /**

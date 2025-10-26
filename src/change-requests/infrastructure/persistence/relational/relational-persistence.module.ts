@@ -5,6 +5,7 @@ import { ChangeRequestRepository } from '../../../domain/change-request.reposito
 import { ChangeRequestRelationalRepository } from './repositories/change-request.repository';
 import { SpecieDraftEntity } from './entities/specie-draft.entity';
 import { CharacteristicDraftEntity } from './entities/characteristic-draft.entity';
+import { TaxonDraftEntity } from './entities/taxon-draft.entity';
 import { SpecieEntity } from '../../../../species/infrastructure/persistence/relational/entities/specie.entity';
 import { TaxonEntity } from '../../../../taxons/infrastructure/persistence/relational/entities/taxon.entity';
 import { CharacteristicEntity } from '../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
@@ -18,6 +19,7 @@ import { SpecialistEntity } from '../../../../specialists/infrastructure/persist
       ChangeRequestEntity,
       SpecieDraftEntity,
       CharacteristicDraftEntity,
+      TaxonDraftEntity,
       SpecieEntity,
       TaxonEntity,
       CharacteristicEntity,
