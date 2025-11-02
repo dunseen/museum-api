@@ -48,6 +48,8 @@ export class DashboardHierarchiesController {
     return this.hierarchiesService.create(createHierarchyDto);
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get()
   @ApiOkResponse({
     type: ListHierarchyDto,
@@ -57,6 +59,8 @@ export class DashboardHierarchiesController {
     return this.listHierarchyUseCase.execute();
   }
 
+  @Roles(RoleEnum.admin, RoleEnum.editor, RoleEnum.operator)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get(':id')
   @ApiParam({
     name: 'id',
