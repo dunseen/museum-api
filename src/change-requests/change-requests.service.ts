@@ -1824,8 +1824,6 @@ export class ChangeRequestsService {
       type: {
         id: draft.type.id!,
         name: draft.type.name,
-        createdAt: draft.type.createdAt,
-        updatedAt: draft.type.updatedAt,
       },
       files,
       diff: (changeRequest.diff as Record<string, any> | null) ?? null,

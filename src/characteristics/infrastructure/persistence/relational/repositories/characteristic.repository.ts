@@ -67,7 +67,10 @@ export class CharacteristicRelationalRepository
   }: {
     paginationOptions: IPaginationOptions;
   }): Promise<WithCountList<Characteristic>> {
-    const query = this.characteristicRepository.createQueryBuilder('c');
+    const query = this.characteristicRepository
+      .createQueryBuilder('c')
+      .innerJoinAndSelect('c.type', 't')
+      .leftJoinAndSelect('c.files', 'f', 'f.approved = true');
 
     if (paginationOptions.filters?.name) {
       query.where('c.name LIKE :name', {
@@ -81,11 +84,16 @@ export class CharacteristicRelationalRepository
       });
     }
 
+    if (paginationOptions.filters?.typesId) {
+      const typesIdsArray = paginationOptions.filters.typesId.map((id) =>
+        Number(id.trim()),
+      );
+      query.andWhere('t.id IN (:...typesIds)', { typesIds: typesIdsArray });
+    }
+
     const [entities, totalCount] = await query
       .skip((paginationOptions.page - 1) * paginationOptions.limit)
       .take(paginationOptions.limit)
-      .innerJoinAndSelect('c.type', 't')
-      .leftJoinAndSelect('c.files', 'f', 'f.approved = true')
       .orderBy('c.createdAt', 'DESC')
       .getManyAndCount();
 

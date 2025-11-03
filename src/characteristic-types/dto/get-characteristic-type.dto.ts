@@ -10,10 +10,4 @@ export class GetCharacteristicTypeDto {
     type: String,
   })
   name: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }

@@ -1,7 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { ListHomeCharacteristicFiltersUseCase } from './application/use-cases/list-home-characteristic-filters.use-case';
-import { ListHomeCharacteristicFiltersDto } from './application/dto/list-home-characteristic-filters.dto';
+import { CharacteristicsService } from './characteristics.service';
+import { FindAllCharacteristicsDto } from './application/dto/find-all-characteristics.dto';
+import { InfinityPaginationResponse } from 'src/utils/dto/infinity-pagination-response.dto';
+import { GetCharacteristicDto } from './application/dto/get-characteristic.dto';
+import { infinityPagination } from 'src/utils/infinity-pagination';
 
 @ApiTags('Characteristics')
 @Controller({
@@ -10,15 +13,26 @@ import { ListHomeCharacteristicFiltersDto } from './application/dto/list-home-ch
 })
 export class CharacteristicsController {
   constructor(
-    private readonly listHomeCharacteristicFiltersUseCase: ListHomeCharacteristicFiltersUseCase,
+    private readonly characteristicsService: CharacteristicsService,
   ) {}
 
-  @Get('home/filters')
+  @Get()
   @ApiOkResponse({
-    type: ListHomeCharacteristicFiltersDto,
-    isArray: true,
+    type: InfinityPaginationResponse(GetCharacteristicDto),
   })
-  listHomeFilters() {
-    return this.listHomeCharacteristicFiltersUseCase.execute();
+  async listCharacteristics(@Query() query: FindAllCharacteristicsDto) {
+    return infinityPagination(
+      await this.characteristicsService.findAllWithPagination({
+        paginationOptions: {
+          page: query.page,
+          limit: query.limit,
+          filters: {
+            name: query.name,
+            typesId: query.characteristicTypeIds,
+          },
+        },
+      }),
+      { page: query.page, limit: query.limit },
+    );
   }
 }

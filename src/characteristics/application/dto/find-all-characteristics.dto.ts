@@ -19,4 +19,13 @@ export class FindAllCharacteristicsDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by characteristic type ids separated by comma',
+    example: '1,2,3',
+    type: String,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value ? value.split(',') : []))
+  characteristicTypeIds: string[];
 }

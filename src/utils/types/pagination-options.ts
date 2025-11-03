@@ -5,6 +5,7 @@ export interface IPaginationOptions {
   page: number;
   limit: number;
   filters?: {
+    typesId?: string[];
     name?: string;
     specialistType?: SpecialistType;
     email?: string;
