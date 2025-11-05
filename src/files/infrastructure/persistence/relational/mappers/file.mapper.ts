@@ -1,5 +1,3 @@
-import { CharacteristicEntity } from '../../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
-import { SpecieEntity } from '../../../../../species/infrastructure/persistence/relational/entities/specie.entity';
 import { FileType } from '../../../../domain/file';
 import { FileEntity } from '../entities/file.entity';
 
@@ -9,6 +7,7 @@ export class FileMapper {
     domainEntity.id = raw.id;
     domainEntity.path = raw.path;
     domainEntity.url = raw.url;
+    domainEntity.approved = raw.approved;
     return domainEntity;
   }
 
@@ -17,18 +16,10 @@ export class FileMapper {
     persistenceEntity.id = domainEntity.id;
     persistenceEntity.path = domainEntity.path;
     persistenceEntity.url = domainEntity.url;
-
-    if (domainEntity.specieId) {
-      const specie = new SpecieEntity();
-      specie.id = domainEntity.specieId;
-      persistenceEntity.specie = specie;
-    }
-
-    if (domainEntity.characteristicId) {
-      const characteristic = new CharacteristicEntity();
-      characteristic.id = domainEntity.characteristicId;
-      persistenceEntity.characteristic = characteristic;
-    }
+    persistenceEntity.approved = domainEntity.approved ?? false;
+    persistenceEntity.specieId = domainEntity.specieId ?? null;
+    persistenceEntity.characteristicId = domainEntity.characteristicId ?? null;
+    persistenceEntity.changeRequestId = domainEntity.changeRequestId ?? null;
 
     return persistenceEntity;
   }

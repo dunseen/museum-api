@@ -8,7 +8,7 @@ export class PostSimplifiedMapper {
     return {
       id: raw.id,
       specie: SpecieFactory.toListHomePageDto(
-        SpecieMapper.toDomain(raw.species[0]),
+        SpecieMapper.toDomain(raw.specie),
       ),
     };
   }

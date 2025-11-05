@@ -9,8 +9,6 @@ export class CharacteristicFactory {
       type: {
         name: characteristic.type.name,
         id: characteristic.type.id,
-        createdAt: characteristic.type.createdAt,
-        updatedAt: characteristic.type.updatedAt,
       },
       files: [...characteristic.files],
       createdAt: characteristic.createdAt,

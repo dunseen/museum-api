@@ -6,6 +6,7 @@ import { NullableType } from '../../utils/types/nullable.type';
 import { City } from '../../cities/domain/city';
 import { State } from '../../states/domain/state';
 import { Specialist } from '../../specialists/domain/specialist';
+import { ChangeRequestStatus } from '../../change-requests/domain/change-request';
 
 export class SpecieBuilder {
   private id: number;
@@ -26,6 +27,8 @@ export class SpecieBuilder {
   private files: FileType[] = [];
   private city?: City;
   private state?: State;
+  private status?: ChangeRequestStatus;
+  private statusReason?: NullableType<string>;
   setId(id: number): this {
     this.id = id;
     return this;
@@ -100,6 +103,15 @@ export class SpecieBuilder {
     return this;
   }
 
+  setStatus(status: ChangeRequestStatus): this {
+    this.status = status;
+    return this;
+  }
+
+  setStatusReason(statusReason: NullableType<string>): this {
+    this.statusReason = statusReason;
+    return this;
+  }
   addTaxon(taxon: Taxon): this {
     this.taxons.push(taxon);
     return this;
@@ -134,6 +146,8 @@ export class SpecieBuilder {
       this.determinatedAt,
       this.createdAt,
       this.updatedAt,
+      this.status ?? ChangeRequestStatus.APPROVED,
+      this.statusReason ?? null,
     );
 
     if (this.state) {

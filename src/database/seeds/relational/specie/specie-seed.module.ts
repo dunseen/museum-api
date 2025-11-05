@@ -10,6 +10,8 @@ import { FileMinioModule } from '../../../../files/infrastructure/uploader/minio
 import { PostEntity } from '../../../../posts/infrastructure/persistence/relational/entities/post.entity';
 import { UserEntity } from '../../../../users/infrastructure/persistence/relational/entities/user.entity';
 import { SpecialistEntity } from '../../../../specialists/infrastructure/persistence/relational/entities/specialist.entity';
+import { ChangeRequestsModule } from 'src/change-requests/change-requests.module';
+import { ChangeRequestEntity } from 'src/change-requests/infrastructure/persistence/relational/entities/change-request.entity';
 
 @Module({
   imports: [
@@ -22,8 +24,10 @@ import { SpecialistEntity } from '../../../../specialists/infrastructure/persist
       PostEntity,
       UserEntity,
       SpecialistEntity,
+      ChangeRequestEntity,
     ]),
     FileMinioModule,
+    ChangeRequestsModule,
   ],
   providers: [SpecieSeedService],
   exports: [SpecieSeedService],

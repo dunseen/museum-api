@@ -1,9 +1,11 @@
 import { SpecialistType } from '../../specialists/domain/specialist';
+import { ChangeRequestStatus } from '../../change-requests/domain/change-request';
 
 export interface IPaginationOptions {
   page: number;
   limit: number;
   filters?: {
+    typesId?: string[];
     name?: string;
     specialistType?: SpecialistType;
     email?: string;
@@ -16,6 +18,7 @@ export interface IPaginationOptions {
     familyHierarchyId?: number;
     genusName?: string;
     genusHierarchyId?: number;
+    specieStatus?: ChangeRequestStatus;
   };
 }
 

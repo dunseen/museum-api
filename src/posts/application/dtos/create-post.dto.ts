@@ -7,4 +7,11 @@ export class CreatePostDto {
   })
   @IsInt()
   specieId: number;
+
+  @ApiProperty({
+    type: Number,
+    description: 'ID of the approved change request',
+  })
+  @IsInt()
+  changeRequestId!: number;
 }

@@ -1,6 +1,9 @@
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -9,6 +12,7 @@ import {
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 import { SpecieEntity } from '../../../../../species/infrastructure/persistence/relational/entities/specie.entity';
 import { CharacteristicEntity } from '../../../../../characteristics/infrastructure/persistence/relational/entities/characteristic.entity';
+import { ChangeRequestEntity } from '../../../../../change-requests/infrastructure/persistence/relational/entities/change-request.entity';
 @Entity({ name: 'file' })
 export class FileEntity extends EntityRelationalHelper {
   @PrimaryGeneratedColumn('uuid')
@@ -20,12 +24,18 @@ export class FileEntity extends EntityRelationalHelper {
   @Column()
   url: string;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  approved: boolean;
+
   @ManyToOne(() => SpecieEntity, (specie) => specie.files)
   @JoinColumn({
     name: 'specieId',
     referencedColumnName: 'id',
   })
-  specie: SpecieEntity;
+  specie?: SpecieEntity | null;
 
   @ManyToOne(
     () => CharacteristicEntity,
@@ -35,5 +45,27 @@ export class FileEntity extends EntityRelationalHelper {
     name: 'characteristicId',
     referencedColumnName: 'id',
   })
-  characteristic: CharacteristicEntity;
+  characteristic?: CharacteristicEntity | null;
+
+  @ManyToOne(() => ChangeRequestEntity, { nullable: true })
+  @JoinColumn({ name: 'changeRequestId', referencedColumnName: 'id' })
+  changeRequest?: ChangeRequestEntity | null;
+
+  @Index()
+  @Column({ nullable: true })
+  specieId: number | null;
+
+  @Index()
+  @Column({ nullable: true })
+  characteristicId: number | null;
+
+  @Index()
+  @Column({ nullable: true })
+  changeRequestId: number | null;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null;
 }

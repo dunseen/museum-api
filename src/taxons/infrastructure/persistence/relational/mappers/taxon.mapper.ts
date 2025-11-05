@@ -1,5 +1,5 @@
+import { HierarchyMapper } from 'src/hierarchies/infrastructure/persistence/relational/mappers/hierarchy.mapper';
 import { CharacteristicMapper } from '../../../../../characteristics/infrastructure/persistence/relational/mappers/characteristic.mapper';
-import { HierarchyEntity } from '../../../../../hierarchies/infrastructure/persistence/relational/entities/hierarchy.entity';
 import { Taxon } from '../../../../domain/taxon';
 import { TaxonEntity } from '../entities/taxon.entity';
 
@@ -9,7 +9,7 @@ export class TaxonMapper {
 
     domainEntity.id = raw.id;
     domainEntity.name = raw.name;
-    domainEntity.hierarchy = raw.hierarchy;
+    domainEntity.hierarchy = HierarchyMapper.toDomain(raw.hierarchy);
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
 
@@ -27,8 +27,6 @@ export class TaxonMapper {
   }
 
   static toPersistence(domainEntity: Taxon): TaxonEntity {
-    const hierarchy = new HierarchyEntity();
-
     const persistenceEntity = new TaxonEntity();
     if (domainEntity.id) {
       persistenceEntity.id = Number(domainEntity.id);
@@ -41,14 +39,15 @@ export class TaxonMapper {
     }
 
     if (domainEntity.hierarchy) {
-      hierarchy.id = Number(domainEntity.hierarchy.id);
+      persistenceEntity.hierarchy = HierarchyMapper.toPersistence(
+        domainEntity.hierarchy,
+      );
     }
 
     persistenceEntity.characteristics = domainEntity?.characteristics?.length
       ? domainEntity.characteristics.map(CharacteristicMapper.toPersistence)
       : [];
 
-    persistenceEntity.hierarchy = hierarchy;
     persistenceEntity.name = domainEntity.name;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;

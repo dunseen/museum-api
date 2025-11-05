@@ -8,8 +8,6 @@ export class CharacteristicTypeFactory {
     return {
       id: characteristicType.id!,
       name: characteristicType.name,
-      createdAt: characteristicType.createdAt,
-      updatedAt: characteristicType.updatedAt,
     };
   }
 }

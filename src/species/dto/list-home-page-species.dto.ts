@@ -8,4 +8,6 @@ export class ListHomePageSpeciesDto extends OmitType(GetSpecieDto, [
   'determinatedAt',
   'collector',
   'determinator',
+  'status',
+  'statusReason',
 ]) {}

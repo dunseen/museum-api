@@ -24,9 +24,7 @@ export class CharacteristicMapper {
     return domainEntity;
   }
 
-  static toPersistence(
-    domainEntity: Partial<Characteristic>,
-  ): CharacteristicEntity {
+  static toPersistence(domainEntity: Characteristic): CharacteristicEntity {
     const persistenceEntity = new CharacteristicEntity();
 
     if (domainEntity.id) {

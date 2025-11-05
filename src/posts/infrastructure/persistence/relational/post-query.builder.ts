@@ -10,13 +10,21 @@ export class PostQueryBuilder {
     this.query = query;
   }
 
-  withAuthor() {
-    this.query = this.query.innerJoinAndSelect('p.author', 'author');
-    return this;
-  }
+  withChangeRequest() {
+    this.query = this.query.leftJoinAndSelect(
+      'p.changeRequest',
+      'changeRequest',
+    );
 
-  withValidator() {
-    this.query = this.query.leftJoinAndSelect('p.validator', 'validator');
+    this.query = this.query.leftJoinAndSelect(
+      'changeRequest.proposedBy',
+      'proposedBy',
+    );
+
+    this.query = this.query.leftJoinAndSelect(
+      'changeRequest.reviewedBy',
+      'reviewedBy',
+    );
     return this;
   }
 
@@ -31,7 +39,7 @@ export class PostQueryBuilder {
   }
 
   withSpecies() {
-    this.query = this.query.innerJoinAndSelect('p.species', 's');
+    this.query = this.query.innerJoinAndSelect('p.specie', 's');
     return this;
   }
 
@@ -52,11 +60,15 @@ export class PostQueryBuilder {
 
   withFiles() {
     this.query = this.query.leftJoinAndSelect('s.files', 'f');
+    this.query.andWhere('f.approved = true');
     return this;
   }
 
   withTaxons() {
-    this.query = this.query.innerJoinAndSelect('s.taxons', 't');
+    this.query = this.query
+      .innerJoinAndSelect('s.taxons', 't')
+      .leftJoinAndSelect('t.characteristics', 'tc')
+      .leftJoinAndSelect('tc.type', 'tct');
     return this;
   }
 
@@ -97,14 +109,13 @@ export class PostQueryBuilder {
       .subQuery()
       .select('p.id')
       .from(PostEntity, 'p')
-      .innerJoin('p.species', 's')
+      .innerJoin('p.specie', 's')
       .innerJoin('s.taxons', 't')
       .innerJoin('t.hierarchy', 'h')
       .where('h.id = :hierarchyId AND LOWER(t.name) LIKE LOWER(:taxonName)', {
         hierarchyId,
         taxonName: `%${taxonName}%`,
-      })
-      .andWhere('p.status = :status', { status: PostStatusEnum.published });
+      });
 
     this.query = this.query.andWhere(
       `p.id IN (${subQuery.getQuery()})`,
@@ -115,7 +126,10 @@ export class PostQueryBuilder {
   }
 
   withCharacteristicIds(ids: number[]) {
-    this.query = this.query.andWhere('c.id IN (:...ids)', { ids });
+    this.query = this.query.andWhere(
+      'c.id IN (:...ids) OR tc.id IN (:...ids)',
+      { ids },
+    );
     return this;
   }
 

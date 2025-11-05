@@ -1,4 +1,3 @@
-import { DeepPartial } from '../../utils/types/deep-partial.type';
 import { NullableType } from '../../utils/types/nullable.type';
 import {
   IPaginationOptions,
@@ -26,8 +25,6 @@ export abstract class PostRepository {
   abstract findById(id: Post['id']): Promise<NullableType<Post>>;
   abstract searchBySpecieName(name: string): Promise<NullableType<Post>>;
   abstract findPublishedBySpecieId(id: number): Promise<Post[]>;
-
-  abstract update(id: Post['id'], payload: DeepPartial<Post>): Promise<void>;
-
+  abstract findPendingBySpecieId(id: number): Promise<NullableType<Post>>;
   abstract remove(id: string[] | string): Promise<void>;
 }

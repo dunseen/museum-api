@@ -86,6 +86,7 @@ export class CharacteristicsService {
           filters: {
             name: paginationOptions.filters?.name,
             description: paginationOptions.filters?.description,
+            typesId: paginationOptions.filters?.typesId,
           },
         },
       });
@@ -142,7 +143,7 @@ export class CharacteristicsService {
     }
 
     if (updateCharacteristicDto?.filesToDelete?.length) {
-      await this.filesMinioService.delete(
+      await this.filesMinioService.softDelete(
         updateCharacteristicDto.filesToDelete,
       );
     }

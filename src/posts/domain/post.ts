@@ -1,26 +1,28 @@
 import { NullableType } from '../../utils/types/nullable.type';
-import { PostStatusEnum } from './post-status.enum';
 import { User } from '../../users/domain/user';
 import { Specie } from '../../species/domain/specie';
 import { PostBuilder } from './post.builder';
+import { ChangeRequest } from 'src/change-requests/domain/change-request';
 
 export class Post {
   private readonly _id?: string;
-  private _status: PostStatusEnum;
-  private _rejectReason: NullableType<string>;
+  private readonly _changeRequest: ChangeRequest;
   private readonly _author: User;
-  private _validator: NullableType<User>;
-  private readonly _species: Specie[];
+  private readonly _validator: NullableType<User>;
+  private readonly _specie: Specie;
   private readonly _createdAt: Date;
   private _updatedAt: Date;
 
   private constructor(builder: PostBuilder) {
     this._id = builder.id;
-    this._status = builder.status;
-    this._rejectReason = builder.rejectReason;
-    this._author = builder.author;
-    this._validator = builder.validator;
-    this._species = builder.species;
+
+    if (builder.changeRequest) {
+      this._changeRequest = builder.changeRequest;
+      this._author = builder.changeRequest.proposedBy;
+      this._validator = builder.changeRequest.reviewedBy;
+    }
+
+    this._specie = builder.specie;
     this._createdAt = builder.createdAt;
     this._updatedAt = builder.updatedAt;
 
@@ -38,12 +40,8 @@ export class Post {
     return String(this._id);
   }
 
-  get status(): PostStatusEnum {
-    return this._status;
-  }
-
-  get rejectReason(): NullableType<string> {
-    return this._rejectReason;
+  get changeRequest(): NullableType<ChangeRequest> {
+    return this._changeRequest;
   }
 
   get author(): User {
@@ -54,8 +52,8 @@ export class Post {
     return this._validator;
   }
 
-  get species(): Specie[] {
-    return this._species;
+  get specie(): Specie {
+    return this._specie;
   }
 
   get createdAt(): Date {
@@ -66,46 +64,12 @@ export class Post {
     return this._updatedAt;
   }
 
-  withUpdateStatus(
-    newStatus: PostStatusEnum,
-    validator: User,
-    rejectReason?: NullableType<string>,
-  ) {
-    if (newStatus === PostStatusEnum.rejected && !rejectReason) {
-      throw new Error('Reject reason must be provided for rejected posts');
-    }
-
-    this._status = newStatus;
-    this._validator = validator;
-    this._rejectReason = rejectReason ?? this._rejectReason;
-    this._updatedAt = new Date();
-
-    const builder = new PostBuilder()
-      .setId(this._id)
-      .setAuthor(this._author)
-      .setSpecie(this._species)
-      .setStatus(newStatus)
-      .setValidator(validator)
-      .setRejectReason(rejectReason ?? this._rejectReason)
-      .setUpdatedAt(new Date());
-
-    return Post.createFromBuilder(builder);
-  }
-
   private validateState() {
     if (this._id && typeof this._id !== 'string') {
       throw new Error('Post ID is required and must be a string');
     }
 
-    if (!this._status) {
-      throw new Error('Post status is required');
-    }
-
-    if (!this._author) {
-      throw new Error('Post author is required');
-    }
-
-    if (!this._species) {
+    if (!this._specie) {
       throw new Error('Post specie is required');
     }
 

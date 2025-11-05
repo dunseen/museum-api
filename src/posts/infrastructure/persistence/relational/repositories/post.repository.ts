@@ -26,25 +26,39 @@ export class PostRelationalRepository implements PostRepository {
     const queryBuilder = new PostQueryBuilder(
       this.postRepository.createQueryBuilder('p'),
     )
-      .withAuthor()
-      .withValidator()
+      .withChangeRequest()
       .withSpecies()
-      .withStatus(PostStatusEnum.published)
       .build();
 
-    queryBuilder.where('s.id = :specieId', { specieId });
+    queryBuilder
+      .where('s.id = :specieId', { specieId })
+      .andWhere('p.deletedAt IS NULL');
 
     const post = await queryBuilder.getMany();
 
     return post.map(PostMapper.toDomain);
   }
 
+  async findPendingBySpecieId(specieId: number): Promise<NullableType<Post>> {
+    const queryBuilder = new PostQueryBuilder(
+      this.postRepository.createQueryBuilder('p'),
+    )
+      .withChangeRequest()
+      .withSpecies()
+      .withStatus(PostStatusEnum.pending)
+      .build();
+
+    queryBuilder.where('s.id = :specieId', { specieId });
+
+    const post = await queryBuilder.getOne();
+    return post ? PostMapper.toDomain(post) : null;
+  }
+
   async searchBySpecieName(name: string): Promise<NullableType<Post>> {
     const queryBuilder = new PostQueryBuilder(
       this.postRepository.createQueryBuilder('p'),
     )
-      .withAuthor()
-      .withValidator()
+      .withChangeRequest()
       .withSpecies()
       .withCollector()
       .withDeterminator()
@@ -55,7 +69,6 @@ export class PostRelationalRepository implements PostRepository {
       .withCharacteristicTypes()
       .withCityAndState()
       .withHierarchy()
-      .withStatus(PostStatusEnum.published)
       .withNameFilter(name)
       .build();
 
@@ -79,7 +92,6 @@ export class PostRelationalRepository implements PostRepository {
       .withHierarchy()
       .withFiles()
       .withCityAndState()
-      .withStatus(PostStatusEnum.published)
       .withPagination(paginationOptions);
 
     if (paginationOptions.filters?.name) {
@@ -148,14 +160,7 @@ export class PostRelationalRepository implements PostRepository {
       this.postRepository.createQueryBuilder('p'),
     )
       .withSpecies()
-      .withAuthor()
-      .withValidator()
-      .withCharacteristics()
-      .withCharacteristicTypes()
-      .withFiles()
-      .withTaxons()
-      .withCityAndState()
-      .withHierarchy()
+      .withChangeRequest()
       .withPagination(paginationOptions);
 
     if (paginationOptions.filters?.name) {
@@ -182,21 +187,6 @@ export class PostRelationalRepository implements PostRepository {
     });
 
     return entity ? PostMapper.toDomain(entity) : null;
-  }
-
-  async update(id: Post['id'], payload: Partial<Post>): Promise<void> {
-    await this.postRepository.save(
-      PostMapper.toPersistence({
-        id,
-        author: payload.author,
-        validator: payload.validator,
-        species: payload.species,
-        status: payload.status,
-        rejectReason: payload.rejectReason,
-        updatedAt: payload.updatedAt,
-        createdAt: payload.createdAt,
-      }),
-    );
   }
 
   async remove(id: string[] | string): Promise<void> {
