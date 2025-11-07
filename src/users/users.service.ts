@@ -37,11 +37,6 @@ export class UsersService {
       ...createProfileDto,
     };
 
-    if (clonedPayload.password) {
-      const salt = await bcrypt.genSalt();
-      clonedPayload.password = await bcrypt.hash(clonedPayload.password, salt);
-    }
-
     if (clonedPayload.email) {
       const userObject = await this.usersRepository.findByEmail(
         clonedPayload.email,
