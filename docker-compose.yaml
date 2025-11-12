@@ -60,6 +60,8 @@ services:
     restart: always
     env_file:
       - .env
+    volumes:
+      - ./.env:/usr/src/app/.env:ro
     networks:
       - internal
       - public

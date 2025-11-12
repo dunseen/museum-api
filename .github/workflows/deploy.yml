@@ -220,7 +220,6 @@ jobs:
 
           # Navigate to app directory
           cd /home/ubuntu/app
-          cat .env
 
           # Stop and remove old container
           docker compose down api || true
@@ -240,5 +239,5 @@ jobs:
 
       - name: Health check
         run: |
-          sleep 30
+          sleep 10
           curl -f ${{ vars.BACKEND_DOMAIN }}/api/health || exit 1
