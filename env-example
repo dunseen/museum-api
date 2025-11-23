@@ -6,6 +6,8 @@ APP_FALLBACK_LANGUAGE=en
 APP_HEADER_LANGUAGE=x-custom-lang
 FRONTEND_DOMAIN=http://localhost:3333
 BACKEND_DOMAIN=http://localhost:3333
+# Observability
+SENTRY_DSN=
 
 # Request Logging - Set to 'true' to enable detailed HTTP request logging
 ENABLE_REQUEST_LOGGING=true

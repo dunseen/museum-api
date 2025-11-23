@@ -30,15 +30,11 @@ export class LoggingInterceptor implements NestInterceptor {
     }
 
     const request = context.switchToHttp().getRequest();
-    const { method, url, body } = request;
+    const { method, url } = request;
     const userId = request.user?.id || 'Unknown';
     const now = Date.now();
 
     this.logger.debug(`→ ${method} ${url} | User: ${userId}`);
-
-    if (Object.keys(body).length > 0) {
-      this.logger.debug(`Request Body: ${JSON.stringify(body, null, 2)}`);
-    }
 
     return next.handle().pipe(
       tap(() => {

@@ -1,25 +1,26 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { UsersModule } from './users/users.module';
-import { FilesModule } from './files/files.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { HeaderResolver } from 'nestjs-i18n';
+import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
+import path from 'path';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
-import databaseConfig from './database/config/database.config';
 import authConfig from './auth/config/auth.config';
 import appConfig from './config/app.config';
-import mailConfig from './mail/config/mail.config';
-import fileConfig from './files/config/file.config';
-import path from 'path';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
-import { HeaderResolver } from 'nestjs-i18n';
-import { TypeOrmConfigService } from './database/typeorm-config.service';
-import { MailModule } from './mail/mail.module';
-import { HomeModule } from './home/home.module';
-import { DataSource, DataSourceOptions } from 'typeorm';
 import { AllConfigType } from './config/config.type';
-import { SessionModule } from './session/session.module';
+import databaseConfig from './database/config/database.config';
+import { TypeOrmConfigService } from './database/typeorm-config.service';
+import fileConfig from './files/config/file.config';
+import { FilesModule } from './files/files.module';
+import { HomeModule } from './home/home.module';
+import mailConfig from './mail/config/mail.config';
+import { MailModule } from './mail/mail.module';
 import { MailerModule } from './mailer/mailer.module';
+import { SessionModule } from './session/session.module';
+import { UsersModule } from './users/users.module';
 
 const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
   useClass: TypeOrmConfigService,
@@ -38,20 +39,21 @@ import { CharacteristicsModule } from './characteristics/characteristics.module'
 
 import { CharacteristicTypesModule } from './characteristic-types/characteristic-types.module';
 
-import { PostsModule } from './posts/posts.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { PostsModule } from './posts/posts.module';
 
 import { StatesModule } from './states/states.module';
 
 import { CitiesModule } from './cities/cities.module';
 
-import { SpecialistsModule } from './specialists/specialists.module';
 import { ChangeLogsModule } from './change-logs/change-logs.module';
 import { ChangeRequestsModule } from './change-requests/change-requests.module';
+import { SpecialistsModule } from './specialists/specialists.module';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
-    SpecialistsModule,
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, authConfig, appConfig, mailConfig, fileConfig],
@@ -89,6 +91,7 @@ import { ChangeRequestsModule } from './change-requests/change-requests.module';
     HierarchiesModule,
     TaxonsModule,
     SpeciesModule,
+    SpecialistsModule,
     UsersModule,
     FilesModule,
     AuthModule,
@@ -100,6 +103,12 @@ import { ChangeRequestsModule } from './change-requests/change-requests.module';
     StatesModule,
     ChangeLogsModule,
     ChangeRequestsModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
   ],
 })
 export class AppModule {}

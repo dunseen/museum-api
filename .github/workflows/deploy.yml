@@ -163,6 +163,7 @@ jobs:
           APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}
           FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
           BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
+          SENTRY_DSN=${{ secrets.SENTRY_DSN }}
           DATABASE_HOST=${{ vars.DATABASE_HOST }}
           DATABASE_PORT=${{ vars.DATABASE_PORT }}
           DATABASE_TYPE=${{ vars.DATABASE_TYPE }}

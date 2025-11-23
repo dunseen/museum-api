@@ -51,6 +51,10 @@ class EnvironmentVariablesValidator {
   @IsString()
   @IsOptional()
   ENABLE_REQUEST_LOGGING: string;
+
+  @IsString()
+  @IsOptional()
+  SENTRY_DSN: string;
 }
 
 export default registerAs<AppConfig>('app', () => {
@@ -71,5 +75,6 @@ export default registerAs<AppConfig>('app', () => {
     fallbackLanguage: process.env.APP_FALLBACK_LANGUAGE || 'en',
     headerLanguage: process.env.APP_HEADER_LANGUAGE || 'x-custom-lang',
     enableRequestLogging: process.env.ENABLE_REQUEST_LOGGING === 'true',
+    sentryDsn: process.env.SENTRY_DSN || '',
   };
 });

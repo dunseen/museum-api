@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import './instrument';
+
 import {
   ClassSerializerInterceptor,
   ValidationPipe,
