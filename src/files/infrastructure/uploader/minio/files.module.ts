@@ -8,10 +8,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FilesMinioService } from './files.service';
 import { RelationalFilePersistenceModule } from '../../persistence/relational/relational-persistence.module';
 import { AllConfigType } from '../../../../config/config.type';
-import { MinioStorageEngine } from '@namatery/multer-minio';
+import { MinioStorageEngine } from './minio-storage.engine';
 import { MulterModule } from '@nestjs/platform-express';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { MinioModule, MinioService } from 'nestjs-minio-client';
+import { MinioBucketInitializerService } from './minio-bucket-initializer.service';
 
 const infrastructurePersistenceModule = RelationalFilePersistenceModule;
 
@@ -42,7 +43,7 @@ const infrastructurePersistenceModule = RelationalFilePersistenceModule;
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService, MinioService],
-      useFactory: async (
+      useFactory: (
         configService: ConfigService<AllConfigType>,
         minioService: MinioService,
       ) => {
@@ -50,42 +51,11 @@ const infrastructurePersistenceModule = RelationalFilePersistenceModule;
           infer: true,
         });
 
-        try {
-          const exists = await minioService.client.bucketExists(bucketName);
-          if (!exists) {
-            await minioService.client.makeBucket(bucketName);
-            console.log(`✅ Bucket "${bucketName}" created successfully.`);
-            const policy = {
-              Version: '2012-10-17',
-              Statement: [
-                {
-                  Effect: 'Allow',
-                  Principal: '*',
-                  Action: ['s3:GetObject'],
-                  Resource: [`arn:aws:s3:::${bucketName}/*`],
-                },
-              ],
-            };
-
-            await minioService.client.setBucketPolicy(
-              bucketName,
-              JSON.stringify(policy),
-            );
-            console.log(`✅ Bucket "${bucketName}" policy set successfully.`);
-          } else {
-            console.log(`⚡ Bucket "${bucketName}" already exists.`);
-          }
-        } catch (error) {
-          console.error('❌ Error ensuring bucket exists:', error);
-        }
-
         const storage = new MinioStorageEngine(
           minioService.client as any,
           bucketName,
           {
-            bucket: configService.getOrThrow('file.minio.bucket', {
-              infer: true,
-            }),
+            bucket: bucketName,
             path: '',
             object: {
               useOriginalFilename: false,
@@ -124,7 +94,7 @@ const infrastructurePersistenceModule = RelationalFilePersistenceModule;
     }),
   ],
   controllers: [],
-  providers: [FilesMinioService],
+  providers: [FilesMinioService, MinioBucketInitializerService],
   exports: [FilesMinioService],
 })
 export class FileMinioModule {}
