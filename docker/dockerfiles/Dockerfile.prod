@@ -3,9 +3,8 @@ FROM node:20.16.0-alpine AS dependencies
 
 WORKDIR /app
 COPY package*.json ./
-# Install production dependencies without running lifecycle scripts (skip husky/is-ci prepare hooks)
-RUN npm ci --only=production --ignore-scripts && \
-    npm cache clean --force
+
+RUN npm ci && npm cache clean --force
 
 # Stage 2: Build
 FROM node:20.16.0-alpine AS build
