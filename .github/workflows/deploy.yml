@@ -7,6 +7,21 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  IMAGE_TAG: ${{ github.sha }}
+  NODE_VERSION: 20
+  REGISTRY_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/museum-api
+  STACK_NAME: museum
+
+defaults:
+  run:
+    shell: bash
 
 # Cancel in-progress runs for the same workflow and branch
 concurrency:
@@ -18,6 +33,7 @@ jobs:
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -39,6 +55,7 @@ jobs:
     name: Build Application
     runs-on: ubuntu-latest
     needs: [lint]
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,7 +63,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -98,6 +115,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      image_tag: ${{ steps.image_tag.outputs.value }}
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -115,13 +135,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/museum-api
+          images: ${{ env.REGISTRY_IMAGE }}
           tags: |
+            type=raw,value=${{ env.IMAGE_TAG }}
             type=ref,event=branch
-            type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -130,8 +151,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/arm64
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/museum-api:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/museum-api:buildcache,mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache,mode=max
+
+      - name: Export image tag
+        id: image_tag
+        run: echo "value=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
   # Job 6: Deploy to VPS (only on push to main)
   deploy:
@@ -139,23 +164,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker-build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 20
     environment:
       name: production
       url: ${{ vars.BACKEND_DOMAIN }}
+    env:
+      IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up SSH Connection
+      - name: Write deployment env file
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Create `.env` file
-        run: |
-          cat > .env <<EOT
+          cat <<'EOF' > .deploy.env
           NODE_ENV=${{ vars.NODE_ENV }}
           APP_PORT=${{ vars.APP_PORT }}
           APP_NAME=${{ vars.APP_NAME }}
@@ -193,6 +214,8 @@ jobs:
           MAIL_DEFAULT_EMAIL=${{ vars.MAIL_DEFAULT_EMAIL }}
           MAIL_DEFAULT_NAME=${{ vars.MAIL_DEFAULT_NAME }}
           MAIL_CLIENT_PORT=${{ vars.MAIL_CLIENT_PORT }}
+          REGISTRY_IMAGE=${{ env.REGISTRY_IMAGE }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
           AUTH_JWT_SECRET=${{ secrets.AUTH_JWT_SECRET }}
           AUTH_JWT_TOKEN_EXPIRES_IN=${{ vars.AUTH_JWT_TOKEN_EXPIRES_IN }}
           AUTH_REFRESH_SECRET=${{ secrets.AUTH_REFRESH_SECRET }}
@@ -201,45 +224,21 @@ jobs:
           AUTH_FORGOT_TOKEN_EXPIRES_IN=${{ vars.AUTH_FORGOT_TOKEN_EXPIRES_IN }}
           AUTH_CONFIRM_EMAIL_SECRET=${{ secrets.AUTH_CONFIRM_EMAIL_SECRET }}
           AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${{ vars.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN }}
-          EOT
-
-      - name: Copy files to VPS
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.VPS_HOST }} "mkdir -p /home/ubuntu/app"
-          scp -i ~/.ssh/id_rsa .env ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/.env
-          scp -i ~/.ssh/id_rsa docker/compose/docker-compose.prod.yml ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/docker-compose.yml
-
-      - name: Deploy to VPS
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.VPS_HOST }} << 'EOF'
-          set -e
-
-          # Login to Docker Hub
-          echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-
-          # Pull latest image
-          docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/museum-api:latest
-
-          # Navigate to app directory
-          cd /home/ubuntu/app
-
-          # Stop and remove old container
-          docker compose down api || true
-
-          # Start new container
-          docker compose up api -d
-
-          # Wait for API to be ready
-          echo "Waiting for API to start..."
-          sleep 10
-
-          # Clean up old images
-          docker image prune -af --filter "until=24h"
-
-          echo "Deployment successful!"
           EOF
 
-      - name: Health check
-        run: |
-          sleep 20
-          curl -f ${{ vars.BACKEND_DOMAIN }}/api/health || exit 1
+      - name: Deploy stack (cssnr/stack-deploy-action)
+        uses: cssnr/stack-deploy-action@v1
+        with:
+          name: ${{ env.STACK_NAME }}
+          file: docker/compose/docker-stack.prod.yml
+          mode: swarm
+          host: ${{ secrets.VPS_HOST }}
+          port: 22
+          user: ubuntu
+          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          env_file: .deploy.env
+          prune: true
+          registry_auth: true
+          registry_host: index.docker.io
+          registry_user: ${{ secrets.DOCKER_HUB_USERNAME }}
+          registry_pass: ${{ secrets.DOCKER_HUB_PASSWORD }}

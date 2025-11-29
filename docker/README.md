@@ -55,6 +55,8 @@ Features:
 
 ### Production
 
+#### Option 1: Docker Compose (Single Server)
+
 Build and run production containers:
 
 ```bash
@@ -67,7 +69,31 @@ Or manually:
 docker compose -f docker/compose/docker-compose.prod.yml up -d
 ```
 
-Features:
+#### Option 2: Docker Stack (Swarm Mode - Recommended for VPS)
+
+Deploy to Docker Swarm for better orchestration:
+
+```bash
+# Initialize swarm (first time only)
+docker swarm init
+
+# Deploy the stack
+npm run docker:stack:deploy
+
+# Update API service
+npm run docker:stack:update
+
+# Remove the stack
+npm run docker:stack:remove
+```
+
+Or manually:
+
+```bash
+docker stack deploy -c docker/compose/docker-stack.prod.yml museum
+```
+
+Features (Stack):
 
 - ✅ Multi-stage optimized builds
 - ✅ Nginx Proxy Manager for reverse proxy

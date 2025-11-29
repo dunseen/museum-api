@@ -1,0 +1,207 @@
+# Docker Stack Compose for Production Deployment
+# Usage: docker stack deploy -c docker/compose/docker-stack.prod.yml museum
+
+version: '3.8'
+
+services:
+  nginx-proxy:
+    image: jc21/nginx-proxy-manager:latest
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - nginx_data:/data
+      - nginx_letsencrypt:/etc/letsencrypt
+    networks:
+      - museum-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
+
+  postgres:
+    image: kartoza/postgis:16-3.4--v2023.11.04
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - '${DATABASE_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - museum-internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME}']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - museum-internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - '${MINIO_PORT:-9000}:9000'
+      - '${MINIO_WEB_PORT:-9001}:9001'
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - museum-internal
+      - museum-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 40s
+
+  api:
+    image: ${REGISTRY_IMAGE:-davys/museum-api}:${IMAGE_TAG:-latest}
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - APP_PORT=${APP_PORT}
+      - APP_NAME=${APP_NAME}
+      - API_PREFIX=${API_PREFIX}
+      - APP_FALLBACK_LANGUAGE=${APP_FALLBACK_LANGUAGE}
+      - APP_HEADER_LANGUAGE=${APP_HEADER_LANGUAGE}
+      - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
+      - BACKEND_DOMAIN=${BACKEND_DOMAIN}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      - MINIO_ENDPOINT=minio
+      - MINIO_PUBLIC_ENDPOINT=${MINIO_PUBLIC_ENDPOINT}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_WEB_PORT=${MINIO_WEB_PORT}
+      - MINIO_SSL=${MINIO_SSL}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_SERVICE=${MAIL_SERVICE}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_IGNORE_TLS=${MAIL_IGNORE_TLS}
+      - MAIL_SECURE=${MAIL_SECURE}
+      - MAIL_REQUIRE_TLS=${MAIL_REQUIRE_TLS}
+      - MAIL_DEFAULT_EMAIL=${MAIL_DEFAULT_EMAIL}
+      - MAIL_DEFAULT_NAME=${MAIL_DEFAULT_NAME}
+      - MAIL_CLIENT_PORT=${MAIL_CLIENT_PORT}
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET}
+      - AUTH_JWT_TOKEN_EXPIRES_IN=${AUTH_JWT_TOKEN_EXPIRES_IN}
+      - AUTH_REFRESH_SECRET=${AUTH_REFRESH_SECRET}
+      - AUTH_REFRESH_TOKEN_EXPIRES_IN=${AUTH_REFRESH_TOKEN_EXPIRES_IN}
+      - AUTH_FORGOT_SECRET=${AUTH_FORGOT_SECRET}
+      - AUTH_FORGOT_TOKEN_EXPIRES_IN=${AUTH_FORGOT_TOKEN_EXPIRES_IN}
+      - AUTH_CONFIRM_EMAIL_SECRET=${AUTH_CONFIRM_EMAIL_SECRET}
+      - AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN}
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    networks:
+      - museum-internal
+      - museum-public
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3000/api/health',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  nginx_data:
+    driver: local
+  nginx_letsencrypt:
+    driver: local
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  museum-public:
+    driver: overlay
+    attachable: true
+  museum-internal:
+    driver: overlay
+    attachable: true
