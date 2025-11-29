@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -64,7 +64,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -173,13 +173,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Write deployment env file
         run: |
-          cat <<'EOF' > .deploy.env
+          cat > .deploy.env <<'EOF'
           NODE_ENV=${{ vars.NODE_ENV }}
           APP_PORT=${{ vars.APP_PORT }}
-          APP_NAME=${{ vars.APP_NAME }}
+          APP_NAME="${{ vars.APP_NAME }}"
           API_PREFIX=${{ vars.API_PREFIX }}
           APP_FALLBACK_LANGUAGE=${{ vars.APP_FALLBACK_LANGUAGE }}
           APP_HEADER_LANGUAGE=${{ vars.APP_HEADER_LANGUAGE }}
