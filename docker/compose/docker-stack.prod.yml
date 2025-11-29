@@ -149,7 +149,7 @@ services:
       - AUTH_CONFIRM_EMAIL_SECRET=${AUTH_CONFIRM_EMAIL_SECRET}
       - AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN}
     ports:
-      - '${APP_PORT:-3000}:3000'
+      - '${APP_PORT:-3333}:3333'
     networks:
       - museum-internal
       - museum-public
@@ -181,7 +181,7 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://localhost:3000/api/health',
+          'http://localhost:3333/api/health',
         ]
       interval: 30s
       timeout: 10s
