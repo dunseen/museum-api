@@ -1,0 +1,32 @@
+# Test Dockerfile - for E2E and integration tests
+FROM node:20.16.0-alpine
+
+RUN apk add --no-cache bash
+
+WORKDIR /app
+
+# Install global dependencies
+RUN npm i -g @nestjs/cli typescript ts-node
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Copy startup script
+COPY docker/scripts/startup-test.sh /scripts/
+
+RUN chmod +x /scripts/startup-test.sh && \
+    sed -i 's/\r//g' /scripts/startup-test.sh
+
+# Create empty .env for build
+RUN echo "" > .env
+
+# Build the application
+RUN npm run build
+
+ENV NODE_ENV=test
+
+CMD ["/scripts/startup-test.sh"]

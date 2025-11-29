@@ -125,6 +125,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: docker/dockerfiles/Dockerfile.prod
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -206,7 +207,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.VPS_HOST }} "mkdir -p /home/ubuntu/app"
           scp -i ~/.ssh/id_rsa .env ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/.env
-          scp -i ~/.ssh/id_rsa docker-compose.yaml ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/docker-compose.yaml
+          scp -i ~/.ssh/id_rsa docker/compose/docker-compose.prod.yml ubuntu@${{ secrets.VPS_HOST }}:/home/ubuntu/app/docker-compose.yml
 
       - name: Deploy to VPS
         run: |

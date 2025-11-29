@@ -1,0 +1,80 @@
+# Test/CI Docker Compose
+# Usage: docker compose -f docker/compose/docker-compose.test.yml up --abort-on-container-exit
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: museum-db-test
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - museum-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: museum-cache-test
+    networks:
+      - museum-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: museum-storage-test
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data
+    tmpfs:
+      - /data
+    networks:
+      - museum-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  maildev:
+    image: maildev/maildev:2.1.0
+    container_name: museum-maildev-test
+    networks:
+      - museum-test-network
+
+  api:
+    build:
+      context: ../..
+      dockerfile: docker/dockerfiles/Dockerfile.test
+    container_name: museum-api-test
+    env_file:
+      - ../../env-example
+    volumes:
+      - ../../test:/app/test
+    networks:
+      - museum-test-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      maildev:
+        condition: service_started
+
+networks:
+  museum-test-network:
+    name: museum-test-network
+    driver: bridge
