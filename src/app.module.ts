@@ -57,7 +57,7 @@ import { APP_FILTER } from '@nestjs/core';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, authConfig, appConfig, mailConfig, fileConfig],
-      envFilePath: ['.env'],
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     EventEmitterModule.forRoot(),
     I18nModule.forRootAsync({
