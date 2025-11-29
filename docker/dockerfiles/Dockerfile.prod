@@ -29,6 +29,10 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/package*.json ./
 
+# Copy runtime assets and mail templates needed at runtime
+COPY --from=build /app/assets ./assets
+COPY --from=build /app/src/mail/mail-templates ./src/mail/mail-templates
+
 # Copy startup script
 COPY docker/scripts/startup-prod.sh /scripts/
 
