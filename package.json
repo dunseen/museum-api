@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "typeorm": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "docker:dev": "docker compose -f docker/compose/docker-compose.dev.yml up",
     "docker:dev:build": "docker compose -f docker/compose/docker-compose.dev.yml up --build",
     "docker:dev:down": "docker compose -f docker/compose/docker-compose.dev.yml down",
@@ -42,7 +42,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "env-cmd jest --config ./test/jest-e2e.json",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "is-ci || husky",
     "release": "release-it",
     "reset": "npm run schema:drop && npm run migration:run && npm run seed:run"
@@ -106,7 +106,6 @@
     "@types/supertest": "6.0.2",
     "@typescript-eslint/eslint-plugin": "8.1.0",
     "@typescript-eslint/parser": "8.1.0",
-    "env-cmd": "10.1.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.2.1",
