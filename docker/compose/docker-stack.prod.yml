@@ -32,8 +32,6 @@ services:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
-    ports:
-      - '${DATABASE_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -77,9 +75,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    ports:
-      - '${MINIO_PORT:-9000}:9000'
-      - '${MINIO_WEB_PORT:-9001}:9001'
+
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -148,8 +144,6 @@ services:
       - AUTH_FORGOT_TOKEN_EXPIRES_IN=${AUTH_FORGOT_TOKEN_EXPIRES_IN}
       - AUTH_CONFIRM_EMAIL_SECRET=${AUTH_CONFIRM_EMAIL_SECRET}
       - AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=${AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN}
-    ports:
-      - '${APP_PORT:-3333}:3333'
     networks:
       - app_net
     deploy:
