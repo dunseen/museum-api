@@ -14,7 +14,8 @@ services:
       - nginx_data:/data
       - nginx_letsencrypt:/etc/letsencrypt
     networks:
-      - museum-public
+      - edge_net
+      - app_net
     deploy:
       replicas: 1
       restart_policy:
@@ -36,7 +37,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - museum-internal
+      - app_net
     deploy:
       replicas: 1
       restart_policy:
@@ -56,7 +57,7 @@ services:
   redis:
     image: redis:7-alpine
     networks:
-      - museum-internal
+      - app_net
     deploy:
       replicas: 1
       restart_policy:
@@ -83,8 +84,7 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
-      - museum-internal
-      - museum-public
+      - app_net
     deploy:
       replicas: 1
       restart_policy:
@@ -151,8 +151,7 @@ services:
     ports:
       - '${APP_PORT:-3333}:3333'
     networks:
-      - museum-internal
-      - museum-public
+      - app_net
     deploy:
       replicas: 2
       update_config:
@@ -199,9 +198,9 @@ volumes:
     driver: local
 
 networks:
-  museum-public:
+  edge_net:
     driver: overlay
     attachable: true
-  museum-internal:
+  app_net:
     driver: overlay
     attachable: true
