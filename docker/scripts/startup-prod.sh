@@ -8,7 +8,7 @@ npm run migration:run:dist
 
 # Uncomment if/when you want automatic seeding
 # echo "Running database seeds..."
-npm run seed:run
+npm run seed:run:dist
 
 echo "Starting application..."
 npm run start:prod
