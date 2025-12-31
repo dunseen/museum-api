@@ -1,5 +1,5 @@
 # Stage 1: Dependencies
-FROM node:20.16.0-alpine AS dependencies
+FROM node:20.19.6-alpine AS dependencies
 
 WORKDIR /app
 COPY package*.json ./
@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm ci && npm cache clean --force
 
 # Stage 2: Build
-FROM node:20.16.0-alpine AS build
+FROM node:20.19.6-alpine AS build
 
 WORKDIR /app
 COPY package*.json ./
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Stage 3: Production
-FROM node:20.16.0-alpine AS production
+FROM node:20.19.6-alpine AS production
 
 RUN apk add --no-cache bash
 
