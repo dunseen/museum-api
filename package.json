@@ -105,7 +105,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/passport-anonymous": "1.0.5",
     "@types/passport-jwt": "4.0.1",
-    "@types/supertest": "6.0.2",
+    "@types/supertest": "6.0.3",
     "@typescript-eslint/eslint-plugin": "8.1.0",
     "@typescript-eslint/parser": "8.1.0",
     "eslint": "8.57.0",
